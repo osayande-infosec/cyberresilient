@@ -1,0 +1,40 @@
+{
+  "family": "durhamresilient",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::181957456121:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "durhamresilient",
+      "image": "181957456121.dkr.ecr.us-east-1.amazonaws.com/durhamshield:latest",
+      "portMappings": [
+        {
+          "containerPort": 8501,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:8501/_stcore/health || exit 1"],
+        "interval": 30,
+        "timeout": 10,
+        "retries": 3,
+        "startPeriod": 15
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/durhamresilient",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "environment": [
+        {"name": "STREAMLIT_SERVER_HEADLESS", "value": "true"},
+        {"name": "STREAMLIT_BROWSER_GATHER_USAGE_STATS", "value": "false"}
+      ]
+    }
+  ]
+}

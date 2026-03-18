@@ -1,0 +1,167 @@
+[
+  {
+    "id": "POL-001",
+    "name": "Information Security Policy",
+    "owner": "CISO",
+    "version": "3.2",
+    "status": "Current",
+    "last_reviewed": "2025-11-01",
+    "next_review": "2026-11-01",
+    "approved_by": "Director, IT Services",
+    "description": "Overarching policy establishing information security governance, roles, and responsibilities across the Region."
+  },
+  {
+    "id": "POL-002",
+    "name": "Acceptable Use Policy",
+    "owner": "IT Services Manager",
+    "version": "4.0",
+    "status": "Current",
+    "last_reviewed": "2026-01-15",
+    "next_review": "2027-01-15",
+    "approved_by": "Director, IT Services",
+    "description": "Defines acceptable use of Region-owned technology resources including devices, email, internet, and cloud services."
+  },
+  {
+    "id": "POL-003",
+    "name": "Incident Response Policy",
+    "owner": "Senior Cybersecurity Specialist",
+    "version": "2.1",
+    "status": "Current",
+    "last_reviewed": "2025-09-20",
+    "next_review": "2026-09-20",
+    "approved_by": "CISO",
+    "description": "Establishes the framework for detecting, responding to, and recovering from cybersecurity incidents."
+  },
+  {
+    "id": "POL-004",
+    "name": "Disaster Recovery & Business Continuity Policy",
+    "owner": "Senior Cybersecurity Specialist",
+    "version": "2.0",
+    "status": "Current",
+    "last_reviewed": "2025-10-05",
+    "next_review": "2026-10-05",
+    "approved_by": "CAO",
+    "description": "Defines requirements for DR/BC planning, testing, and maintenance for all critical municipal systems."
+  },
+  {
+    "id": "POL-005",
+    "name": "Access Control & Identity Management Policy",
+    "owner": "IAM Lead",
+    "version": "3.0",
+    "status": "Current",
+    "last_reviewed": "2026-02-10",
+    "next_review": "2027-02-10",
+    "approved_by": "CISO",
+    "description": "Establishes standards for user provisioning, authentication, authorization, and privileged access management."
+  },
+  {
+    "id": "POL-006",
+    "name": "Data Classification & Handling Policy",
+    "owner": "Privacy Officer",
+    "version": "1.3",
+    "status": "Under Review",
+    "last_reviewed": "2025-03-15",
+    "next_review": "2026-03-15",
+    "approved_by": "Pending",
+    "description": "Defines data classification levels (Public, Internal, Confidential, Restricted) and handling requirements for each."
+  },
+  {
+    "id": "POL-007",
+    "name": "Vendor & Third-Party Risk Management Policy",
+    "owner": "IT Procurement",
+    "version": "1.1",
+    "status": "Under Review",
+    "last_reviewed": "2025-04-20",
+    "next_review": "2026-04-20",
+    "approved_by": "Pending",
+    "description": "Requirements for assessing, monitoring, and managing cybersecurity risks from third-party vendors and service providers."
+  },
+  {
+    "id": "POL-008",
+    "name": "Cloud Security Policy",
+    "owner": "Cloud Security Architect",
+    "version": "2.0",
+    "status": "Current",
+    "last_reviewed": "2025-12-01",
+    "next_review": "2026-12-01",
+    "approved_by": "CISO",
+    "description": "Security requirements for cloud service adoption, configuration, monitoring, and data protection in Azure, AWS, and SaaS."
+  },
+  {
+    "id": "POL-009",
+    "name": "Network Security & Segmentation Policy",
+    "owner": "Network Security Lead",
+    "version": "1.5",
+    "status": "Current",
+    "last_reviewed": "2025-08-10",
+    "next_review": "2026-08-10",
+    "approved_by": "CISO",
+    "description": "Standards for network architecture, segmentation, firewall rules, VPN, and OT/IT network boundaries."
+  },
+  {
+    "id": "POL-010",
+    "name": "Vulnerability Management Policy",
+    "owner": "Security Operations",
+    "version": "2.2",
+    "status": "Current",
+    "last_reviewed": "2026-01-05",
+    "next_review": "2027-01-05",
+    "approved_by": "CISO",
+    "description": "Defines vulnerability scanning cadence, remediation SLAs, exception process, and reporting requirements."
+  },
+  {
+    "id": "POL-011",
+    "name": "Security Awareness & Training Policy",
+    "owner": "Senior Cybersecurity Specialist",
+    "version": "2.0",
+    "status": "Current",
+    "last_reviewed": "2025-07-15",
+    "next_review": "2026-07-15",
+    "approved_by": "Director, IT Services",
+    "description": "Mandatory security training requirements, phishing simulation program, and role-based training for privileged users."
+  },
+  {
+    "id": "POL-012",
+    "name": "MFIPPA Privacy & Records Policy",
+    "owner": "Privacy Officer",
+    "version": "3.1",
+    "status": "Current",
+    "last_reviewed": "2025-11-20",
+    "next_review": "2026-11-20",
+    "approved_by": "CAO",
+    "description": "Compliance with Municipal Freedom of Information and Protection of Privacy Act for all personal information handling."
+  },
+  {
+    "id": "POL-013",
+    "name": "Encryption & Cryptographic Standards Policy",
+    "owner": "Security Architecture",
+    "version": "1.2",
+    "status": "Under Review",
+    "last_reviewed": "2025-02-28",
+    "next_review": "2026-02-28",
+    "approved_by": "Pending",
+    "description": "Standards for encryption at rest, in transit, key management, and certificate lifecycle management."
+  },
+  {
+    "id": "POL-014",
+    "name": "Mobile Device & BYOD Policy",
+    "owner": "IT Services Manager",
+    "version": "2.1",
+    "status": "Current",
+    "last_reviewed": "2025-10-15",
+    "next_review": "2026-10-15",
+    "approved_by": "Director, IT Services",
+    "description": "Security requirements for Region-issued and personal devices accessing municipal systems and data."
+  },
+  {
+    "id": "POL-015",
+    "name": "OT/ICS Security Policy",
+    "owner": "OT Security Lead",
+    "version": "1.0",
+    "status": "Draft",
+    "last_reviewed": null,
+    "next_review": "2026-06-30",
+    "approved_by": "Pending",
+    "description": "Security requirements specific to operational technology and industrial control systems in water, wastewater, and traffic."
+  }
+]

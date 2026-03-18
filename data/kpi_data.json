@@ -1,0 +1,59 @@
+{
+  "overall_security_score": 78,
+  "kpi_metrics": [
+    {"label": "MTTD", "value": 2.4, "unit": "h", "trend": "-0.3h", "lower_is_better": true},
+    {"label": "MTTR", "value": 6.8, "unit": "h", "trend": "-1.2h", "lower_is_better": true},
+    {"label": "Critical Vulns", "value": 7, "unit": "", "trend": "-2", "lower_is_better": true},
+    {"label": "Patch Compliance", "value": 91.3, "unit": "%", "trend": "+3.1%", "lower_is_better": false},
+    {"label": "DR Plans Tested", "value": 75, "unit": "%", "trend": "+10%", "lower_is_better": false},
+    {"label": "Phishing Click Rate", "value": 4.2, "unit": "%", "trend": "-1.8%", "lower_is_better": true},
+    {"label": "Active Incidents", "value": 2, "unit": "", "trend": "-1", "lower_is_better": true},
+    {"label": "Maturity Score", "value": 3.4, "unit": "/5", "trend": "+0.3", "lower_is_better": false}
+  ],
+  "monthly_incidents": [
+    {"month": "2025-04", "count": 12, "critical": 1},
+    {"month": "2025-05", "count": 9, "critical": 0},
+    {"month": "2025-06", "count": 15, "critical": 2},
+    {"month": "2025-07", "count": 8, "critical": 0},
+    {"month": "2025-08", "count": 11, "critical": 1},
+    {"month": "2025-09", "count": 7, "critical": 0},
+    {"month": "2025-10", "count": 14, "critical": 3},
+    {"month": "2025-11", "count": 10, "critical": 1},
+    {"month": "2025-12", "count": 6, "critical": 0},
+    {"month": "2026-01", "count": 13, "critical": 2},
+    {"month": "2026-02", "count": 9, "critical": 1},
+    {"month": "2026-03", "count": 5, "critical": 0}
+  ],
+  "vulnerability_aging": [
+    {"age_bucket": "0-7 days", "count": 23},
+    {"age_bucket": "8-14 days", "count": 15},
+    {"age_bucket": "15-30 days", "count": 11},
+    {"age_bucket": "31-60 days", "count": 7},
+    {"age_bucket": "61-90 days", "count": 4},
+    {"age_bucket": "90+ days", "count": 3}
+  ],
+  "compliance_trend": [
+    {"quarter": "Q2 2025", "nist_csf_pct": 63, "iso27001_pct": 58},
+    {"quarter": "Q3 2025", "nist_csf_pct": 69, "iso27001_pct": 64},
+    {"quarter": "Q4 2025", "nist_csf_pct": 75, "iso27001_pct": 70},
+    {"quarter": "Q1 2026", "nist_csf_pct": 81, "iso27001_pct": 76}
+  ],
+  "threat_categories": [
+    {"category": "Phishing / Social Engineering", "count": 38, "severity": "High"},
+    {"category": "Ransomware / Malware", "count": 12, "severity": "Critical"},
+    {"category": "Insider Threat", "count": 5, "severity": "High"},
+    {"category": "DDoS", "count": 3, "severity": "Medium"},
+    {"category": "Credential Compromise", "count": 18, "severity": "High"},
+    {"category": "Vulnerability Exploitation", "count": 9, "severity": "Medium"},
+    {"category": "OT / SCADA Targeting", "count": 4, "severity": "Critical"}
+  ],
+  "department_metrics": [
+    {"department": "Public Works", "risk_score": 72, "compliance_pct": 68, "open_incidents": 4, "patch_compliance_pct": 88, "training_completion_pct": 82},
+    {"department": "Public Health", "risk_score": 65, "compliance_pct": 74, "open_incidents": 2, "patch_compliance_pct": 94, "training_completion_pct": 91},
+    {"department": "Finance", "risk_score": 58, "compliance_pct": 81, "open_incidents": 1, "patch_compliance_pct": 96, "training_completion_pct": 95},
+    {"department": "IT Services", "risk_score": 45, "compliance_pct": 88, "open_incidents": 8, "patch_compliance_pct": 98, "training_completion_pct": 97},
+    {"department": "Water & Wastewater", "risk_score": 82, "compliance_pct": 62, "open_incidents": 3, "patch_compliance_pct": 79, "training_completion_pct": 76},
+    {"department": "Social Services", "risk_score": 61, "compliance_pct": 77, "open_incidents": 2, "patch_compliance_pct": 92, "training_completion_pct": 88},
+    {"department": "Planning & Development", "risk_score": 55, "compliance_pct": 79, "open_incidents": 1, "patch_compliance_pct": 93, "training_completion_pct": 85}
+  ]
+}

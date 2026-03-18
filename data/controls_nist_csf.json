@@ -1,0 +1,68 @@
+{
+  "nist_csf": {
+    "framework": "NIST Cybersecurity Framework v2.0",
+    "functions": {
+      "Govern": {
+        "description": "Establish and monitor cybersecurity risk management strategy, expectations, and policy",
+        "categories": {
+          "GV.OC": {"name": "Organizational Context", "status": "Implemented", "evidence": "Municipal risk register maintained, annual review"},
+          "GV.RM": {"name": "Risk Management Strategy", "status": "Implemented", "evidence": "Enterprise risk framework approved by Council"},
+          "GV.RR": {"name": "Roles, Responsibilities & Authorities", "status": "Implemented", "evidence": "RACI matrices for all Tier 1 systems"},
+          "GV.PO": {"name": "Policy", "status": "Partial", "evidence": "12 of 15 policies current — 3 under review"},
+          "GV.OV": {"name": "Oversight", "status": "Partial", "evidence": "Quarterly reporting to Director — monthly cadence proposed"},
+          "GV.SC": {"name": "Cybersecurity Supply Chain Risk Mgmt", "status": "Partial", "evidence": "Vendor assessment program covers top 20 vendors — expansion needed"}
+        }
+      },
+      "Identify": {
+        "description": "Understand organizational context and cybersecurity risk to systems, assets, and data",
+        "categories": {
+          "ID.AM": {"name": "Asset Management", "status": "Partial", "evidence": "CMDB covers 85% of IT assets — OT asset inventory in progress"},
+          "ID.RA": {"name": "Risk Assessment", "status": "Implemented", "evidence": "Annual risk assessment + quarterly reviews"},
+          "ID.IM": {"name": "Improvement", "status": "Partial", "evidence": "Lessons learned tracked but improvement metrics not formalized"}
+        }
+      },
+      "Protect": {
+        "description": "Use safeguards to manage cybersecurity risks",
+        "categories": {
+          "PR.AA": {"name": "Identity Mgmt, Auth & Access Control", "status": "Implemented", "evidence": "Azure AD + MFA + Conditional Access + PAM"},
+          "PR.AT": {"name": "Awareness & Training", "status": "Implemented", "evidence": "Quarterly phishing sims, annual security training, new-hire module"},
+          "PR.DS": {"name": "Data Security", "status": "Partial", "evidence": "Encryption at rest for databases — DLP partially deployed"},
+          "PR.PS": {"name": "Platform Security", "status": "Partial", "evidence": "CIS benchmarks applied to 70% of servers — hardening gaps on legacy"},
+          "PR.IR": {"name": "Technology Infrastructure Resilience", "status": "Partial", "evidence": "DR plans for Tier 1 — Tier 2/3 plans need updates"}
+        }
+      },
+      "Detect": {
+        "description": "Find and analyze possible cybersecurity attacks and compromises",
+        "categories": {
+          "DE.CM": {"name": "Continuous Monitoring", "status": "Implemented", "evidence": "SIEM (Sentinel) + EDR (Defender) + network monitoring"},
+          "DE.AE": {"name": "Adverse Event Analysis", "status": "Implemented", "evidence": "SOC triage process, threat intelligence feeds, alert correlation"}
+        }
+      },
+      "Respond": {
+        "description": "Take action regarding detected cybersecurity incidents",
+        "categories": {
+          "RS.MA": {"name": "Incident Management", "status": "Implemented", "evidence": "IR plan current, tested quarterly, RACI defined"},
+          "RS.AN": {"name": "Incident Analysis", "status": "Implemented", "evidence": "Forensic capability, root cause analysis process"},
+          "RS.CO": {"name": "Incident Reporting & Communication", "status": "Partial", "evidence": "Internal comms defined — external (IPC, provincial) needs formalization"},
+          "RS.MI": {"name": "Incident Mitigation", "status": "Implemented", "evidence": "Containment playbooks for top 5 scenarios"}
+        }
+      },
+      "Recover": {
+        "description": "Restore assets and operations affected by cybersecurity incidents",
+        "categories": {
+          "RC.RP": {"name": "Incident Recovery Plan Execution", "status": "Partial", "evidence": "DR plans tested for 6 of 8 Tier 1/2 systems"},
+          "RC.CO": {"name": "Incident Recovery Communication", "status": "Partial", "evidence": "Business unit notification process defined — public comms template needed"}
+        }
+      }
+    }
+  },
+  "iso27001": {
+    "framework": "ISO/IEC 27001:2022 Annex A",
+    "domains": [
+      {"id": "A.5", "name": "Organizational Controls", "total": 37, "implemented": 30, "partial": 5, "gap": 2},
+      {"id": "A.6", "name": "People Controls", "total": 8, "implemented": 7, "partial": 1, "gap": 0},
+      {"id": "A.7", "name": "Physical Controls", "total": 14, "implemented": 11, "partial": 2, "gap": 1},
+      {"id": "A.8", "name": "Technological Controls", "total": 34, "implemented": 25, "partial": 7, "gap": 2}
+    ]
+  }
+}
