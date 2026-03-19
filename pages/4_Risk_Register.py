@@ -197,11 +197,11 @@ with tab2:
 
     if submitted and vendor_name:
         assessment = run_architecture_assessment(answers)
-        st.session_state["arch_assessment"] = assessment
+        st.session_state["arch_assessment_result"] = assessment
         st.session_state["arch_vendor"] = vendor_name
 
-    if "arch_assessment" in st.session_state:
-        assessment = st.session_state["arch_assessment"]
+    if "arch_assessment_result" in st.session_state:
+        assessment = st.session_state["arch_assessment_result"]
         vendor = st.session_state["arch_vendor"]
 
         st.markdown("---")
