@@ -22,7 +22,7 @@ from utils.risk_calculator import (
 )
 from utils.pdf_generator import generate_risk_report
 
-st.set_page_config(page_title="Risk Register | DurhamShield", page_icon="⚠️", layout="wide")
+st.set_page_config(page_title="Risk Register | DurhamResilient", page_icon="⚠️", layout="wide")
 
 GOLD = "#C9A84C"
 
@@ -42,12 +42,11 @@ with tab1:
 
     # Summary metrics
     st.markdown("### Risk Summary")
-    m1, m2, m3, m4, m5 = st.columns(5)
+    m1, m2, m3, m4 = st.columns(4)
     m1.metric("Total Risks", summary["total"])
-    m2.metric("Extreme", summary["by_level"]["Extreme"], delta=None)
-    m3.metric("Critical", summary["by_level"]["Critical"], delta=None)
-    m4.metric("High", summary["by_level"]["High"], delta=None)
-    m5.metric("Medium + Low", summary["by_level"]["Medium"] + summary["by_level"]["Low"])
+    m2.metric("Very High", summary["by_level"]["Very High"], delta=None)
+    m3.metric("High", summary["by_level"]["High"], delta=None)
+    m4.metric("Medium + Low", summary["by_level"]["Medium"] + summary["by_level"]["Low"])
 
     st.markdown("---")
 
@@ -103,14 +102,14 @@ with tab1:
     with detail_col:
         st.markdown("### Risk Distribution")
         level_df = pd.DataFrame([
-            {"Level": k, "Count": v, "Color": {"Extreme": "#B71C1C", "Critical": "#F44336", "High": "#FF9800", "Medium": "#FFC107", "Low": "#4CAF50"}[k]}
+            {"Level": k, "Count": v, "Color": {"Very High": "#F44336", "High": "#FF9800", "Medium": "#FFC107", "Low": "#4CAF50"}[k]}
             for k, v in summary["by_level"].items() if v > 0
         ])
         if not level_df.empty:
             fig_dist = px.pie(
                 level_df, names="Level", values="Count",
                 color="Level",
-                color_discrete_map={"Extreme": "#B71C1C", "Critical": "#F44336", "High": "#FF9800", "Medium": "#FFC107", "Low": "#4CAF50"},
+                color_discrete_map={"Very High": "#F44336", "High": "#FF9800", "Medium": "#FFC107", "Low": "#4CAF50"},
                 hole=0.4,
             )
             fig_dist.update_layout(
@@ -131,7 +130,7 @@ with tab1:
     # Filters
     fc1, fc2, fc3 = st.columns(3)
     with fc1:
-        filter_level = st.multiselect("Filter by Level", ["Extreme", "Critical", "High", "Medium", "Low"], default=["Extreme", "Critical", "High", "Medium", "Low"])
+        filter_level = st.multiselect("Filter by Level", ["Very High", "High", "Medium", "Low"], default=["Very High", "High", "Medium", "Low"])
     with fc2:
         filter_status = st.multiselect("Filter by Status", list(summary["by_status"].keys()), default=list(summary["by_status"].keys()))
     with fc3:
@@ -152,7 +151,7 @@ with tab1:
     for r in filtered:
         level = get_risk_level(r["risk_score"])
         color = get_risk_color(r["risk_score"])
-        icon = {"Extreme": "🔴", "Critical": "🟠", "High": "🟡", "Medium": "🟢", "Low": "⚪"}.get(level, "⚪")
+        icon = {"Very High": "🔴", "High": "🟠", "Medium": "🟡", "Low": "🟢"}.get(level, "⚪")
 
         with st.expander(f"{icon} {r['id']} — {r['title']} (Score: {r['risk_score']}, {level})"):
             rc1, rc2 = st.columns(2)

@@ -12,7 +12,7 @@
     "status": "Mitigating",
     "mitigation": "EDR deployment, network segmentation, offline backups, phishing awareness training, incident response playbook",
     "target_date": "2026-06-30",
-    "notes": "Increasing attacks on Canadian municipalities - see City of Hamilton, CDIC advisories. Score 20 = Extreme (5x4). A 5x5=25 would represent confirmed active exploitation with catastrophic municipal impact."
+    "notes": "Increasing attacks on Canadian municipalities - see City of Hamilton, CDIC advisories. Score 20 = Very High (5x4)."
   },
   {
     "id": "RISK-002",
@@ -139,5 +139,33 @@
     "mitigation": "Annual privacy impact assessments, data classification program, encryption at rest/in transit, staff privacy training",
     "target_date": "2026-06-30",
     "notes": "Last IPC audit: 2 minor findings resolved"
+  },
+  {
+    "id": "RISK-011",
+    "title": "Outdated security awareness training materials",
+    "category": "Governance",
+    "asset": "Training Platform",
+    "likelihood": 2,
+    "impact": 2,
+    "risk_score": 4,
+    "owner": "IT Security / HR",
+    "status": "Mitigating",
+    "mitigation": "Content refresh scheduled, new phishing simulation vendor onboarded",
+    "target_date": "2026-04-30",
+    "notes": "Current materials still valid but due for annual update"
+  },
+  {
+    "id": "RISK-012",
+    "title": "Physical access logging gaps at secondary facilities",
+    "category": "Physical Security",
+    "asset": "Regional Satellite Offices",
+    "likelihood": 1,
+    "impact": 2,
+    "risk_score": 2,
+    "owner": "Facilities Management",
+    "status": "Monitoring",
+    "mitigation": "Access card system upgrade planned, visitor log digitization in progress",
+    "target_date": "2026-07-31",
+    "notes": "Main campus already compliant — satellite offices pending"
   }
 ]

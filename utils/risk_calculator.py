@@ -13,9 +13,8 @@ IMPACT_LABELS = {1: "Negligible", 2: "Minor", 3: "Moderate", 4: "Major", 5: "Cat
 RISK_LEVELS = {
     (1, 4): "Low",
     (5, 9): "Medium",
-    (10, 14): "High",
-    (15, 19): "Critical",
-    (20, 25): "Extreme",
+    (10, 15): "High",
+    (16, 25): "Very High",
 }
 
 
@@ -37,8 +36,7 @@ def get_risk_color(score: int) -> str:
         "Low": "#4CAF50",
         "Medium": "#FFC107",
         "High": "#FF9800",
-        "Critical": "#F44336",
-        "Extreme": "#B71C1C",
+        "Very High": "#F44336",
     }.get(level, "#9E9E9E")
 
 
@@ -54,7 +52,7 @@ def build_heatmap_matrix(risks: list) -> list[list[int]]:
 
 def get_risk_summary(risks: list) -> dict:
     total = len(risks)
-    by_level = {"Extreme": 0, "Critical": 0, "High": 0, "Medium": 0, "Low": 0}
+    by_level = {"Very High": 0, "High": 0, "Medium": 0, "Low": 0}
     by_status = {}
     for r in risks:
         level = get_risk_level(r["risk_score"])
