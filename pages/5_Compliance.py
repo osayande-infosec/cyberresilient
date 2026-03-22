@@ -1,6 +1,6 @@
 """
 Page 5 — Compliance & Policy Tracker
-NIST CSF 2.0 mapping, ISO 27001 Annex A, MFIPPA,
+NIST CSF 2.0 mapping, ISO 27001 Annex A,
 policy lifecycle management, and audit readiness score.
 """
 
@@ -8,19 +8,25 @@ import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from utils.compliance_scorer import (
+from cyberresilient.services.compliance_service import (
     load_controls, load_policies,
     calc_nist_csf_scores, calc_iso27001_scores, get_policy_summary,
 )
+from cyberresilient.config import get_config
+from cyberresilient.services.auth_service import learning_callout, is_learning_mode
+from cyberresilient.services.learning_service import (
+    get_content, learning_section, grc_insight,
+    compliance_comparison_table, evidence_types_panel,
+    compliance_pipeline_panel, auditor_questions_panel,
+    nist_function_detail,
+)
+from cyberresilient.theme import get_theme_colors
 
-st.set_page_config(page_title="Compliance | DurhamResilient", page_icon="✅", layout="wide")
-
-GOLD = "#C9A84C"
+cfg = get_config()
+colors = get_theme_colors()
+GOLD = colors["accent"]
 FUNC_COLORS = {
     "Govern": "#9C27B0",
     "Identify": "#2196F3",
@@ -32,8 +38,41 @@ FUNC_COLORS = {
 
 # ── Header ──────────────────────────────────────────────────
 st.markdown("# ✅ Compliance & Policy Tracker")
-st.markdown("NIST CSF 2.0, ISO 27001:2022, MFIPPA compliance mapping and policy lifecycle management.")
+st.markdown("NIST CSF 2.0, ISO 27001:2022 compliance mapping and policy lifecycle management.")
 st.markdown("---")
+
+lc = get_content("compliance")
+
+learning_callout(
+    "Why Compliance Frameworks Matter",
+    "Compliance frameworks like **NIST CSF** and **ISO 27001** provide structured "
+    "approaches to managing cybersecurity risk. They are not checkbox exercises — "
+    "they are engineering blueprints for building a defensible security program.",
+)
+
+# GRC Engineering manifesto (learning mode)
+if lc.get("grc_engineering"):
+    ge = lc["grc_engineering"]
+    grc_insight(ge["title"].replace("The ", ""), ge["content"])
+    compliance_comparison_table(ge.get("comparison", []))
+
+# Evidence collection guide (learning mode)
+if lc.get("evidence_collection"):
+    ec = lc["evidence_collection"]
+    learning_section(ec["title"], ec["content"], icon="🗂️")
+    evidence_types_panel(ec.get("evidence_types", []))
+
+# Compliance pipeline (learning mode)
+if lc.get("compliance_tracking"):
+    ct = lc["compliance_tracking"]
+    learning_section(ct["title"], ct["content"], icon="🔄")
+    compliance_pipeline_panel(ct.get("pipeline_stages", []))
+
+# Auditor Q&A (learning mode)
+if lc.get("audit_readiness"):
+    ar = lc["audit_readiness"]
+    learning_section(ar["title"], ar["content"], icon="🔍")
+    auditor_questions_panel(ar.get("auditor_questions", []))
 
 # ── Load Data ───────────────────────────────────────────────
 controls_data = load_controls()
@@ -84,6 +123,11 @@ with tab1:
 
     # Detailed category breakdown
     st.markdown("### Category-Level Detail")
+
+    # NIST CSF function deep dives (learning mode)
+    nist_deep = lc.get("nist_csf_deep_dive", {})
+    nist_functions = nist_deep.get("functions", {})
+
     for func_name, func_data in nist_scores["functions"].items():
         color = FUNC_COLORS.get(func_name, "#888")
         with st.expander(f"{func_name} — {func_data['description']} ({func_data['percentage']}%)"):
@@ -92,6 +136,10 @@ with tab1:
                 icon = {"Implemented": "✅", "Partial": "⚠️", "Gap": "❌"}.get(status, "❓")
                 st.markdown(f"{icon} **{cat_name}** — {cat_data['name']}")
                 st.markdown(f"   Status: **{status}** | Evidence: {cat_data.get('evidence', 'N/A')}")
+
+            # Per-function learning deep dive
+            if func_name in nist_functions:
+                nist_function_detail(func_name, nist_functions[func_name])
 
     # Sunburst chart
     st.markdown("### NIST CSF Sunburst View")
@@ -180,10 +228,15 @@ with tab2:
     st.markdown("---")
 
     # MFIPPA Section
-    st.markdown("### 🏛️ MFIPPA — Municipal Freedom of Information and Protection of Privacy Act")
-    st.markdown("""
-    The Region of Durham is subject to MFIPPA (Ontario) for all municipal operations.
-    Key compliance requirements:
+    # Custom framework compliance (configurable per org)
+    custom_fws = [fw for fw in cfg.compliance.custom_frameworks if fw.enabled]
+    if custom_fws:
+        for fw in custom_fws:
+            st.markdown(f"### 🏛️ {fw.name} — {fw.full_name}")
+    else:
+        st.markdown("### 🏛️ Additional Regulatory Frameworks")
+    st.markdown(f"""
+    {cfg.organization.name} compliance requirements:
     """)
 
     mfippa_items = [
@@ -309,3 +362,19 @@ with tab3:
         st.warning("⚠️ Moderate readiness. Address gaps in NIST CSF and policy reviews before next audit cycle.")
     else:
         st.error("❌ Significant gaps. Prioritize compliance remediation immediately.")
+
+# ── Export Section ──────────────────────────────────────────
+st.markdown("---")
+st.markdown("### 📥 Export Compliance Data")
+ce1, ce2 = st.columns(2)
+with ce1:
+    import json as _json
+    policy_json = _json.dumps([p.__dict__ if hasattr(p, '__dict__') else p for p in policies], indent=2, default=str)
+    st.download_button("📋 Policies JSON", data=policy_json,
+                      file_name="policies_export.json", mime="application/json",
+                      use_container_width=True)
+with ce2:
+    nist_json = _json.dumps(controls_data, indent=2, default=str)
+    st.download_button("📋 NIST CSF Controls JSON", data=nist_json,
+                      file_name="nist_csf_controls.json", mime="application/json",
+                      use_container_width=True)

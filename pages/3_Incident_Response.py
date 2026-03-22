@@ -10,14 +10,42 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-st.set_page_config(page_title="Incident Response | DurhamResilient", page_icon="🚨", layout="wide")
+from cyberresilient.config import get_config
+from cyberresilient.services.auth_service import learning_callout, is_learning_mode
+from cyberresilient.services.learning_service import (
+    get_content, case_study_panel, learning_section, grc_insight,
+)
+from cyberresilient.theme import get_theme_colors
 
-GOLD = "#C9A84C"
+cfg = get_config()
+colors = get_theme_colors()
+GOLD = colors["accent"]
 
 # ── Header ──────────────────────────────────────────────────
 st.markdown("# 🚨 Incident Response Center")
 st.markdown("NIST SP 800-61r2 aligned IR lifecycle, tabletop exercises, and post-mortem generation.")
 st.markdown("---")
+
+lc = get_content("incident_response")
+
+learning_callout(
+    "What is Incident Response?",
+    "Incident Response (IR) is the systematic process of preparing for, detecting, "
+    "containing, eradicating, and recovering from cybersecurity incidents. "
+    "NIST SP 800-61 Rev 2 defines four phases: **Preparation → Detection & Analysis "
+    "→ Containment, Eradication & Recovery → Post-Incident Activity**. "
+    "Every organization needs a tested IR plan — tabletop exercises simulate "
+    "incidents so teams can practice decision-making under pressure.",
+)
+
+# Case studies (learning mode)
+if lc.get("case_studies"):
+    case_study_panel(lc["case_studies"]["cases"])
+
+# GRC insight (learning mode)
+if lc.get("grc_connection"):
+    grc = lc["grc_connection"]
+    grc_insight(grc["title"].replace("GRC Engineering: ", ""), grc["content"])
 
 # ── Tabs ────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([
@@ -45,7 +73,7 @@ with tab1:
                 "Define severity classification criteria (P1–P4)",
                 "Coordinate with legal, HR, communications, and executive leadership",
             ],
-            "durham_context": "Region of Durham: Coordinate with 8 area municipalities, OPP, IPC Ontario, and provincial CSIRT."
+            "durham_context": f"Organization Context: Coordinate with all departments, law enforcement, privacy regulators, and provincial CSIRT as applicable."
         },
         {
             "name": "2. Detection & Analysis",
@@ -133,7 +161,7 @@ with tab1:
             st.markdown("")
             for act in phase["activities"]:
                 st.markdown(f"- {act}")
-            st.info(f"🏛️ **Durham Context:** {phase['durham_context']}")
+            st.info(f"🏛️ **{cfg.organization.name} Context:** {phase['durham_context']}")
 
     # Visual timeline
     st.markdown("### IR Lifecycle Flow")
@@ -169,6 +197,15 @@ with tab1:
 with tab2:
     st.markdown("### 🎯 Interactive Tabletop Exercise")
     st.markdown("Walk through a scenario with decision-based branching.")
+
+    # Tabletop exercise guide (learning mode)
+    if lc.get("tabletop_guide"):
+        tg = lc["tabletop_guide"]
+        learning_section(tg["title"], tg["content"], icon="🎯")
+        if is_learning_mode():
+            with st.expander("📝 Tips for Effective Tabletop Exercises", expanded=False):
+                for tip in tg.get("tips", []):
+                    st.markdown(f"- {tip}")
 
     EXERCISES = {
         "Ransomware Attack on Financial Systems": {

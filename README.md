@@ -1,132 +1,184 @@
-# DurhamResilient
+# CyberResilient 🛡️
 
-**Municipal Cybersecurity Resilience Platform**
+**Enterprise Cybersecurity Training Toolkit**
 
-Built for the Region of Durham by Osayande Agbonkpolor — Senior Cybersecurity Specialist Interview Showcase.
+An open-source, hands-on cybersecurity training platform built with Streamlit. Practice real-world security operations — from executive dashboards and risk management to incident response tabletops and MITRE ATT&CK threat mapping — in a safe, interactive environment.
+
+**Live Demo:** [cyberresilient.osayandeagbonkpolor.com](https://cyberresilient.osayandeagbonkpolor.com)
 
 ---
 
-## Overview
+## Why CyberResilient?
 
-DurhamResilient is a five-module cybersecurity command center designed for municipal government operations. It delivers real-time security posture visibility, disaster recovery simulation, incident response management, risk assessment, and compliance tracking — all aligned to frameworks and regulations relevant to Ontario municipalities.
+Aspiring cybersecurity professionals often struggle to bridge the gap between theory and practice. CyberResilient gives you a realistic, enterprise-grade toolkit where you can learn hands-on skills the way they're done in the workplace:
+
+- **Build and read executive security dashboards** with real KPIs
+- **Run DR/BC simulations** with RTO/RPO analysis and RACI matrices
+- **Conduct tabletop exercises** with branching decision trees
+- **Manage a risk register** with full CRUD and audit trail
+- **Map threats to MITRE ATT&CK** and visualize attack chains
+- **Track compliance** against NIST CSF 2.0, ISO 27001, and more
+- **Generate professional reports** (PDF and PPTX executive briefs)
 
 ---
 
 ## Modules
 
-| # | Module | Purpose |
-|---|--------|---------|
-| 1 | **Executive Dashboard** | Security score gauge, KPI cards, incident trends, department radar comparison |
-| 2 | **DR/BC Simulator** | RTO/RPO simulation across 8 municipal systems and 5 threat scenarios with RACI generation |
-| 3 | **Incident Response Center** | NIST 800-61r2 IR lifecycle, tabletop exercises, post-mortem generator, communication templates |
-| 4 | **Risk Register & Architecture Advisor** | 5×5 heat map, 10 scored risks, 10-point vendor security assessment |
-| 5 | **Compliance & Policy Tracker** | NIST CSF 2.0, ISO 27001:2022, MFIPPA mapping, policy lifecycle, audit readiness score |
-
----
-
-## Durham Region Alignment
-
-| JD Requirement | Module | Evidence |
-|---|---|---|
-| Cybersecurity risk assessment | Risk Register | 5×5 matrix, mitigation tracking |
-| Disaster recovery & business continuity | DR/BC Simulator | RTO/RPO simulation, recovery checklists |
-| Incident response planning | IR Center | Tabletop exercises, post-mortem reports |
-| Security architecture reviews | Architecture Advisor | 10-point vendor assessment |
-| Compliance & regulatory frameworks | Compliance Tracker | NIST CSF 2.0, ISO 27001, MFIPPA |
-| OT/SCADA security | Systems & Scenarios | Water/wastewater SCADA with OT controls |
-| Executive reporting | PDF Export | Downloadable DR and risk reports |
+| # | Module | What You'll Learn |
+|---|--------|-------------------|
+| 1 | **Executive Dashboard** | Security posture scoring, KPI interpretation, trend analysis |
+| 2 | **DR/BC Simulator** | RTO/RPO targets, recovery testing, RACI accountability |
+| 3 | **Incident Response** | NIST 800-61r2 lifecycle, tabletop exercises, post-mortem writing |
+| 4 | **Risk Register** | 5×5 risk matrices, risk ownership, vendor security assessment |
+| 5 | **Compliance Tracker** | NIST CSF 2.0, ISO 27001:2022, policy lifecycle management |
+| 6 | **Threat Intelligence** | MITRE ATT&CK mapping, coverage heatmaps, attack chain visualization |
+| 7 | **Audit Log** | Change tracking, accountability, compliance evidence |
 
 ---
 
 ## Quick Start
 
-### Local
+### Prerequisites
+
+- Python 3.11+
+- pip
+
+### Install & Run
 
 ```bash
-git clone https://github.com/osayande-infosec/durhamresilient.git
-cd durhamresilient
-pip install -r requirements.txt
-streamlit run app.py
+git clone https://github.com/osayande-infosec/cyberresilient.git
+cd CyberResilient
+pip install -e ".[dev]"
+CyberResilient init --seed     # Initialize DB with sample data
+streamlit run app.py        # Opens at http://localhost:8501
 ```
-
-Opens at `http://localhost:8501`.
 
 ### Docker
 
 ```bash
 docker compose up --build -d
+# App available at http://localhost:8501
 ```
-
-### AWS ECS Fargate
-
-```bash
-# Authenticate, build, push to ECR, then force deploy
-./deploy.sh
-```
-
-See `ecs-task-definition.json` for the Fargate task config.
 
 ---
 
 ## Project Structure
 
 ```
-├── app.py                      # Landing page & Streamlit entry point
+├── app.py                          # Landing page & auth entry point
 ├── pages/
-│   ├── 1_Dashboard.py          # Executive Security Posture Dashboard
-│   ├── 2_DR_Simulator.py       # DR/BC Simulator
-│   ├── 3_Incident_Response.py  # IR Center & Tabletop Exercises
-│   ├── 4_Risk_Register.py      # Risk Register & Architecture Advisor
-│   └── 5_Compliance.py         # Compliance & Policy Tracker
-├── utils/                      # Simulation engines, scoring, PDF generation
-├── data/                       # JSON data files (KPIs, systems, risks, controls, policies)
-├── Dockerfile                  # Multi-stage hardened build (non-root, healthcheck)
-├── docker-compose.yml
-├── ecs-task-definition.json    # AWS Fargate task definition
-└── deploy.sh                   # AWS deployment script
+│   ├── 1_Dashboard.py              # Executive Security Posture Dashboard
+│   ├── 2_DR_Simulator.py           # DR/BC Simulator with history tracking
+│   ├── 3_Incident_Response.py      # IR Center, tabletops, post-mortem
+│   ├── 4_Risk_Register.py          # Risk Register, CRUD, architecture advisor
+│   ├── 5_Compliance.py             # NIST CSF, ISO 27001, policy lifecycle
+│   ├── 6_Threat_Intel.py           # MITRE ATT&CK mapper & attack chains
+│   └── 7_Audit_Log.py              # Audit trail viewer
+├── cyberresilient/                    # Core Python package
+│   ├── models/                     # Pydantic & SQLAlchemy models
+│   ├── services/                   # Business logic (risk, DR, compliance, auth, reports)
+│   ├── config.py                   # YAML-based configuration
+│   ├── theme.py                    # UI theming
+│   ├── database.py                 # SQLAlchemy engine & session management
+│   └── cli.py                      # CLI: init, seed, create-user
+├── data/                           # Seed data (JSON)
+├── config/                         # Organization profile (YAML)
+├── tests/                          # pytest test suite
+├── alembic/                        # Database migrations
+├── .github/workflows/ci.yml        # GitHub Actions CI pipeline
+├── Dockerfile                      # Multi-stage hardened container
+└── docker-compose.yml              # Single-command deployment
 ```
 
 ---
 
 ## Tech Stack
 
-Python 3.11 · Streamlit · Plotly · Pandas · fpdf2 · matplotlib
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Streamlit, Plotly, Pandas |
+| Backend | Python 3.11+, Pydantic 2, SQLAlchemy 2.0 |
+| Database | SQLite (default), any SQL via `DATABASE_URL` |
+| Migrations | Alembic |
+| Reports | fpdf2 (PDF), python-pptx (PPTX) |
+| Auth | Optional RBAC with 4 roles and 12 permissions |
+| CI/CD | GitHub Actions (lint, test, security scan, Docker build) |
+| Deployment | Docker |
 
 ---
 
-## Security
+## Features
 
-- Non-root container user (`appuser`, UID 1000)
-- ECR image scanning on push
-- Healthcheck on `/_stcore/health`
-- No external database — all data is local JSON
-- **Stateless simulation** — DR simulator uses randomized variance for realistic variability
-- **Dark theme** — Professional presentation with gold (#C9A84C) accent
-- **Modular utilities** — Scoring, simulation, and PDF logic separated from UI
+### Learning Mode 🎓
+Toggle learning mode to see contextual educational callouts on every page — explaining what each tool does, why it matters, and how it maps to industry frameworks.
+
+### Role-Based Access Control
+Enable auth with `CYBERRESILIENT_AUTH=true` to practice RBAC:
+- **Admin** — Full access, user management
+- **Analyst** — Risk management, simulations, incident response
+- **Auditor** — Read-only with audit log access
+- **Student** — Dashboard and learning content
+
+### Audit Trail
+Every data mutation (create, update, delete) is logged with timestamp, user, and before/after state — just like enterprise GRC platforms.
 
 ---
 
-## 📋 Frameworks & Standards Referenced
+## Configuration
+
+CyberResilient is configurable via `config/org_profile.yaml`:
+
+```yaml
+organization:
+  name: "Your Organization"
+  sector: "Government"
+branding:
+  app_title: "CyberResilient"
+  accent_color: "#D4AF37"
+```
+
+Environment variables (see `.env.example`):
+- `DATABASE_URL` — SQLAlchemy connection string (default: SQLite)
+- `CYBERRESILIENT_AUTH` — Enable authentication (`true`/`false`)
+
+---
+
+## Frameworks & Standards
 
 - NIST Cybersecurity Framework (CSF) v2.0
 - NIST SP 800-61r2 (Incident Handling)
 - NIST SP 800-53 (Security Controls)
+- NIST SP 800-34 (Contingency Planning)
 - ISO/IEC 27001:2022 (Annex A)
+- MITRE ATT&CK Framework
 - CIS Controls v8
 - OWASP API Security Top 10
-- MFIPPA (Municipal Freedom of Information and Protection of Privacy Act)
-- CYFSA (Child, Youth and Family Services Act)
-- PIPEDA (Personal Information Protection and Electronic Documents Act)
+- ISO 31000 (Risk Management)
 
 ---
 
-## 👤 Author
+## Development
 
-**Osayande** — Cybersecurity Professional  
-Built as a technical showcase for the Region of Durham Senior Cybersecurity Specialist role.
+```bash
+pip install -e ".[dev]"
+pytest tests/ -v                  # Run tests
+ruff check .                      # Lint
+ruff format .                     # Format
+bandit -r cyberresilient/ -ll        # Security scan
+```
 
 ---
 
-## 📄 License
+## Contributing
 
-This project is for interview/demonstration purposes.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
+
+---
+
+Built by [Osayande Agbonkpolor](https://github.com/osayande-infosec)

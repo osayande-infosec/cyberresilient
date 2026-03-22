@@ -1,10 +1,64 @@
-PRESENTATION.md
+# Python
 __pycache__/
-*.pyc
-.env
-venv/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
 .venv/
-reports/*.pdf
-reports/*.pptx
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment / secrets
+.env
+*.env.local
+
+# OS
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Reports (generated at runtime)
+reports/*.pdf
+reports/*.pptx
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# mypy / Ruff
+.mypy_cache/
+.ruff_cache/
+
+# Distribution
+*.tar.gz
+*.whl
+
+# Database (SQLite instance)
+instance/
+*.db
+
+# Deployment scripts (internal)
+deploy.sh
+ecs-task-definition.json
+
+.hypothesis/
+## GitHub Copilot Chat.litcoffee
+Chat hx.json

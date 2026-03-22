@@ -1,62 +1,66 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────
-# DurhamResilient — AWS Deployment Script
-# Deploys to AWS ECS Fargate via ECR
-# Prerequisites: AWS CLI v2, Docker, configured AWS credentials
+# CyberShield — Cloudflare Tunnel Deployment Script
+# Exposes the local/VPS Streamlit app via Cloudflare Tunnel
+# Prerequisites: cloudflared CLI, Docker (optional)
 # ─────────────────────────────────────────────────────────────
 
 set -euo pipefail
 
-# ── Configuration ───────────────────────────────────────────
-AWS_REGION="${AWS_REGION:-ca-central-1}"
-AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-ECR_REPO="durhamresilient"
-IMAGE_TAG="latest"
-ECS_CLUSTER="durhamresilient-cluster"
-ECS_SERVICE="durhamresilient-service"
-ECR_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
+APP_PORT="${APP_PORT:-8501}"
+TUNNEL_NAME="${TUNNEL_NAME:-cybershield}"
 
 echo "============================================"
-echo "  DurhamResilient — AWS ECS Deployment"
-echo "  Region:  ${AWS_REGION}"
-echo "  Account: ${AWS_ACCOUNT_ID}"
+echo "  CyberShield — Cloudflare Deployment"
+echo "  App Port: ${APP_PORT}"
+echo "  Tunnel:   ${TUNNEL_NAME}"
 echo "============================================"
 
-# ── Step 1: Create ECR Repository (if not exists) ──────────
+# ── Check Prerequisites ─────────────────────────────────────
+if ! command -v cloudflared &> /dev/null; then
+    echo "ERROR: cloudflared CLI not found."
+    echo "Install: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/"
+    exit 1
+fi
+
+# ── Step 1: Build & Start App (Docker) ──────────────────────
 echo ""
-echo "[1/5] Ensuring ECR repository exists..."
-aws ecr describe-repositories --repository-names "${ECR_REPO}" --region "${AWS_REGION}" 2>/dev/null || \
-    aws ecr create-repository \
-        --repository-name "${ECR_REPO}" \
-        --region "${AWS_REGION}" \
-        --image-scanning-configuration scanOnPush=true \
-        --encryption-configuration encryptionType=AES256
+echo "[1/3] Building and starting CyberShield..."
+if command -v docker &> /dev/null; then
+    docker compose up --build -d
+    echo "  Docker container started on port ${APP_PORT}"
+else
+    echo "  Docker not found — assuming app is already running on port ${APP_PORT}"
+    echo "  Start manually: streamlit run app.py --server.port=${APP_PORT}"
+fi
 
-# ── Step 2: Authenticate Docker to ECR ──────────────────────
-echo "[2/5] Authenticating Docker to ECR..."
-aws ecr get-login-password --region "${AWS_REGION}" | \
-    docker login --username AWS --password-stdin "${ECR_URI}"
+# ── Step 2: Authenticate Cloudflare (first time only) ───────
+echo "[2/3] Checking Cloudflare authentication..."
+if [ ! -f "$HOME/.cloudflared/cert.pem" ]; then
+    echo "  First-time setup — opening browser for Cloudflare login..."
+    cloudflared tunnel login
+fi
 
-# ── Step 3: Build Image ────────────────────────────────────
-echo "[3/5] Building Docker image..."
-docker build -t "${ECR_REPO}:${IMAGE_TAG}" .
+# ── Step 3: Create & Run Tunnel ─────────────────────────────
+echo "[3/3] Starting Cloudflare Tunnel..."
 
-# ── Step 4: Tag & Push ──────────────────────────────────────
-echo "[4/5] Pushing to ECR..."
-docker tag "${ECR_REPO}:${IMAGE_TAG}" "${ECR_URI}:${IMAGE_TAG}"
-docker push "${ECR_URI}:${IMAGE_TAG}"
-
-# ── Step 5: Update ECS Service ──────────────────────────────
-echo "[5/5] Updating ECS service..."
-aws ecs update-service \
-    --cluster "${ECS_CLUSTER}" \
-    --service "${ECS_SERVICE}" \
-    --force-new-deployment \
-    --region "${AWS_REGION}"
+# Create tunnel if it doesn't exist
+if ! cloudflared tunnel list | grep -q "${TUNNEL_NAME}"; then
+    echo "  Creating tunnel '${TUNNEL_NAME}'..."
+    cloudflared tunnel create "${TUNNEL_NAME}"
+fi
 
 echo ""
+echo "  Starting tunnel → http://localhost:${APP_PORT}"
+echo "  Configure DNS: cloudflared tunnel route dns ${TUNNEL_NAME} your-subdomain.yourdomain.com"
+echo ""
 echo "============================================"
-echo "  Deployment complete!"
-echo "  Image: ${ECR_URI}:${IMAGE_TAG}"
-echo "  ECS will roll out the new task within ~2 min"
+echo "  To run the tunnel:"
+echo "    cloudflared tunnel --url http://localhost:${APP_PORT} run ${TUNNEL_NAME}"
+echo ""
+echo "  For a quick public URL (no DNS config):"
+echo "    cloudflared tunnel --url http://localhost:${APP_PORT}"
 echo "============================================"
+
+# Run tunnel (foreground — Ctrl+C to stop)
+cloudflared tunnel --url "http://localhost:${APP_PORT}" run "${TUNNEL_NAME}"

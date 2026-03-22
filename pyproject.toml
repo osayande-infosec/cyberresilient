@@ -1,0 +1,105 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "CyberResilient"
+version = "2.0.0"
+description = "Enterprise Cybersecurity Resilience Toolkit — hands-on security training platform"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [
+    { name = "Osayande Agbonkpolor" },
+]
+keywords = ["cybersecurity", "nist", "iso27001", "risk-management", "incident-response", "compliance"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+dependencies = [
+    "streamlit>=1.31.0",
+    "plotly>=5.18.0",
+    "pandas>=2.1.0",
+    "matplotlib>=3.8.0",
+    "fpdf2>=2.7.8",
+    "python-pptx>=0.6.23",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "pyyaml>=6.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.13.0",
+    "streamlit-authenticator>=0.4.1",
+    "bcrypt>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.4.0",
+    "mypy>=1.8.0",
+    "bandit>=1.7.0",
+    "pip-audit>=2.7.0",
+    "pre-commit>=3.6.0",
+    "hypothesis>=6.92.0",
+    "safety>=3.0.0",
+]
+
+[project.scripts]
+CyberResilient = "cyberresilient.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/osayande-infosec/cyberresilient"
+Documentation = "https://github.com/osayande-infosec/cyberresilient#readme"
+Issues = "https://github.com/osayande-infosec/cyberresilient/issues"
+
+# ── Ruff ────────────────────────────────────────────────────
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "S",    # bandit (security)
+    "B",    # bugbear
+    "A",    # builtins shadowing
+    "C4",   # comprehensions
+    "DTZ",  # datetime timezone
+    "T20",  # print statements
+    "SIM",  # simplify
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "S101",  # assert used (fine in tests)
+    "T201",  # print used (CLI output)
+    "E501",  # line too long (handled by formatter)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+"pages/*" = ["T201"]
+
+# ── Pytest ──────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-v --tb=short"
+
+# ── Mypy ────────────────────────────────────────────────────
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Gradual adoption — tighten later

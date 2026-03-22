@@ -1,66 +1,68 @@
 """
-DurhamResilient — Municipal Cybersecurity Resilience Platform
+CyberResilient — Enterprise Cybersecurity Resilience Toolkit
 Main entry point for the Streamlit multi-page application.
 """
 
 import streamlit as st
 
+from cyberresilient.config import get_config
+from cyberresilient.theme import get_custom_css, render_sidebar_brand
+from cyberresilient.services.auth_service import (
+    is_auth_enabled,
+    render_login_form,
+    render_user_info,
+    render_learning_toggle,
+    get_current_user,
+    is_learning_mode,
+)
+
+cfg = get_config()
+
 # ── Page Config ─────────────────────────────────────────────
 st.set_page_config(
-    page_title="DurhamResilient",
-    page_icon="🛡️",
+    page_title=cfg.branding.app_title,
+    page_icon=cfg.branding.app_icon,
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # ── Custom CSS ──────────────────────────────────────────────
-st.markdown("""
-<style>
-    /* Gold accent overrides */
-    .stMetric .metric-container { border-left: 3px solid #C9A84C; padding-left: 12px; }
-    div[data-testid="stSidebar"] { border-right: 1px solid #2A2A2A; }
-    h1, h2, h3 { color: #EAEAEA !important; }
-    .gold { color: #C9A84C; }
-    .status-pass { color: #4CAF50; font-weight: 700; }
-    .status-fail { color: #F44336; font-weight: 700; }
-    .status-partial { color: #FFC107; font-weight: 700; }
-    /* Metric value styling */
-    div[data-testid="stMetricValue"] { font-size: 1.8rem; }
-    /* Sidebar branding */
-    .sidebar-brand { text-align: center; padding: 1rem 0 0.5rem 0; }
-    .sidebar-brand h1 { font-size: 1.6rem; margin: 0; color: #C9A84C !important; }
-    .sidebar-brand p { font-size: 0.8rem; color: #888; margin: 0; }
-</style>
-""", unsafe_allow_html=True)
+st.markdown(get_custom_css(), unsafe_allow_html=True)
 
 # ── Sidebar Branding ────────────────────────────────────────
 with st.sidebar:
-    st.markdown("""
-    <div class="sidebar-brand">
-        <h1>🛡️ DurhamResilient</h1>
-        <p>Municipal Cybersecurity<br/>Resilience Platform</p>
-    </div>
-    <hr style="border-color: #2A2A2A; margin: 0.5rem 0;">
-    """, unsafe_allow_html=True)
+    st.markdown(render_sidebar_brand(), unsafe_allow_html=True)
+
+# ── Auth ────────────────────────────────────────────────────
+if is_auth_enabled():
+    if not render_login_form():
+        st.stop()
+    render_user_info()
+
+# ── Learning Mode Toggle ───────────────────────────────────
+with st.sidebar:
+    render_learning_toggle()
 
 # ── Landing Page ────────────────────────────────────────────
-st.markdown("# 🛡️ DurhamResilient")
-st.markdown("### Municipal Cybersecurity Resilience Platform")
+st.markdown(f"# {cfg.branding.app_icon} {cfg.branding.app_title}")
+st.markdown(f"### {cfg.branding.app_subtitle}")
 st.markdown("---")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("""
-    **DurhamResilient** is a comprehensive cybersecurity resilience platform
-    designed for municipal government operations. It provides executives
-    and security teams with actionable intelligence across five domains:
+    st.markdown(f"""
+    **{cfg.branding.app_title}** is a comprehensive cybersecurity resilience platform
+    that provides executives and security teams with actionable
+    intelligence across five domains:
 
     - 📊 **Executive Dashboard** — Real-time security posture & KPIs
     - 🔄 **DR/BC Simulator** — Test disaster recovery readiness
     - 🚨 **Incident Response** — IR lifecycle & tabletop exercises
     - ⚠️ **Risk Register** — Heat maps & architecture risk advisor
     - ✅ **Compliance Tracker** — NIST CSF, ISO 27001 & policy lifecycle
+
+    **Organization:** {cfg.organization.name}
     """)
 
 with col2:
@@ -69,17 +71,25 @@ with col2:
     | Feature | Detail |
     |---|---|
     | **Frameworks** | NIST CSF 2.0, ISO 27001, CIS Controls |
-    | **Compliance** | MFIPPA, Ontario Privacy, Municipal Act |
     | **DR Testing** | RTO/RPO simulation with RACI generation |
     | **Reporting** | PDF export for executive & audit audiences |
     | **Risk Scoring** | 5×5 likelihood × impact matrix |
     | **Architecture** | Vendor security assessment (10-point) |
+    | **Customizable** | Configure your own org profile via YAML |
     """)
+
+if is_learning_mode():
+    st.info(
+        "📚 **Learning Mode Active**\n\n"
+        "You'll see educational callouts throughout the platform "
+        "explaining real-world cybersecurity concepts, frameworks, "
+        "and best practices. Toggle this off in the sidebar when you're ready."
+    )
 
 st.markdown("---")
 st.markdown(
     "<p style='text-align:center; color:#666; font-size:0.85rem;'>"
-    "Built for the Region of Durham By Osayande Agbonkpolor for The Senior Cybersecurity Specialist Interview Showcase<br/>"
+    "Built by Osayande Agbonkpolor — Open-source cybersecurity training toolkit<br/>"
     "Select a module from the sidebar to begin.</p>",
     unsafe_allow_html=True,
 )

@@ -9,29 +9,63 @@ import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 import json
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from utils.risk_calculator import (
-    load_risks, get_risk_level, get_risk_color,
-    build_heatmap_matrix, get_risk_summary,
+from cyberresilient.services.risk_service import (
+    load_risks, build_heatmap_matrix, get_risk_summary,
     ARCHITECTURE_CHECKS, run_architecture_assessment,
+    create_risk, update_risk, delete_risk, _db_available,
+)
+from cyberresilient.models.risk import (
+    get_risk_level, get_risk_color,
     LIKELIHOOD_LABELS, IMPACT_LABELS,
 )
-from utils.pdf_generator import generate_risk_report
+from cyberresilient.services.report_service import generate_risk_report
+from cyberresilient.services.auth_service import learning_callout, get_current_user, has_permission
+from cyberresilient.services.learning_service import (
+    get_content, learning_section, case_study_panel, try_this_panel, grc_insight,
+)
+from cyberresilient.theme import get_theme_colors
 
-st.set_page_config(page_title="Risk Register | DurhamResilient", page_icon="⚠️", layout="wide")
+colors = get_theme_colors()
+GOLD = colors["accent"]
 
-GOLD = "#C9A84C"
+lc = get_content("risk_register")
 
 # ── Header ──────────────────────────────────────────────────
 st.markdown("# ⚠️ Risk Register & Architecture Advisor")
 st.markdown("Manage cybersecurity risks and assess vendor/solution security posture.")
+
+learning_callout(
+    "What is a Risk Register?",
+    "A risk register is the central tool for tracking identified cybersecurity risks. "
+    "Each risk is scored using a **Likelihood × Impact** matrix (typically 5×5), producing "
+    "a risk score from 1–25. Risks are categorized as Low (1–4), Medium (5–9), High (10–15), "
+    "or Very High (16–25). Risk owners are assigned to drive mitigation actions. "
+    "This process aligns with ISO 31000 and NIST RMF (SP 800-37).",
+)
+
+# Heat map concepts (learning mode)
+if lc.get("heat_map_guide"):
+    hmg = lc["heat_map_guide"]
+    learning_section(hmg["title"], hmg["content"], icon="🟩")
+    from cyberresilient.services.auth_service import is_learning_mode
+    if is_learning_mode() and "key_concepts" in hmg:
+        with st.expander("📚 Key Risk Concepts", expanded=False):
+            for concept in hmg["key_concepts"]:
+                st.markdown(f"- {concept}")
+
+# Case studies (learning mode)
+if lc.get("case_studies"):
+    case_study_panel(lc["case_studies"]["cases"])
+
+# Guided exercises (learning mode)
+if lc.get("try_this"):
+    try_this_panel(lc["try_this"]["exercises"])
+
 st.markdown("---")
 
-tab1, tab2 = st.tabs(["📊 Risk Register & Heat Map", "🏗️ Architecture Security Advisor"])
+tab1, tab2, tab3 = st.tabs(["📊 Risk Register & Heat Map", "🏗️ Architecture Security Advisor", "✏️ Risk Management"])
 
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  TAB 1 — Risk Register & Heat Map                           ║
@@ -169,6 +203,28 @@ with tab1:
             if r.get("notes"):
                 st.markdown(f"**Notes:** {r['notes']}")
 
+    # Export buttons
+    st.markdown("---")
+    st.markdown("### 📥 Export Risk Register")
+    ex1, ex2 = st.columns(2)
+    with ex1:
+        risk_json = json.dumps(risks, indent=2, default=str)
+        st.download_button("📋 Download JSON", data=risk_json,
+                          file_name="risk_register.json", mime="application/json",
+                          use_container_width=True)
+    with ex2:
+        import csv, io
+        buf = io.StringIO()
+        if risks:
+            writer = csv.DictWriter(buf, fieldnames=risks[0].keys())
+            writer.writeheader()
+            for r in risks:
+                flat = {k: json.dumps(v) if isinstance(v, (list, dict)) else v for k, v in r.items()}
+                writer.writerow(flat)
+        st.download_button("📊 Download CSV", data=buf.getvalue(),
+                          file_name="risk_register.csv", mime="text/csv",
+                          use_container_width=True)
+
 
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  TAB 2 — Architecture Security Advisor                      ║
@@ -263,3 +319,120 @@ with tab2:
             st.success("Report generated successfully!")
     elif submitted and not vendor_name:
         st.warning("Please enter a vendor/solution name.")
+
+
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  TAB 3 — Risk Management (CRUD)                             ║
+# ╚══════════════════════════════════════════════════════════════╝
+with tab3:
+    db_ok = _db_available()
+    if not db_ok:
+        st.warning("Database not initialised. Run `CyberResilient init --seed` to enable CRUD operations.")
+    else:
+        current_user = get_current_user()
+        can_edit = has_permission("edit_risks")
+
+        learning_callout(
+            "Risk Management Workflow",
+            "In practice, risks are identified during assessments, penetration tests, "
+            "or incident reviews. Each risk is assigned a likelihood and impact score, "
+            "an owner, and a mitigation plan. Risks are reviewed periodically (quarterly "
+            "is common) and updated as controls are implemented or the threat landscape changes.",
+        )
+
+        # GRC insight (learning mode)
+        if lc.get("grc_connection"):
+            grc = lc["grc_connection"]
+            grc_insight(grc["title"].replace("GRC Engineering: ", ""), grc["content"])
+
+        st.markdown("### ➕ Add New Risk")
+        with st.form("add_risk", clear_on_submit=True):
+            c1, c2 = st.columns(2)
+            with c1:
+                new_title = st.text_input("Title *")
+                new_category = st.selectbox("Category", [
+                    "Malware / Ransomware", "Vulnerability Management",
+                    "Third-Party / Supply Chain", "Insider Threat",
+                    "Cloud Security", "Compliance / Regulatory",
+                    "Physical Security", "Data Loss", "Other",
+                ])
+                new_likelihood = st.slider("Likelihood", 1, 5, 3)
+                new_impact = st.slider("Impact", 1, 5, 3)
+                st.info(f"Calculated Risk Score: **{new_likelihood * new_impact}** ({get_risk_level(new_likelihood * new_impact)})")
+            with c2:
+                new_owner = st.text_input("Owner *")
+                new_status = st.selectbox("Status", ["Open", "Mitigating", "Monitoring", "Accepted", "Closed"])
+                new_asset = st.text_input("Asset")
+                new_target = st.date_input("Target Date")
+                new_mitigation = st.text_area("Mitigation Plan")
+                new_notes = st.text_area("Notes")
+
+            add_submitted = st.form_submit_button("➕ Create Risk", type="primary", disabled=not can_edit)
+
+        if add_submitted:
+            if not new_title or not new_owner:
+                st.error("Title and Owner are required.")
+            else:
+                risk_data = {
+                    "title": new_title, "category": new_category,
+                    "likelihood": new_likelihood, "impact": new_impact,
+                    "owner": new_owner, "status": new_status,
+                    "asset": new_asset, "target_date": str(new_target),
+                    "mitigation": new_mitigation, "notes": new_notes,
+                }
+                result = create_risk(risk_data, user=current_user.username)
+                st.success(f"Risk **{result['id']}** created successfully!")
+                st.rerun()
+
+        st.markdown("---")
+        st.markdown("### ✏️ Edit / Delete Existing Risks")
+
+        all_risks = load_risks()
+        if all_risks:
+            risk_options = {f"{r['id']} — {r['title']}": r["id"] for r in all_risks}
+            selected_label = st.selectbox("Select risk to edit", list(risk_options.keys()))
+            selected_id = risk_options[selected_label]
+            sel_risk = next(r for r in all_risks if r["id"] == selected_id)
+
+            with st.form("edit_risk"):
+                e1, e2 = st.columns(2)
+                with e1:
+                    ed_title = st.text_input("Title", value=sel_risk["title"])
+                    ed_category = st.text_input("Category", value=sel_risk["category"])
+                    ed_likelihood = st.slider("Likelihood", 1, 5, sel_risk["likelihood"], key="ed_l")
+                    ed_impact = st.slider("Impact", 1, 5, sel_risk["impact"], key="ed_i")
+                    st.info(f"Calculated Risk Score: **{ed_likelihood * ed_impact}** ({get_risk_level(ed_likelihood * ed_impact)})")
+                with e2:
+                    ed_owner = st.text_input("Owner", value=sel_risk["owner"])
+                    ed_status = st.selectbox("Status", ["Open", "Mitigating", "Monitoring", "Accepted", "Closed"],
+                                             index=["Open", "Mitigating", "Monitoring", "Accepted", "Closed"].index(sel_risk["status"])
+                                             if sel_risk["status"] in ["Open", "Mitigating", "Monitoring", "Accepted", "Closed"] else 0)
+                    ed_asset = st.text_input("Asset", value=sel_risk.get("asset", ""))
+                    ed_target = st.text_input("Target Date", value=sel_risk.get("target_date", ""))
+                    ed_mitigation = st.text_area("Mitigation", value=sel_risk.get("mitigation", ""))
+                    ed_notes = st.text_area("Notes", value=sel_risk.get("notes", ""))
+
+                ec1, ec2 = st.columns(2)
+                with ec1:
+                    update_submitted = st.form_submit_button("💾 Update Risk", type="primary", disabled=not can_edit)
+                with ec2:
+                    delete_submitted = st.form_submit_button("🗑️ Delete Risk", disabled=not can_edit)
+
+            if update_submitted:
+                upd_data = {
+                    "title": ed_title, "category": ed_category,
+                    "likelihood": ed_likelihood, "impact": ed_impact,
+                    "owner": ed_owner, "status": ed_status,
+                    "asset": ed_asset, "target_date": ed_target,
+                    "mitigation": ed_mitigation, "notes": ed_notes,
+                }
+                update_risk(selected_id, upd_data, user=current_user.username)
+                st.success(f"Risk **{selected_id}** updated!")
+                st.rerun()
+
+            if delete_submitted:
+                delete_risk(selected_id, user=current_user.username)
+                st.success(f"Risk **{selected_id}** deleted.")
+                st.rerun()
+        else:
+            st.info("No risks found. Add one above.")

@@ -1,16 +1,17 @@
 # ── Stage 1: Build dependencies ─────────────────────────────
 FROM python:3.11-slim AS builder
 
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+WORKDIR /build
+COPY pyproject.toml README.md ./
+COPY cyberresilient/ cyberresilient/
+RUN pip install --no-cache-dir --prefix=/install .
 
 # ── Stage 2: Production image ───────────────────────────────
 FROM python:3.11-slim
 
 LABEL maintainer="Osayande <osayande-infosec>" \
-      description="DurhamResilient - Municipal Cybersecurity Resilience Platform" \
-      version="1.0.0"
+      description="CyberResilient - Enterprise Cybersecurity Training Toolkit" \
+      version="2.0.0"
 
 # Install curl for healthcheck, then clean up
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
@@ -28,11 +29,14 @@ COPY --from=builder /install /usr/local
 # Copy application code
 COPY . .
 
-# Create reports directory and set ownership
-RUN mkdir -p /app/reports && chown -R appuser:appuser /app
+# Create directories and set ownership
+RUN mkdir -p /app/reports /app/instance && chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
+
+# Initialise DB with seed data on first run
+RUN python -m cyberresilient.cli init --seed || true
 
 EXPOSE 8501
 

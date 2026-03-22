@@ -1,0 +1,47 @@
+# ── CyberResilient Organization Profile ────────────────────────
+# Customize this file for your organization.
+# Students: Create your own fictional org to practice with!
+
+organization:
+  name: "Acme Municipal Government"
+  short_name: "AcmeMunicipality"
+  type: "Municipal Government"  # Municipal Government, Healthcare, Finance, Education, etc.
+  region: "Ontario, Canada"
+  departments:
+    - "Public Works"
+    - "Public Health"
+    - "Finance"
+    - "IT Services"
+    - "Water & Wastewater"
+    - "Social Services"
+    - "Planning & Development"
+
+branding:
+  app_title: "CyberResilient"
+  app_subtitle: "Cybersecurity Resilience Platform"
+  app_icon: "\U0001F6E1\uFE0F"  # 🛡️
+  accent_color: "#C9A84C"
+  card_bg: "#1A1A1A"
+
+compliance:
+  # Enable/disable framework modules
+  frameworks:
+    nist_csf: true
+    iso_27001: true
+    # Add your jurisdiction-specific frameworks below
+    custom_frameworks:
+      - name: "MFIPPA"
+        full_name: "Municipal Freedom of Information and Protection of Privacy Act"
+        enabled: true
+      - name: "PIPEDA"
+        full_name: "Personal Information Protection and Electronic Documents Act"
+        enabled: true
+
+security:
+  # Default thresholds — adjust to your org's risk appetite
+  risk_appetite: "Moderate"  # Conservative, Moderate, Aggressive
+  mttd_target_hours: 2.5
+  mttr_target_hours: 8.0
+  patch_compliance_target_pct: 95
+  mfa_coverage_target_pct: 100
+  dr_readiness_target_pct: 90

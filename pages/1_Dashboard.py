@@ -10,25 +10,51 @@ import pandas as pd
 import json
 from pathlib import Path
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+from cyberresilient.config import get_config, DATA_DIR
+from cyberresilient.services.dashboard_service import load_dashboard_data
+from cyberresilient.services.auth_service import learning_callout
+from cyberresilient.services.learning_service import (
+    get_content, learning_section, kpi_explanation,
+    grc_insight, evidence_mapping_table,
+)
+from cyberresilient.theme import get_theme_colors
 
-st.set_page_config(page_title="Dashboard | DurhamShield", page_icon="📊", layout="wide")
+cfg = get_config()
+colors = get_theme_colors()
+GOLD = colors["accent"]
 
 
 @st.cache_data
 def load_kpis():
-    with open(DATA_DIR / "kpi_data.json") as f:
-        return json.load(f)
+    return load_dashboard_data()
 
 
 data = load_kpis()
-GOLD = "#C9A84C"
-BG_CARD = "#1A1A1A"
+lc = get_content("dashboard")
 
 # ── Header ──────────────────────────────────────────────────
 st.markdown("# 📊 Executive Security Posture Dashboard")
-st.markdown("Real-time cybersecurity metrics for the Region of Durham.")
+st.markdown(f"Real-time cybersecurity metrics for {cfg.organization.name}.")
 st.markdown("---")
+
+learning_callout(
+    "What is a Security Posture Dashboard?",
+    "An executive security dashboard aggregates Key Performance Indicators (KPIs) "
+    "like Mean Time to Detect (MTTD), Mean Time to Respond (MTTR), patch compliance, "
+    "and vulnerability counts into a single view. CISOs use dashboards like this to "
+    "brief leadership and board members on the organization's cyber risk profile. "
+    "The metrics here map to NIST CSF functions and ISO 27001 controls.",
+)
+
+# KPI Deep Dive (learning mode)
+if lc.get("kpi_deep_dive"):
+    learning_section(
+        lc["kpi_deep_dive"]["title"],
+        lc["kpi_deep_dive"]["content"],
+        icon="📊",
+    )
+    for _key, kpi_info in lc["kpi_deep_dive"].get("items", {}).items():
+        kpi_explanation(kpi_info)
 
 # ── Overall Score Gauge ─────────────────────────────────────
 score = data["overall_security_score"]
@@ -209,3 +235,38 @@ if selected_dept == "All Departments":
         legend=dict(bgcolor="rgba(0,0,0,0)"),
     )
     st.plotly_chart(fig_radar, use_container_width=True)
+
+# ── GRC Engineering Insight ─────────────────────────────────
+if lc.get("grc_connection"):
+    grc = lc["grc_connection"]
+    grc_insight(grc["title"].replace("GRC Engineering: ", ""), grc["content"])
+    evidence_mapping_table(grc.get("evidence_mapping", []))
+
+# ── Export Section ──────────────────────────────────────────
+st.markdown("---")
+st.markdown("### 📥 Export Reports")
+e1, e2 = st.columns(2)
+with e1:
+    if st.button("📊 Generate Executive Brief (PPTX)", type="primary", use_container_width=True):
+        from cyberresilient.services.report_service import generate_executive_pptx
+        filepath = generate_executive_pptx(data)
+        with open(filepath, "rb") as f:
+            st.download_button(
+                label="💾 Download PPTX",
+                data=f.read(),
+                file_name=filepath.split("\\")[-1].split("/")[-1],
+                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                use_container_width=True,
+            )
+        st.success("Executive brief generated!")
+with e2:
+    if st.button("📋 Export Dashboard Data (JSON)", use_container_width=True):
+        import json
+        json_str = json.dumps(data, indent=2, default=str)
+        st.download_button(
+            label="💾 Download JSON",
+            data=json_str,
+            file_name=f"dashboard_export_{__import__('datetime').datetime.now().strftime('%Y%m%d')}.json",
+            mime="application/json",
+            use_container_width=True,
+        )

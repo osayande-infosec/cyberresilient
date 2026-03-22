@@ -9,21 +9,39 @@ import plotly.graph_objects as go
 import pandas as pd
 import json
 from pathlib import Path
-import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from cyberresilient.services.dr_service import load_systems, load_scenarios, simulate_dr, generate_raci, save_simulation, load_simulation_history
+from cyberresilient.services.report_service import generate_dr_report
+from cyberresilient.services.auth_service import learning_callout, require_permission, get_current_user
+from cyberresilient.services.learning_service import (
+    get_content, case_study_panel, try_this_panel, grc_insight,
+)
+from cyberresilient.theme import get_theme_colors
 
-from utils.dr_simulator import load_systems, load_scenarios, simulate_dr, generate_raci
-from utils.pdf_generator import generate_dr_report
-
-st.set_page_config(page_title="DR Simulator | DurhamResilient", page_icon="🔄", layout="wide")
-
-GOLD = "#C9A84C"
+colors = get_theme_colors()
+GOLD = colors["accent"]
 
 # ── Header ──────────────────────────────────────────────────
 st.markdown("# 🔄 Disaster Recovery / Business Continuity Simulator")
 st.markdown("Test your recovery readiness against realistic threat scenarios.")
 st.markdown("---")
+
+lc = get_content("dr_simulator")
+
+learning_callout(
+    "What is DR/BC Testing?",
+    "Disaster Recovery (DR) and Business Continuity (BC) testing validates that "
+    "your organization can recover critical systems within target timeframes. "
+    "**RTO** (Recovery Time Objective) = max acceptable downtime. "
+    "**RPO** (Recovery Point Objective) = max acceptable data loss. "
+    "Organizations typically test quarterly for Tier 1 systems per NIST SP 800-34.",
+)
+
+# Case studies and exercises (learning mode)
+if lc.get("case_studies"):
+    case_study_panel(lc["case_studies"]["cases"])
+if lc.get("try_this"):
+    try_this_panel(lc["try_this"]["exercises"])
 
 # ── Load Data ───────────────────────────────────────────────
 systems = load_systems()
@@ -78,6 +96,10 @@ if run_sim:
     # Store in session state
     st.session_state["dr_result"] = result
     st.session_state["dr_raci"] = raci
+
+    # Persist to DB
+    current_user = get_current_user()
+    save_simulation(result, user=current_user.username)
 
 if "dr_result" in st.session_state:
     result = st.session_state["dr_result"]
@@ -170,3 +192,32 @@ if "dr_result" in st.session_state:
         st.success(f"Report generated successfully!")
 else:
     st.info("👈 Select a system and scenario, then click **Run Simulation** to begin.")
+
+# ── GRC Engineering Insight ─────────────────────────────────
+if lc.get("grc_connection"):
+    grc = lc["grc_connection"]
+    grc_insight(grc["title"].replace("GRC Engineering: ", ""), grc["content"])
+
+# ── Simulation History ──────────────────────────────────────
+st.markdown("---")
+st.markdown("## 📜 Simulation History")
+history = load_simulation_history()
+if history:
+    hist_df = pd.DataFrame([
+        {
+            "Date": h["timestamp"][:16],
+            "System": h["system_name"],
+            "Scenario": h["scenario_name"],
+            "Severity": h["severity"],
+            "RTO Target": f"{h['rto_target']}h",
+            "RTO Actual": f"{h['rto_estimated']}h",
+            "RPO Target": f"{h['rpo_target']}h",
+            "RPO Actual": f"{h['rpo_estimated']}h",
+            "Result": "✅ PASS" if h["overall_pass"] else "❌ FAIL",
+            "User": h["user"],
+        }
+        for h in history
+    ])
+    st.dataframe(hist_df, use_container_width=True, hide_index=True)
+else:
+    st.info("No simulation history yet. Run a simulation to start building your test record.")

@@ -1,15 +1,16 @@
 version: "3.9"
 
 services:
-  durhamresilient:
+  CyberResilient:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: durhamresilient
+    container_name: CyberResilient
     ports:
       - "8501:8501"
     volumes:
       - reports:/app/reports
+      - db_data:/app/instance
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8501/_stcore/health"]
@@ -20,7 +21,10 @@ services:
     environment:
       - STREAMLIT_SERVER_HEADLESS=true
       - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+      - CYBERRESILIENT_AUTH=false
 
 volumes:
   reports:
+    driver: local
+  db_data:
     driver: local
