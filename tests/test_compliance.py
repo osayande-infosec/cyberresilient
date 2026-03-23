@@ -14,24 +14,24 @@ def test_nist_csf_scores():
                 "Identify": {
                     "description": "Asset management and risk assessment",
                     "categories": {
-                        "ID.AM": {"name": "Asset Management", "status": "Implemented", "evidence": "CMDB"},
-                        "ID.RA": {"name": "Risk Assessment", "status": "Partial", "evidence": "Annual RA"},
+                        "ID.AM": {"name": "Asset Management", "status": "Implemented", "evidence": "CMDB", "evidence_date": "2026-01-01"},
+                        "ID.RA": {"name": "Risk Assessment", "status": "Partial", "evidence": "Annual RA", "evidence_date": "2026-01-01"},
                     },
                 },
             },
         },
     }
     scores = calc_nist_csf_scores(data)
-    assert scores["overall_percentage"] == 75  # (1.0 + 0.5) / 2 * 100
-    assert scores["functions"]["Identify"]["percentage"] == 75
+    assert scores["overall_percentage"] == 70  # (1.0 + 0.40) / 2 * 100
+    assert scores["functions"]["Identify"]["percentage"] == 70
 
 
 def test_iso27001_scores():
     data = {
         "iso27001": {
             "domains": [
-                {"id": "A.5", "name": "Organizational", "total": 10, "implemented": 8, "partial": 2},
-                {"id": "A.6", "name": "People", "total": 5, "implemented": 5, "partial": 0},
+                {"id": "A.5", "name": "Organizational", "total": 10, "implemented": 8, "partial": 2, "evidence_date": "2026-01-01"},
+                {"id": "A.6", "name": "People", "total": 5, "implemented": 5, "partial": 0, "evidence_date": "2026-01-01"},
             ],
         },
     }

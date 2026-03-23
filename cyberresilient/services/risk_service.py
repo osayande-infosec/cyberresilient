@@ -1,11 +1,19 @@
 """
 Risk scoring, heat map generation, and architecture gap analysis.
+
+Enhancements over v1:
+  - Inherent vs residual risk split
+  - Residual risk calculation after mitigation effectiveness
+  - Risk appetite threshold enforcement (blocks closure without sign-off)
+  - Evidence expiry tracking per risk item
 """
 
 from __future__ import annotations
 
 import json
+from datetime import date, datetime, timedelta
 from pathlib import Path
+from typing import Optional
 
 from cyberresilient.config import DATA_DIR
 from cyberresilient.models.risk import (
@@ -16,6 +24,25 @@ from cyberresilient.models.risk import (
     get_risk_level,
 )
 
+# ---------------------------------------------------------------------------
+# Risk appetite configuration
+# ---------------------------------------------------------------------------
+RISK_APPETITE_THRESHOLD: int = 12
+RISK_APPETITE_LABEL: str = "High"
+
+MITIGATION_EFFECTIVENESS_MULTIPLIERS: dict[str, float] = {
+    "None":      1.00,
+    "Partial":   0.65,
+    "Largely":   0.35,
+    "Full":      0.10,
+}
+
+EVIDENCE_EXPIRY_DAYS: int = 365
+
+
+# ---------------------------------------------------------------------------
+# DB helpers
+# ---------------------------------------------------------------------------
 
 def _db_available() -> bool:
     try:
@@ -26,8 +53,65 @@ def _db_available() -> bool:
         return False
 
 
+# ---------------------------------------------------------------------------
+# Scoring helpers
+# ---------------------------------------------------------------------------
+
+def calc_inherent_score(likelihood: int, impact: int) -> int:
+    """Raw (inherent) risk score before any mitigation."""
+    return likelihood * impact
+
+
+def calc_residual_score(
+    inherent_score: int,
+    mitigation_effectiveness: str = "None",
+) -> int:
+    """Residual risk score after applying mitigation effectiveness multiplier."""
+    multiplier = MITIGATION_EFFECTIVENESS_MULTIPLIERS.get(
+        mitigation_effectiveness, 1.0
+    )
+    return max(1, round(inherent_score * multiplier))
+
+
+def exceeds_risk_appetite(residual_score: int) -> bool:
+    """Return True when the residual score exceeds the organisation's appetite."""
+    return residual_score > RISK_APPETITE_THRESHOLD
+
+
+# ---------------------------------------------------------------------------
+# Evidence expiry
+# ---------------------------------------------------------------------------
+
+def is_evidence_expired(evidence_date: Optional[str]) -> bool:
+    """Return True if evidence is older than EVIDENCE_EXPIRY_DAYS or unset."""
+    if not evidence_date:
+        return True
+    try:
+        collected = datetime.strptime(evidence_date, "%Y-%m-%d").date()
+        return (date.today() - collected).days > EVIDENCE_EXPIRY_DAYS
+    except ValueError:
+        return True
+
+
+def days_until_evidence_expires(evidence_date: Optional[str]) -> Optional[int]:
+    """Days remaining before evidence expires, or None if already expired."""
+    if not evidence_date:
+        return None
+    try:
+        collected = datetime.strptime(evidence_date, "%Y-%m-%d").date()
+        expires_on = collected + timedelta(days=EVIDENCE_EXPIRY_DAYS)
+        remaining = (expires_on - date.today()).days
+        return remaining if remaining > 0 else None
+    except ValueError:
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Load / persist
+# ---------------------------------------------------------------------------
+
 def load_risks() -> list[dict]:
-    """Load risks from database, falling back to JSON."""
+    """Load risks from database, falling back to JSON seed data."""
     if _db_available():
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import RiskRow
@@ -54,15 +138,74 @@ def build_heatmap_matrix(risks: list[dict]) -> list[list[int]]:
 
 
 def get_risk_summary(risks: list[dict]) -> dict:
-    """Summarise risks by level and status."""
+    """Summarise risks by inherent level, residual level, and status."""
     total = len(risks)
-    by_level = {"Very High": 0, "High": 0, "Medium": 0, "Low": 0}
+    by_inherent_level: dict[str, int] = {
+        "Very High": 0, "High": 0, "Medium": 0, "Low": 0
+    }
+    by_residual_level: dict[str, int] = {
+        "Very High": 0, "High": 0, "Medium": 0, "Low": 0
+    }
     by_status: dict[str, int] = {}
+    appetite_breaches = 0
+    expired_evidence = 0
+
     for r in risks:
-        level = get_risk_level(r["risk_score"])
-        by_level[level] = by_level.get(level, 0) + 1
+        inherent = r.get("risk_score", 0)
+        if not inherent and "likelihood" in r and "impact" in r:
+            inherent = calc_inherent_score(r["likelihood"], r["impact"])
+        residual = r.get("residual_score", inherent)
+
+        by_inherent_level[get_risk_level(inherent)] = (
+            by_inherent_level.get(get_risk_level(inherent), 0) + 1
+        )
+        by_residual_level[get_risk_level(residual)] = (
+            by_residual_level.get(get_risk_level(residual), 0) + 1
+        )
         by_status[r["status"]] = by_status.get(r["status"], 0) + 1
-    return {"total": total, "by_level": by_level, "by_status": by_status}
+
+        if exceeds_risk_appetite(residual):
+            appetite_breaches += 1
+        if is_evidence_expired(r.get("evidence_date")):
+            expired_evidence += 1
+
+    return {
+        "total": total,
+        "by_level": by_inherent_level,
+        "by_inherent_level": by_inherent_level,
+        "by_residual_level": by_residual_level,
+        "by_status": by_status,
+        "appetite_breaches": appetite_breaches,
+        "expired_evidence_count": expired_evidence,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Closure guard
+# ---------------------------------------------------------------------------
+
+def can_close_risk(risk: dict) -> tuple[bool, str]:
+    """Determine whether a risk is eligible for Accepted / Closed status."""
+    residual = risk.get(
+        "residual_score",
+        calc_residual_score(
+            calc_inherent_score(risk["likelihood"], risk["impact"]),
+            risk.get("mitigation_effectiveness", "None"),
+        ),
+    )
+
+    if not exceeds_risk_appetite(residual):
+        return True, "Residual score within appetite — closure permitted."
+
+    sign_off = (risk.get("sign_off_by") or "").strip()
+    if sign_off:
+        return True, f"Closure approved by: {sign_off}"
+
+    return (
+        False,
+        f"Residual score {residual} exceeds appetite threshold "
+        f"({RISK_APPETITE_THRESHOLD}). Sign-off required before closure.",
+    )
 
 
 ARCHITECTURE_CHECKS: list[dict] = [
@@ -162,32 +305,60 @@ def _next_risk_id() -> str:
                 return f"RISK-{num:03d}"
         finally:
             session.close()
-    return f"RISK-{100:03d}"
+    return "RISK-100"
 
 
 def create_risk(data: dict, user: str = "system") -> dict:
-    """Create a new risk entry in the database."""
+    """Create a new risk entry with inherent and residual scoring."""
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import RiskRow
     from cyberresilient.services.audit_service import log_action
 
     risk_id = _next_risk_id()
     data["id"] = risk_id
-    data["risk_score"] = data["likelihood"] * data["impact"]
+
+    inherent = calc_inherent_score(data["likelihood"], data["impact"])
+    residual = calc_residual_score(
+        inherent, data.get("mitigation_effectiveness", "None")
+    )
+    data["risk_score"] = inherent
+    data["residual_score"] = residual
+
+    # Enforce closure guard
+    if data.get("status") in ("Accepted", "Closed"):
+        allowed, reason = can_close_risk(data)
+        if not allowed:
+            raise PermissionError(reason)
 
     session = get_session()
     try:
         row = RiskRow(
-            id=risk_id, title=data["title"], category=data["category"],
-            likelihood=data["likelihood"], impact=data["impact"],
-            risk_score=data["risk_score"], owner=data["owner"],
-            status=data["status"], mitigation=data.get("mitigation", ""),
-            asset=data.get("asset", ""), target_date=data.get("target_date", ""),
+            id=risk_id,
+            title=data["title"],
+            category=data["category"],
+            likelihood=data["likelihood"],
+            impact=data["impact"],
+            risk_score=inherent,
+            residual_score=residual,
+            mitigation_effectiveness=data.get("mitigation_effectiveness", "None"),
+            owner=data["owner"],
+            status=data["status"],
+            mitigation=data.get("mitigation", ""),
+            asset=data.get("asset", ""),
+            target_date=data.get("target_date", ""),
             notes=data.get("notes", ""),
+            evidence_date=data.get("evidence_date", ""),
+            sign_off_by=data.get("sign_off_by", ""),
         )
         session.add(row)
-        log_action(session, action="create", entity_type="risk",
-                   entity_id=risk_id, user=user, after=data)
+        log_action(
+            session,
+            action="create",
+            entity_type="risk",
+            entity_id=risk_id,
+            user=user,
+            after=data,
+        )
         session.commit()
         return row.to_dict()
     except Exception:
@@ -198,7 +369,7 @@ def create_risk(data: dict, user: str = "system") -> dict:
 
 
 def update_risk(risk_id: str, data: dict, user: str = "system") -> dict:
-    """Update an existing risk entry."""
+    """Update a risk entry with re-derived inherent/residual scores."""
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import RiskRow
     from cyberresilient.services.audit_service import log_action
@@ -208,14 +379,46 @@ def update_risk(risk_id: str, data: dict, user: str = "system") -> dict:
         row = session.query(RiskRow).filter_by(id=risk_id).first()
         if not row:
             raise ValueError(f"Risk {risk_id} not found")
+
         before = row.to_dict()
-        data["risk_score"] = data["likelihood"] * data["impact"]
-        for field in ("title", "category", "likelihood", "impact", "risk_score",
-                      "owner", "status", "mitigation", "asset", "target_date", "notes"):
+
+        likelihood = data.get("likelihood", row.likelihood)
+        impact = data.get("impact", row.impact)
+        mitigation_effectiveness = data.get(
+            "mitigation_effectiveness",
+            getattr(row, "mitigation_effectiveness", "None"),
+        )
+        inherent = calc_inherent_score(likelihood, impact)
+        residual = calc_residual_score(inherent, mitigation_effectiveness)
+        data["risk_score"] = inherent
+        data["residual_score"] = residual
+
+        # Enforce closure guard
+        if data.get("status") in ("Accepted", "Closed"):
+            merged = {**before, **data}
+            allowed, reason = can_close_risk(merged)
+            if not allowed:
+                raise PermissionError(reason)
+
+        mutable_fields = (
+            "title", "category", "likelihood", "impact",
+            "risk_score", "residual_score", "mitigation_effectiveness",
+            "owner", "status", "mitigation", "asset",
+            "target_date", "notes", "evidence_date", "sign_off_by",
+        )
+        for field in mutable_fields:
             if field in data:
                 setattr(row, field, data[field])
-        log_action(session, action="update", entity_type="risk",
-                   entity_id=risk_id, user=user, before=before, after=row.to_dict())
+
+        log_action(
+            session,
+            action="update",
+            entity_type="risk",
+            entity_id=risk_id,
+            user=user,
+            before=before,
+            after=row.to_dict(),
+        )
         session.commit()
         return row.to_dict()
     except Exception:
@@ -226,7 +429,7 @@ def update_risk(risk_id: str, data: dict, user: str = "system") -> dict:
 
 
 def delete_risk(risk_id: str, user: str = "system") -> None:
-    """Delete a risk entry."""
+    """Delete a risk entry with full audit log."""
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import RiskRow
     from cyberresilient.services.audit_service import log_action
@@ -238,8 +441,14 @@ def delete_risk(risk_id: str, user: str = "system") -> None:
             raise ValueError(f"Risk {risk_id} not found")
         before = row.to_dict()
         session.delete(row)
-        log_action(session, action="delete", entity_type="risk",
-                   entity_id=risk_id, user=user, before=before)
+        log_action(
+            session,
+            action="delete",
+            entity_type="risk",
+            entity_id=risk_id,
+            user=user,
+            before=before,
+        )
         session.commit()
     except Exception:
         session.rollback()

@@ -22,6 +22,10 @@ class RiskRow(Base):
     likelihood: Mapped[int] = mapped_column(Integer)
     impact: Mapped[int] = mapped_column(Integer)
     risk_score: Mapped[int] = mapped_column(Integer)
+    residual_score: Mapped[float] = mapped_column(Float, nullable=True)
+    mitigation_effectiveness: Mapped[str] = mapped_column(String(20), default="None")
+    evidence_date: Mapped[str] = mapped_column(String(20), default="")
+    sign_off_by: Mapped[str] = mapped_column(String(100), default="")
     owner: Mapped[str] = mapped_column(String(100))
     status: Mapped[str] = mapped_column(String(50))
     mitigation: Mapped[str] = mapped_column(Text)
@@ -39,6 +43,10 @@ class RiskRow(Base):
             "likelihood": self.likelihood,
             "impact": self.impact,
             "risk_score": self.risk_score,
+            "residual_score": self.residual_score,
+            "mitigation_effectiveness": self.mitigation_effectiveness or "None",
+            "evidence_date": self.evidence_date or "",
+            "sign_off_by": self.sign_off_by or "",
             "owner": self.owner,
             "status": self.status,
             "mitigation": self.mitigation,
@@ -133,6 +141,7 @@ class PolicyRow(Base):
     next_review: Mapped[str] = mapped_column(String(20))
     approved_by: Mapped[str] = mapped_column(String(100), default="")
     description: Mapped[str] = mapped_column(Text, default="")
+    review_alert_sent: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())
 
@@ -147,6 +156,7 @@ class PolicyRow(Base):
             "next_review": self.next_review,
             "approved_by": self.approved_by,
             "description": self.description,
+            "review_alert_sent": bool(self.review_alert_sent),
         }
 
 
