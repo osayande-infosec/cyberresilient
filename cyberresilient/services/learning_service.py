@@ -64,7 +64,8 @@ def case_study_panel(cases: list[dict]) -> None:
                 st.markdown(f"**Risk Scoring:** {case['how_it_scores']}")
             if "mitigation" in case:
                 st.markdown(f"**Mitigation:** {case['mitigation']}")
-            st.success(f"**Key Lesson:** {case['lesson']}")
+            if "lesson" in case:
+                st.success(f"**Key Lesson:** {case['lesson']}")
 
 
 def try_this_panel(exercises: list[str]) -> None:

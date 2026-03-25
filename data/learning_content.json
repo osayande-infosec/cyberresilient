@@ -185,12 +185,14 @@
         {
           "name": "Capital One WAF Misconfiguration",
           "how_it_scores": "Category: Cloud Security. Likelihood: 4 (Likely — SSRF is a well-known technique, and misconfigurations are common). Impact: 5 (Catastrophic — 106M records). Score: 20 (Very High). This should have been their #1 risk item with immediate mitigation.",
-          "mitigation": "WAF rule review, SSRF protection on EC2 metadata, IMDSv2 enforcement, cloud security posture management (CSPM) tools."
+          "mitigation": "WAF rule review, SSRF protection on EC2 metadata, IMDSv2 enforcement, cloud security posture management (CSPM) tools.",
+          "lesson": "A single misconfigured WAF rule exposed 106 million records. Risk registers must include cloud-specific risks scored at their true severity, and CSPM tools should continuously validate configurations."
         },
         {
           "name": "Unpatched VPN Appliance",
           "how_it_scores": "Category: Vulnerability Management. Likelihood: 5 (Almost Certain — VPN vulns are actively exploited by nation-states). Impact: 4 (Major — provides initial access to the network). Score: 20 (Very High). This is how Pulse Secure VPN vulns (CVE-2021-22893) were exploited by APT groups.",
-          "mitigation": "Emergency patching within 48 hours, network segmentation, MFA on VPN, monitoring VPN logs for anomalous access patterns."
+          "mitigation": "Emergency patching within 48 hours, network segmentation, MFA on VPN, monitoring VPN logs for anomalous access patterns.",
+          "lesson": "Nation-state actors actively exploit unpatched VPN appliances within days of disclosure. Very High risks like these demand emergency patching SLAs and compensating controls until patches are applied."
         }
       ]
     },
@@ -416,6 +418,106 @@
     "grc_connection": {
       "title": "GRC Engineering: The Audit Trail as the Foundation",
       "content": "The audit log is the bedrock of compliance engineering. Every action in this platform — risk creation, DR simulation, policy export — is logged with who, what, when. This isn't just good practice, it's the mechanism that makes every other compliance activity auditable. Without audit logs, you have claims. With audit logs, you have evidence.\n\nIn a traditional GRC setup, someone manually logs 'Risk reviewed on Q3' in a spreadsheet. In this system, the audit trail automatically records every time a risk is viewed, modified, or reviewed — with the exact user, timestamp, and before/after values. Auditors love this because it's tamper-resistant and complete."
+    }
+  },
+
+  "cap_tracker": {
+    "overview": {
+      "title": "What is a Corrective Action Plan?",
+      "content": "A Corrective Action Plan (CAP) is a formal remediation commitment raised when a control test fails, an audit finding is issued, or a compliance gap is identified. CAPs are how organisations prove they don't just *find* problems — they *fix* them.\n\nEvery CAP has an owner, a priority, a target date, and a defined lifecycle: **Open → In Progress → Pending Verification → Closed**. Closure requires documented resolution notes, ensuring the fix is auditable. ISO 27001 Clause 10.1 requires organisations to 'react to the nonconformity and take action to control and correct it.' CAPs are that mechanism."
+    },
+    "grc_connection": {
+      "title": "GRC Engineering: CAPs Close the Audit Loop",
+      "content": "Finding a problem without fixing it is worse than not finding it at all — it shows you knew and did nothing. CAPs are the bridge between *detection* and *remediation*. In NIST CSF terms, they connect the Detect function (DE.AE — adverse event analysis) to the Respond function (RS.MI — incident mitigation).\n\nIn a mature GRC program, every failed control test automatically generates a CAP. The CAP tracks who is responsible, what the target date is, and requires resolution evidence before closure. This creates an unbroken chain: Control Test → Finding → CAP → Remediation → Verification → Closure. Auditors look for exactly this chain when assessing nonconformity management."
+    },
+    "try_this": {
+      "title": "Hands-On Exercises",
+      "exercises": [
+        "Raise a new CAP linked to a control ID (e.g., PR.AC-1) and set a target date 30 days out. What priority would you assign a failed access control?",
+        "Transition a CAP through all four statuses: Open → In Progress → Pending Verification → Closed. Notice how closure requires resolution notes — this is the evidence an auditor needs.",
+        "Filter the CAP register to show only Critical and High priority items. In a real audit, these would be your immediate focus areas."
+      ]
+    }
+  },
+
+  "vendor_risk": {
+    "overview": {
+      "title": "Why Third-Party Risk Matters",
+      "content": "Your security posture is only as strong as your weakest vendor. Third-party risk management (TPRM) ensures that organisations assess, monitor, and govern the security practices of their suppliers, cloud providers, and service partners.\n\nNIST CSF 2.0 added an entire function — **Govern (GV.SC)** — dedicated to Supply Chain Risk Management. ISO 27001:2022 addresses it through A.5.19–A.5.23 (Supplier Relationships). The message is clear: you are accountable for risks introduced by your vendors, even if you don't control their systems."
+    },
+    "case_studies": {
+      "title": "Real-World Vendor Risk Incidents",
+      "cases": [
+        {
+          "name": "SolarWinds Supply Chain Attack (2020)",
+          "summary": "Attackers compromised the SolarWinds Orion build pipeline, inserting a backdoor (SUNBURST) into software updates distributed to 18,000+ customers including US government agencies. Victims had no visibility into their vendor's build security.",
+          "lesson": "Vendor assessments must go beyond questionnaires. Evaluate build pipelines, code signing, and CI/CD security. A single compromised vendor can cascade to thousands of downstream organisations.",
+          "how_it_scores": "Vendors without verified SDLC controls would score low on the security assessment checklist and be flagged as High or Critical risk tier."
+        },
+        {
+          "name": "MOVEit Transfer Exploit (2023)",
+          "summary": "The Cl0p ransomware group exploited a zero-day SQL injection in Progress Software's MOVEit Transfer, a managed file transfer tool used by hundreds of organisations. Over 2,600 organisations and 77 million individuals were affected — most were downstream customers of MOVEit users.",
+          "lesson": "Third-party file transfer tools are high-value targets. Data classification matters — vendors handling Confidential or Restricted data need more frequent assessments and stricter controls.",
+          "how_it_scores": "A vendor categorised as 'Data Processor' with 'Confidential' data classification would trigger a Critical criticality rating and 180-day reassessment cycle."
+        }
+      ]
+    },
+    "grc_connection": {
+      "title": "GRC Engineering: Vendor Risk in the Framework",
+      "content": "NIST CSF 2.0's Govern function includes GV.SC (Supply Chain Risk Management) with categories covering due diligence, contractual requirements, and continuous monitoring. ISO 27001 A.5.19 requires 'processes and procedures for managing information security risks associated with the use of supplier products or services.'\n\nThis platform implements tiered vendor risk through criticality-based reassessment intervals: Critical vendors every 180 days, High every 365 days, Medium every 18 months, Low every 2 years. Each assessment uses the same security control checklist and automatically updates the vendor's risk tier. The result is a living vendor risk register — not a one-time spreadsheet that goes stale after procurement."
+    },
+    "try_this": {
+      "title": "Hands-On Exercises",
+      "exercises": [
+        "Add a new vendor with 'Critical' criticality and 'Confidential' data classification. Notice how the reassessment interval is set to 180 days automatically.",
+        "Run a security assessment on a vendor. Observe how the score determines the risk tier (Critical/High/Medium/Low) and sets the next reassessment date."
+      ]
+    }
+  },
+
+  "activity_report": {
+    "overview": {
+      "title": "Why Audit Trails Matter",
+      "content": "An audit trail is the chronological record of every action taken in a system — who did what, when, and to which record. It provides three critical capabilities: **non-repudiation** (you can't deny an action you took), **accountability** (every change has an owner), and **segregation of duties evidence** (you can prove different people performed different steps).\n\nISO 27001 A.8.15 requires organisations to produce, store, protect, and analyse logs. NIST CSF's Detect function (DE.AE) requires 'analysis of detected adverse events.' The activity report transforms raw audit log entries into actionable intelligence for auditors and security managers."
+    },
+    "reading_the_report": {
+      "title": "Reading the Activity Report",
+      "content": "Each chart in the activity report tells a different story to an auditor:\n\n- **Daily Activity** shows operating cadence — a healthy GRC program has consistent daily activity, not long gaps followed by bursts before an audit.\n- **Actions by Type** reveals the balance of create/update/delete operations — excessive deletions could indicate data manipulation.\n- **Per-User Activity** provides segregation of duties evidence — if one person is performing all actions, that's a SoD red flag.\n- **Most Changed Records** highlights hotspots — frequently modified risks or controls may need additional scrutiny.\n\nAuditors use these patterns to assess whether the organisation is *operating* its GRC program continuously or just *updating* it before audits."
+    },
+    "deep_dive": {
+      "title": "Audit Logging Principles",
+      "content": "Enterprise audit logging follows five core principles that determine whether your logs are admissible as compliance evidence.",
+      "principles": [
+        {
+          "name": "Completeness",
+          "definition": "Every data mutation — create, update, delete — is logged with before/after state. No action goes unrecorded.",
+          "standard": "ISO 27001 A.8.15 requires logging of 'user activities, exceptions, faults and information security events.'"
+        },
+        {
+          "name": "Integrity",
+          "definition": "Log entries are append-only and tamper-resistant. The audit log cannot be edited or deleted through the application.",
+          "standard": "NIST SP 800-92 recommends 'protecting log data from unauthorized changes.'"
+        },
+        {
+          "name": "Attribution",
+          "definition": "Every entry records the authenticated user who performed the action. 'System' actions are distinguished from human actions.",
+          "standard": "ISO 27001 A.8.15 requires 'user IDs' and 'dates, times and details of key events.'"
+        },
+        {
+          "name": "Timeliness",
+          "definition": "Events are logged at the moment they occur, using synchronized timestamps. Delayed logging undermines forensic value.",
+          "standard": "PCI DSS 10.4 requires 'all critical system clocks and times are synchronized.'"
+        },
+        {
+          "name": "Retention",
+          "definition": "Logs are retained for a defined period aligned with regulatory requirements and organisational policy. This platform retains 90 days by default.",
+          "standard": "PCI DSS 10.7 requires 'at least one year of audit trail history, with a minimum of three months immediately available.'"
+        }
+      ]
+    },
+    "grc_connection": {
+      "title": "GRC Engineering: From Log to Evidence",
+      "content": "The activity report transforms raw audit log data into compliance evidence. When an auditor asks 'How do you ensure risks are reviewed periodically?', the answer isn't a policy document — it's the activity report showing consistent review actions across the reporting period.\n\nISO 27001 A.8.15 (Logging) and NIST CSF DE.AE (Adverse Event Analysis) both require not just *collecting* logs but *analysing* them. This report provides that analysis layer: per-user breakdowns prove segregation of duties, daily activity trends prove operational cadence, and entity change frequency identifies areas that may need additional oversight. The export button lets you package this as audit evidence with a single click."
     }
   }
 }
