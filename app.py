@@ -6,6 +6,7 @@ Main entry point for the Streamlit multi-page application.
 import streamlit as st
 
 from cyberresilient.config import get_config
+from cyberresilient.database import init_db
 from cyberresilient.theme import get_custom_css, render_sidebar_brand
 from cyberresilient.services.auth_service import (
     is_auth_enabled,
@@ -17,6 +18,9 @@ from cyberresilient.services.auth_service import (
 )
 
 cfg = get_config()
+
+# ── Auto-initialise database tables (safe to call repeatedly) ──
+init_db()
 
 # ── Page Config ─────────────────────────────────────────────
 st.set_page_config(
