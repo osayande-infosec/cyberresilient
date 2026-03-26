@@ -24,7 +24,7 @@ from cyberresilient.services.learning_service import (
     get_content, learning_section, grc_insight,
     compliance_comparison_table, evidence_types_panel,
     compliance_pipeline_panel, auditor_questions_panel,
-    nist_function_detail, chart_navigation_guide,
+    nist_function_detail,
 )
 from cyberresilient.theme import get_theme_colors
 
@@ -88,11 +88,6 @@ if lc.get("audit_readiness"):
     ar = lc["audit_readiness"]
     learning_section(ar["title"], ar["content"], icon="🔍")
     auditor_questions_panel(ar.get("auditor_questions", []))
-
-if lc.get("navigating_charts"):
-    nc = lc["navigating_charts"]
-    learning_section(nc["title"], nc["content"], icon="📊")
-    chart_navigation_guide(nc.get("charts", []))
 
 # ── Load & Score ─────────────────────────────────────────────
 controls_data = load_controls()

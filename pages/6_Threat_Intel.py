@@ -10,7 +10,7 @@ import pandas as pd
 
 from cyberresilient.config import get_config
 from cyberresilient.services.auth_service import learning_callout, is_learning_mode
-from cyberresilient.services.learning_service import get_content, grc_insight
+from cyberresilient.services.learning_service import get_content, grc_insight, learning_section, chart_navigation_guide
 from cyberresilient.theme import get_theme_colors
 
 cfg = get_config()
@@ -322,6 +322,11 @@ with tab3:
     if lc.get("grc_connection"):
         gc = lc["grc_connection"]
         grc_insight(gc["title"].replace("GRC Engineering: ", ""), gc["content"])
+
+    if lc.get("navigating_charts"):
+        nc = lc["navigating_charts"]
+        learning_section(nc["title"], nc["content"], icon="📊")
+        chart_navigation_guide(nc["charts"])
 
     for tactic, tactic_data in ATTACK_DATA.items():
         techs = tactic_data["techniques"]

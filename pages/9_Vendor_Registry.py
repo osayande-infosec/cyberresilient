@@ -1,0 +1,227 @@
+"""
+pages/9_Vendor_Registry.py
+
+Third-Party / Vendor Risk Registry
+"""
+
+import streamlit as st
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
+from datetime import date
+
+from cyberresilient.services.vendor_service import (
+    create_vendor, load_vendors, record_assessment,
+    get_assessment_history, vendor_summary, get_overdue_vendors,
+    VENDOR_CRITICALITIES, VENDOR_CATEGORIES, DATA_CLASSIFICATIONS,
+    TIER_COLORS, CRITICALITY_COLORS,
+)
+from cyberresilient.services.risk_service import (
+    ARCHITECTURE_CHECKS, run_architecture_assessment,
+)
+from cyberresilient.services.auth_service import get_current_user, has_permission, learning_callout
+from cyberresilient.services.learning_service import get_content, grc_insight, case_study_panel, try_this_panel, learning_section, chart_navigation_guide
+from cyberresilient.theme import get_theme_colors
+import html as _html
+
+colors = get_theme_colors()
+GOLD = colors["accent"]
+
+st.markdown("# 🤝 Vendor Risk Registry")
+st.markdown(
+    "Third-party risk management — vendor profiles, assessment history, "
+    "and re-assessment scheduling."
+)
+st.markdown("---")
+
+lc = get_content("vendor_risk")
+
+learning_callout(
+    "Why Third-Party Risk Matters",
+    "Your security posture is only as strong as your weakest vendor. NIST CSF 2.0 "
+    "added **GV.SC (Supply Chain Risk Management)** as a dedicated category. "
+    "ISO 27001 A.5.19–A.5.23 covers Supplier Relationships. You are accountable "
+    "for risks introduced by your vendors, even if you don't control their systems.",
+)
+
+if lc.get("case_studies"):
+    case_study_panel(lc["case_studies"]["cases"])
+
+if lc.get("grc_connection"):
+    gc = lc["grc_connection"]
+    grc_insight(gc["title"].replace("GRC Engineering: ", ""), gc["content"])
+
+summary = vendor_summary()
+overdue = get_overdue_vendors()
+
+m1, m2, m3, m4 = st.columns(4)
+m1.metric("Total Vendors", summary["total"])
+m2.metric("Not Assessed", summary["not_assessed"])
+m3.metric("Overdue Assessment", summary["overdue_assessment"])
+m4.metric("Critical Vendors", summary["by_criticality"].get("Critical", 0))
+
+if overdue:
+    st.error(
+        f"🚨 {len(overdue)} vendor(s) are overdue for reassessment: "
+        + ", ".join(v["name"] for v in overdue[:5])
+        + ("..." if len(overdue) > 5 else "")
+    )
+
+st.markdown("---")
+
+tab1, tab2, tab3 = st.tabs([
+    "📋 Vendor Register",
+    "🔍 Assess a Vendor",
+    "➕ Add Vendor",
+])
+
+with tab1:
+    vendors = load_vendors()
+    if not vendors:
+        st.info("No vendors registered yet. Add one in the 'Add Vendor' tab.")
+    else:
+        # Risk tier distribution chart
+        tier_counts = summary.get("by_tier", {})
+        if tier_counts:
+            fig = px.pie(
+                names=list(tier_counts.keys()),
+                values=list(tier_counts.values()),
+                color=list(tier_counts.keys()),
+                color_discrete_map=TIER_COLORS,
+                hole=0.45,
+                title="Vendor Risk Tier Distribution",
+            )
+            fig.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)", font_color="#EAEAEA", height=280,
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+        today = date.today().isoformat()
+        for v in sorted(vendors, key=lambda x: x["criticality"]):
+            tier_color = TIER_COLORS.get(v["current_risk_tier"], "#888")
+            crit_color = CRITICALITY_COLORS.get(v["criticality"], "#888")
+            overdue_flag = " ⏰ REASSESSMENT OVERDUE" if v["reassessment_due"] < today else ""
+
+            with st.expander(
+                f"**{v['name']}** — {v['current_risk_tier']}{overdue_flag} "
+                f"| Criticality: {v['criticality']}"
+            ):
+                vc1, vc2, vc3 = st.columns(3)
+                with vc1:
+                    st.markdown(f"**Category:** {v['category']}")
+                    st.markdown(f"**Criticality:** "
+                                f"<span style='color:{crit_color}'>{v['criticality']}</span>",
+                                unsafe_allow_html=True)
+                    st.markdown(f"**Data Classification:** {v['data_classification']}")
+                with vc2:
+                    st.markdown(f"**Risk Tier:** "
+                                f"<span style='color:{tier_color}'>{_html.escape(v['current_risk_tier'])}</span>",
+                                unsafe_allow_html=True)
+                    if v.get("last_assessment_score") is not None:
+                        st.markdown(f"**Last Score:** {v['last_assessment_score']}%")
+                    st.markdown(f"**Last Assessed:** {v.get('last_assessed_at') or 'Never'}")
+                    st.markdown(f"**Next Due:** {v['reassessment_due']}")
+                with vc3:
+                    if v.get("contact_name"):
+                        st.markdown(f"**Contact:** {v['contact_name']}")
+                    if v.get("contact_email"):
+                        st.markdown(f"**Email:** {v['contact_email']}")
+                    if v.get("contract_reference"):
+                        st.markdown(f"**Contract:** {v['contract_reference']}")
+                    if v.get("contract_expiry"):
+                        st.markdown(f"**Contract Expiry:** {v['contract_expiry']}")
+
+                # Assessment history
+                history = get_assessment_history(v["id"])
+                if history:
+                    st.markdown("**Assessment History**")
+                    hist_df = pd.DataFrame(history)[
+                        ["assessed_at", "score_pct", "risk_tier", "passed", "failed", "assessed_by"]
+                    ]
+                    hist_df.columns = ["Date", "Score %", "Tier", "Passed", "Failed", "Assessed By"]
+                    st.dataframe(hist_df, use_container_width=True, hide_index=True)
+
+
+with tab2:
+    vendors = load_vendors()
+    if not vendors:
+        st.info("Add a vendor first before running an assessment.")
+    else:
+        vendor_map = {v["name"]: v["id"] for v in vendors}
+        selected_name = st.selectbox("Select Vendor to Assess", list(vendor_map.keys()))
+        selected_id = vendor_map[selected_name]
+
+        with st.form("vendor_assessment"):
+            st.markdown("#### Security Control Checklist")
+            answers = {}
+            for check in ARCHITECTURE_CHECKS:
+                answers[check["id"]] = st.checkbox(
+                    f"**{check['control']}** — {check['question']}",
+                    key=f"va_{check['id']}",
+                )
+                st.caption(f"Framework: {check['framework']}")
+            submitted = st.form_submit_button("🔍 Run Assessment", type="primary")
+
+        if submitted:
+            result = run_architecture_assessment(answers)
+            record_assessment(
+                vendor_id=selected_id,
+                score_pct=result["score_pct"],
+                assessment_detail=result,
+                assessed_by=get_current_user().username,
+            )
+            st.success(
+                f"Assessment recorded — {selected_name} scored **{result['score_pct']}%** "
+                f"({result['overall_risk']})"
+            )
+            for r in result["results"]:
+                if not r["passed"]:
+                    st.warning(f"❌ {r['control']}: {r['risk_if_missing']}")
+            st.rerun()
+
+
+with tab3:
+    if not has_permission("edit_risks"):
+        st.warning("You do not have permission to add vendors.")
+    else:
+        with st.form("add_vendor"):
+            c1, c2 = st.columns(2)
+            with c1:
+                name = st.text_input("Vendor Name *")
+                category = st.selectbox("Category", VENDOR_CATEGORIES)
+                criticality = st.selectbox("Criticality", VENDOR_CRITICALITIES)
+                data_class = st.selectbox("Data Classification", DATA_CLASSIFICATIONS)
+            with c2:
+                contact_name = st.text_input("Contact Name")
+                contact_email = st.text_input("Contact Email")
+                contract_ref = st.text_input("Contract Reference")
+                contract_expiry = st.date_input("Contract Expiry", value=None)
+            notes = st.text_area("Notes")
+            submitted = st.form_submit_button("➕ Add Vendor", type="primary")
+
+        if lc.get("try_this"):
+            try_this_panel(lc["try_this"]["exercises"])
+
+        if lc.get("navigating_charts"):
+            nc = lc["navigating_charts"]
+            learning_section(nc["title"], nc["content"], icon="📊")
+            chart_navigation_guide(nc["charts"])
+
+        if submitted:
+            if not name:
+                st.error("Vendor name is required.")
+            else:
+                create_vendor(
+                    name=name,
+                    category=category,
+                    criticality=criticality,
+                    data_classification=data_class,
+                    contact_name=contact_name,
+                    contact_email=contact_email,
+                    contract_reference=contract_ref,
+                    contract_expiry=str(contract_expiry) if contract_expiry else "",
+                    notes=notes,
+                    created_by=get_current_user().username,
+                )
+                st.success(f"Vendor '{name}' added.")
+                st.rerun()

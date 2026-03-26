@@ -151,10 +151,10 @@ def get_risk_summary(risks: list[dict]) -> dict:
     expired_evidence = 0
 
     for r in risks:
-        inherent = r.get("risk_score", 0)
+        inherent = r.get("risk_score") or 0
         if not inherent and "likelihood" in r and "impact" in r:
             inherent = calc_inherent_score(r["likelihood"], r["impact"])
-        residual = r.get("residual_score", inherent)
+        residual = r.get("residual_score") or inherent
 
         by_inherent_level[get_risk_level(inherent)] = (
             by_inherent_level.get(get_risk_level(inherent), 0) + 1

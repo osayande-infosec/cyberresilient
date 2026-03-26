@@ -18,7 +18,7 @@ from cyberresilient.services.dashboard_service import load_dashboard_data
 from cyberresilient.services.auth_service import learning_callout
 from cyberresilient.services.learning_service import (
     get_content, learning_section, kpi_explanation,
-    grc_insight, evidence_mapping_table, chart_navigation_guide,
+    grc_insight, evidence_mapping_table,
 )
 from cyberresilient.theme import get_theme_colors
 
@@ -83,11 +83,6 @@ if lc.get("kpi_deep_dive"):
     )
     for _key, kpi_info in lc["kpi_deep_dive"].get("items", {}).items():
         kpi_explanation(kpi_info)
-
-if lc.get("navigating_charts"):
-    nc = lc["navigating_charts"]
-    learning_section(nc["title"], nc["content"], icon="📊")
-    chart_navigation_guide(nc.get("charts", []))
 
 # ── GRC Health Alert Strip ───────────────────────────────────
 breach_count = risk_summary.get("appetite_breaches", 0)

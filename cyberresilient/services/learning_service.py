@@ -190,3 +190,17 @@ def glossary_tooltip(term: str) -> str:
     """Return the glossary definition for a term, or empty string if not found."""
     glossary = get_glossary()
     return glossary.get(term, "")
+
+
+def chart_navigation_guide(charts: list[dict]) -> None:
+    """Render an interactive guide explaining how to read each chart on the page."""
+    if not is_learning_mode():
+        return
+    with st.expander("📊 How to Read the Charts & Diagrams on This Page", expanded=False):
+        for chart in charts:
+            st.markdown(f"### {chart['name']}")
+            st.caption(f"Tab: {chart['tab']}")
+            st.markdown(chart["description"])
+            st.markdown(f"**How to read it:** {chart['how_to_read']}")
+            st.success(f"**What to look for:** {chart['what_to_look_for']}")
+            st.markdown("")

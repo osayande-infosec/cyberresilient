@@ -80,6 +80,89 @@
         {"metric": "Compliance Score", "nist_csf": "GV.OC", "iso27001": "A.5.36", "evidence_type": "Calculated from control assessments"},
         {"metric": "Incident Trend", "nist_csf": "DE.AE, RS.MA", "iso27001": "A.5.24", "evidence_type": "Automated from ticketing system"}
       ]
+    },
+    "navigating_charts": {
+      "title": "Navigating the Dashboard Charts & Diagrams",
+      "content": "The executive dashboard uses several chart types to visualise your security posture at a glance. Here is how to read and navigate each one.",
+      "charts": [
+        {
+          "name": "Security Score Gauge",
+          "tab": "Main Dashboard",
+          "description": "A semi-circular gauge showing the organisation's overall security score (0–100), combining KPI performance across detection, response, patching, and compliance.",
+          "how_to_read": "The needle position shows the current score. The gauge has three colour zones: red (0–40) = critical, amber (40–70) = needs improvement, green (70–100) = healthy. A red threshold line at 60 marks the minimum acceptable baseline. The gold number at centre is your current score.",
+          "what_to_look_for": "If the score is below 60, your security programme has critical gaps. Review the KPI cards to the right of the gauge to identify which specific metrics are pulling the overall score down."
+        },
+        {
+          "name": "KPI Metric Cards",
+          "tab": "Main Dashboard",
+          "description": "Eight key performance indicator cards showing MTTD, MTTR, patch compliance, vulnerability counts, and other operational metrics with trend deltas.",
+          "how_to_read": "Each card shows the metric name, current value, and a delta arrow. Green arrows (▲ or ▼ depending on context) indicate improvement; red arrows indicate deterioration. Metrics where 'lower is better' (e.g., MTTD, vulnerabilities) use inverse colouring — a decrease shows green.",
+          "what_to_look_for": "Red deltas on any card signal regression. Pay special attention to MTTD and MTTR — these directly measure your detection and response capability. Compare values against industry benchmarks shown in the KPI Deep Dive expandable sections."
+        },
+        {
+          "name": "GRC Health Alert Strip",
+          "tab": "Main Dashboard",
+          "description": "Four coloured alert cards showing appetite breaches, expired risk evidence, stale NIST controls, and expiring policies. Only appears when issues exist.",
+          "how_to_read": "Each card shows a count with a contextual colour: green = zero issues, red/orange = items needing attention. The number in large text is the count of affected items. Subtext explains the threshold (e.g., 'Residual > 12' for appetite breaches).",
+          "what_to_look_for": "Any non-zero red card is a priority. Appetite breaches mean risks exceed your organisation's stated tolerance. Expired evidence means audit integrity is compromised. Click the 'Policies expiring soon' expander for details."
+        },
+        {
+          "name": "Inherent vs Residual Risk Distribution",
+          "tab": "Risk Portfolio Health",
+          "description": "A grouped bar chart comparing risk counts at each severity level (Very High, High, Medium, Low) before and after controls are applied.",
+          "how_to_read": "Solid bars = inherent risk (before controls). Faded bars = residual risk (after mitigation). Each severity level has two bars side-by-side. The gap between solid and faded bars shows how much your controls reduce risk at each level.",
+          "what_to_look_for": "If the Very High solid and faded bars are similar height, controls are not effectively reducing your highest risks. A large gap between inherent and residual bars at High/Very High levels shows strong control effectiveness."
+        },
+        {
+          "name": "Risk Status Donut",
+          "tab": "Risk Portfolio Health",
+          "description": "A donut chart showing the distribution of risks by lifecycle status: Open (red), Mitigating (orange), Monitoring (yellow), Accepted (blue), Closed (green).",
+          "how_to_read": "Each segment represents the proportion of risks in that status. A healthy register has mostly green (Closed) and blue (Accepted) segments, with a small proportion of red (Open).",
+          "what_to_look_for": "A large red (Open) segment means too many risks lack a treatment plan. A large orange (Mitigating) segment is healthy — it shows active remediation. If 'Accepted' is dominant, verify that risk acceptance decisions are properly documented and signed off."
+        },
+        {
+          "name": "Monthly Security Incidents (12-Month Trend)",
+          "tab": "Charts Row 1",
+          "description": "A colour-gradient bar chart showing the count of security incidents per month over the past year.",
+          "how_to_read": "Each bar represents one month. Bar height = incident count. Colour shifts from dark green (low) through gold (moderate) to red (high). This shows both the absolute count and relative intensity at a glance.",
+          "what_to_look_for": "Look for upward trends (increasing bar heights) which signal worsening threat activity or detection improvements catching more events. Sudden spikes warrant investigation. A consistent downward trend after a policy change validates the intervention."
+        },
+        {
+          "name": "Vulnerability Aging Distribution",
+          "tab": "Charts Row 1",
+          "description": "A donut chart showing how long open vulnerabilities have remained unpatched, grouped into age buckets.",
+          "how_to_read": "Each segment represents an age bucket (e.g., 0–7 days, 8–30 days, 31–90 days, 90+ days). Green = recent (being addressed), red = aged (neglected). The hole in the centre is decorative.",
+          "what_to_look_for": "Large red/orange segments mean vulnerabilities are aging beyond your patching SLA. If the '90+ days' segment is growing, your vulnerability management process needs attention. Critical vulnerabilities should never appear in the 30+ day buckets."
+        },
+        {
+          "name": "Compliance Trend (NIST CSF & ISO 27001)",
+          "tab": "Charts Row 2",
+          "description": "A dual-line chart tracking NIST CSF and ISO 27001 compliance percentages over quarterly intervals.",
+          "how_to_read": "The gold line tracks NIST CSF compliance; the green line tracks ISO 27001. Both use a 0–100% Y-axis. Points are connected with markers showing the exact value at each quarter. Hover for precise percentages.",
+          "what_to_look_for": "Both lines should trend upward over time. If one framework's line drops while the other rises, investigate which controls changed. Divergence between the two lines may indicate gaps in framework mapping. Target: both lines above 80%."
+        },
+        {
+          "name": "Threat Categories",
+          "tab": "Charts Row 2",
+          "description": "A horizontal bar chart showing the count of incidents by threat category (e.g., Malware, Phishing, Unauthorised Access), colour-coded by severity.",
+          "how_to_read": "Each bar represents a threat category. Bar length = number of incidents. Colours indicate severity: red = Critical, orange = High, gold = Medium, green = Low. Categories are listed vertically for easy comparison.",
+          "what_to_look_for": "The longest bars reveal your top threat vectors. If 'Phishing' dominates, invest in awareness training and email gateway controls. If 'Malware' is highest, focus on endpoint protection and patch compliance."
+        },
+        {
+          "name": "Department Risk Comparison (Radar Chart)",
+          "tab": "Department Security Metrics",
+          "description": "A spider/radar chart comparing all departments across five dimensions: Risk Score, Compliance, Patch Compliance, Incident Score, and Training. Only visible when 'All Departments' is selected.",
+          "how_to_read": "Each coloured polygon represents one department. The five axes extend from the centre (0) to the outer edge (100). The further a polygon reaches on an axis, the higher that department scores on that dimension. An ideal department would fill the entire pentagon to 100 on all axes.",
+          "what_to_look_for": "Dips inward on any axis reveal departmental weaknesses. Compare polygon shapes: departments with similar shapes have similar risk profiles. If most departments dip on the same axis (e.g., Training), it signals an organisation-wide gap. Use the department dropdown to filter the table and remove the radar to focus on one department."
+        },
+        {
+          "name": "Department Metrics Table",
+          "tab": "Department Security Metrics",
+          "description": "A styled data table with conditional colour gradients showing each department's Risk Score, Compliance %, Open Incidents, and Patch Compliance %.",
+          "how_to_read": "Columns use colour gradients to highlight relative performance: Risk Score uses red-yellow-green (reversed — lower is better), while Compliance % and Patch Compliance % use green-yellow-red (higher is better). This lets you instantly spot the best and worst performers.",
+          "what_to_look_for": "Red-shaded cells are immediate attention items. Compare departments to identify outliers. A department with high Risk Score AND low Compliance % is your highest-priority remediation target."
+        }
+      ]
     }
   },
 
@@ -122,6 +205,40 @@
     "grc_connection": {
       "title": "GRC Engineering: DR Testing as Compliance Evidence",
       "content": "Every simulation you run here is logged with timestamps, parameters, and results. This simulation history serves as **audit evidence** for NIST CSF PR.IP-9 (Recovery plans), ISO 27001 A.5.29 (ICT readiness for business continuity), and SOC 2 A1.2 (Recovery objectives). Instead of documenting 'we test DR quarterly' in a spreadsheet, auditors can see actual test results with pass/fail status, trend data, and gap analysis. This is what compliance engineering looks like — evidence is generated as a byproduct of doing the work, not as a separate documentation exercise."
+    },
+    "navigating_charts": {
+      "title": "Navigating the DR Simulator Charts & Diagrams",
+      "content": "The DR Simulator page shows simulation results using gauges, tables, and history records. Here is how to read each element.",
+      "charts": [
+        {
+          "name": "RTO Gauge (Recovery Time Objective)",
+          "tab": "Simulation Results",
+          "description": "A gauge showing the estimated recovery time in hours compared to the system's RTO target. Only appears after running a simulation.",
+          "how_to_read": "The needle shows the estimated RTO in hours. A gold threshold line marks the target RTO. The gauge colour changes based on pass/fail: green if the estimate is within the target, red if it exceeds it. The delta value below the number shows the gap (positive = exceeded target, negative = within target).",
+          "what_to_look_for": "A red gauge means the system cannot recover within its target timeframe under this scenario. Compare the 'Estimated' value to the 'Target' value shown below the gauge. Large gaps indicate your DR strategy needs improvement — consider faster backup solutions or reduced dependencies."
+        },
+        {
+          "name": "RPO Gauge (Recovery Point Objective)",
+          "tab": "Simulation Results",
+          "description": "A gauge showing the estimated data loss window in hours compared to the system's RPO target. Only appears after running a simulation.",
+          "how_to_read": "Works identically to the RTO gauge but measures data loss. The needle shows estimated hours of data that could be lost. Green = within target RPO, red = exceeds it. The delta shows how far above or below the target you are.",
+          "what_to_look_for": "A red RPO gauge means your backup frequency is insufficient for this scenario. If estimated RPO is 8 hours but target is 1 hour, you need more frequent backups, real-time replication, or a different DR strategy for this system tier."
+        },
+        {
+          "name": "RACI Matrix Table",
+          "tab": "Simulation Results",
+          "description": "A table showing who is Responsible, Accountable, Consulted, and Informed for each DR activation activity.",
+          "how_to_read": "Each row is an activity (e.g., 'Activate DR Plan', 'Restore from Backup'). The four columns assign roles: R = does the work, A = owns the decision, C = provides input, I = kept informed. Every activity must have exactly one A (accountable person).",
+          "what_to_look_for": "Look for bottlenecks — if one person appears as 'R' in too many rows, they become a single point of failure during a real crisis. Also verify that critical activities have backup personnel identified."
+        },
+        {
+          "name": "Simulation History Table",
+          "tab": "Simulation History",
+          "description": "A chronological record of all DR simulations run, showing system, scenario, severity, targets vs actuals, pass/fail result, and which user ran the test.",
+          "how_to_read": "Each row is one simulation run. Green ✅ PASS means both RTO and RPO targets were met. Red ❌ FAIL means at least one was exceeded. Compare Target vs Actual columns to see the gap.",
+          "what_to_look_for": "Look for patterns: does a specific system consistently fail? Does a particular scenario always exceed targets? Recurring failures for the same system indicate a structural DR weakness that needs investment, not just re-testing."
+        }
+      ]
     }
   },
 
@@ -162,6 +279,26 @@
     "grc_connection": {
       "title": "GRC Engineering: IR as a Compliance Requirement",
       "content": "A tested IR plan isn't optional — it's required by virtually every compliance framework. NIST CSF RS.RP-1 requires an IR plan that is 'executed during or after an incident.' ISO 27001 A.5.24-A.5.28 covers the entire IR lifecycle. SOC 2 CC7.3-CC7.5 requires incident detection, response, and communication. The key word is **tested** — having a document is insufficient. Auditors want evidence of tabletop exercises, after-action reports, and plan updates. Every exercise you complete here generates that evidence. The post-mortem form creates a structured lessons-learned document aligned with NIST 800-61r2 Section 3.4. This is compliance engineering: the tool does the documentation for you."
+    },
+    "navigating_charts": {
+      "title": "Navigating the Incident Response Charts & Diagrams",
+      "content": "The IR Center uses a visual flow chart and interactive tabletop exercises. Here is how to read the key visual element.",
+      "charts": [
+        {
+          "name": "IR Lifecycle Flow Chart",
+          "tab": "IR Lifecycle",
+          "description": "A horizontal flow diagram showing the six NIST SP 800-61r2 incident response phases connected by arrows: Preparation → Detection & Analysis → Containment → Eradication → Recovery → Lessons Learned.",
+          "how_to_read": "Each phase is represented by a coloured circle with an icon. Arrows (→) connect the phases left-to-right showing the standard sequence. Colours are thematic: green (Preparation), blue (Detection), orange (Containment), red (Eradication), purple (Recovery), gold (Lessons Learned). Click each phase's expander above the flow chart for detailed activities.",
+          "what_to_look_for": "Use this as a checklist during an actual incident — work through each phase sequentially. The expanders above contain specific activities for each phase including organisation-specific context. The flow is linear but in practice you may loop back from Eradication to Detection if new IOCs are found."
+        },
+        {
+          "name": "Tabletop Exercise Scorecards",
+          "tab": "Tabletop Exercise",
+          "description": "Interactive decision-based exercises where each answer is scored and colour-coded feedback is provided. A running score tracks performance across all questions.",
+          "how_to_read": "Select an exercise scenario, then answer each question by choosing one of the response options. After each answer, feedback appears: green ✅ = correct (10 points), amber ⚠️ = partial (3–5 points), red ❌ = incorrect (0 points). Your total score is tallied at the end.",
+          "what_to_look_for": "Focus on the feedback text, not just the score. Partial answers often reveal nuances — for example, the difference between 'notify immediately' vs 'wait for confirmation' under MFIPPA breach obligations. Use incorrect answers as learning opportunities to update your IR playbooks."
+        }
+      ]
     }
   },
 
@@ -207,6 +344,33 @@
     "grc_connection": {
       "title": "GRC Engineering: The Risk Register as a Living System",
       "content": "In traditional GRC, risk registers live in Excel spreadsheets. They get updated before audits, forgotten between audits, and become permanently out of date. Engineering-driven GRC treats the risk register as a **living system** with real-time data.\n\nHere, every risk change is audit-logged: who created it, who changed the score, when mitigation status changed. This creates an **auditable chain of custody** for risk decisions. When an auditor asks 'How do you manage risk?', you show them the risk register, the audit trail showing regular reviews, and the evidence that scores change as controls are implemented.\n\nThis maps directly to: NIST CSF ID.RA (Risk Assessment), ISO 31000 Clause 6 (Risk Assessment Process), and ISO 27001 A.5.1 (Policies for information security). The architecture advisor in Tab 2 operationalizes NIST CSF ID.SC (Supply Chain Risk Management) and ISO 27001 A.5.19-A.5.22 (Supplier relationships)."
+    },
+    "navigating_charts": {
+      "title": "Navigating the Risk Register Charts & Diagrams",
+      "content": "The Risk Register uses heat maps, grouped bar charts, and detailed expanders to visualise your organisation's risk posture. Here is how to read each one.",
+      "charts": [
+        {
+          "name": "5×5 Risk Heat Map",
+          "tab": "Risk Register & Heat Map",
+          "description": "A colour-gradient matrix plotting Likelihood (Y-axis, 1–5) against Impact (X-axis, 1–5). Each cell shows the risk score (Likelihood × Impact) and the count of risks in that cell.",
+          "how_to_read": "Cell colour ranges from dark green (low scores, bottom-left) through yellow and orange to dark red (high scores, top-right). Numbers in each cell show the score and, in parentheses, how many risks fall in that cell. A dashed red border marks the risk appetite boundary — any risk above this threshold requires executive sign-off before closure. Use the radio toggle to switch between Inherent (before controls) and Residual (after controls) views.",
+          "what_to_look_for": "Clusters of risks in the top-right red zone are your highest priorities. Compare Inherent vs Residual views — if risks move from red cells to green cells, your controls are working. Risks that remain in the red zone after switching to Residual view need stronger mitigation or risk acceptance sign-off."
+        },
+        {
+          "name": "Inherent vs Residual Distribution (Grouped Bar Chart)",
+          "tab": "Risk Register & Heat Map",
+          "description": "A grouped bar chart comparing the count of risks at each severity level (Very High, High, Medium, Low) before and after controls.",
+          "how_to_read": "Two bars per severity level: solid bars = inherent risk count, faded bars = residual risk count. Bar colours match severity: dark red (Very High), red (High), orange (Medium), green (Low). The gap between solid and faded bars represents your control effectiveness.",
+          "what_to_look_for": "The goal is for faded (residual) bars to be shorter than solid (inherent) bars, especially at Very High and High levels. If both bars are similar height at a severity level, controls are not adequately reducing risk. A well-managed register shows inherent risks shifting from Very High/High to Medium/Low in the residual view."
+        },
+        {
+          "name": "Risk Detail Expanders",
+          "tab": "Risk Register & Heat Map",
+          "description": "Expandable cards for each risk showing inherent and residual scores as colour-coded badges, mitigation details, evidence dates, and lifecycle status.",
+          "how_to_read": "Each risk card has a colour-coded header showing the inherent score badge (e.g., 'Very High (20)'). Inside, you see inherent vs residual score comparison, mitigation strategy, effectiveness rating, evidence date, and status lifecycle. Risks exceeding the appetite threshold show a red warning requiring sign-off before closure.",
+          "what_to_look_for": "Look for risks with expired evidence (flagged with 🗂️) — these need evidence refresh. Risks in 'Open' status with Very High inherent scores are your top priorities. The 'Appetite Breach' warning means the residual score still exceeds your organisation's stated risk tolerance."
+        }
+      ]
     }
   },
 
@@ -358,6 +522,61 @@
         {"question": "How do you monitor compliance on an ongoing basis?", "evidence": "Compliance dashboard with trend data, audit readiness score history, gap analysis with remediation timelines"},
         {"question": "How do you handle policy management?", "evidence": "Policy lifecycle tracker showing current/review/draft/expired status, policy approval dates, review frequencies"}
       ]
+    },
+    "navigating_charts": {
+      "title": "Navigating the Compliance Charts & Diagrams",
+      "content": "This page contains several interactive visualisations. Each chart tells a different compliance story — here's how to read and navigate them effectively.",
+      "charts": [
+        {
+          "name": "NIST CSF Function Bar Chart",
+          "tab": "NIST CSF 2.0",
+          "description": "A colour-coded bar chart showing the compliance percentage for each of the six NIST CSF 2.0 functions: Govern, Identify, Protect, Detect, Respond, and Recover.",
+          "how_to_read": "Each bar represents one CSF function. The height shows the compliance percentage (0–100%). A gold dashed line marks the 80% target — bars falling below this line indicate functions that need attention. Bars are coloured by function (purple = Govern, blue = Identify, green = Protect, orange = Detect, red = Respond, gold = Recover).",
+          "what_to_look_for": "Functions below the 80% target line are priority remediation areas. Compare relative heights to identify your strongest and weakest functions. Hover over a bar to see the exact percentage."
+        },
+        {
+          "name": "Control Status Legend",
+          "tab": "NIST CSF 2.0",
+          "description": "A visual key showing the seven lifecycle states a control can be in, from fully Implemented (100%) down to Gap (0%).",
+          "how_to_read": "Each status has an icon, colour, and weight percentage. The weight determines how much credit that status receives toward the compliance score. Implemented = 100%, Compensating = 85%, Largely = 70%, Partial = 40%, Planned = 10%, Not Implemented/Gap = 0%.",
+          "what_to_look_for": "Use this legend when reviewing the Category-Level Detail expanders below. Controls in 'Compensating' status receive 85% credit but should be verified with your auditor. 'Planned' controls receive only 10% — they barely contribute until work begins."
+        },
+        {
+          "name": "Category-Level Detail (Expanders)",
+          "tab": "NIST CSF 2.0",
+          "description": "Expandable sections for each CSF function showing individual control status, effective weight, evidence freshness, and advisory notes about dependency caps or compensating controls.",
+          "how_to_read": "Click any function name to expand it. Each control row shows three columns: the control ID and name, its lifecycle status (colour-coded), and its effective weight after penalties. Below each control, captions flag stale evidence (🗂️), dependency caps (🔗), or compensating control notes (🔄).",
+          "what_to_look_for": "Look for red 'stale evidence' flags — these controls are capped at 50% until evidence is refreshed. Dependency cap notes (🔗) mean a prerequisite control isn't met, limiting this control's score. Address prerequisites first to unlock dependent controls."
+        },
+        {
+          "name": "NIST CSF Sunburst View",
+          "tab": "NIST CSF 2.0",
+          "description": "An interactive hierarchical donut chart. The centre represents the entire NIST CSF framework. The middle ring shows the six functions. The outer ring shows individual controls within each function.",
+          "how_to_read": "Click on a function segment (middle ring) to zoom into that function and see its controls. Click the centre to zoom back out. Colours reflect the effective weight after evidence staleness and dependency penalties: green (≥80%), light green (60–79%), yellow (40–59%), orange (10–39%), red (<10%). This is not the raw status colour — it shows the actual audit-ready score.",
+          "what_to_look_for": "Red outer segments are your highest-priority gaps. A function with mostly green segments is healthy. If a function's middle ring is green but outer segments are yellow/red, some controls are dragging the average down — expand the Category Detail above to investigate."
+        },
+        {
+          "name": "ISO 27001 Stacked Bar Chart",
+          "tab": "ISO 27001 & MFIPPA",
+          "description": "A stacked bar chart showing control implementation status across ISO 27001 Annex A domains. Each bar is divided into Implemented (green), Partial (yellow), and Gap (red) segments.",
+          "how_to_read": "Each bar represents one ISO domain. The total bar height shows the total number of controls in that domain. Green = fully implemented, yellow = partially implemented, red = not implemented (gap). A domain with a tall red segment has significant control gaps.",
+          "what_to_look_for": "Domains with large red segments need remediation plans. Click the Domain Detail expanders below the chart to see health status (Compliant/At Risk/Non-Compliant), evidence freshness, and individual control counts. Stale evidence flags mean the domain score is penalised to 80%."
+        },
+        {
+          "name": "Policy Lifecycle Donut Chart",
+          "tab": "Policy Lifecycle",
+          "description": "A donut (ring) chart showing the distribution of security policies by status: Current (green), Under Review (yellow), Draft (blue), and Expired (red).",
+          "how_to_read": "Each segment represents the count of policies in that status. A healthy organisation has mostly green (Current). Any red (Expired) segment is a compliance risk — expired policies are non-compliant. The hole in the centre is decorative; focus on segment proportions.",
+          "what_to_look_for": "Expired policies require immediate review and re-approval. Policies marked 'Under Review' should have active reviewers assigned. Use the multiselect filter below to focus on specific statuses. Policies expiring within 30 days are flagged with 🔴 EXPIRING SOON."
+        },
+        {
+          "name": "Audit Readiness Gauge",
+          "tab": "Policy Lifecycle",
+          "description": "A semi-circular gauge showing the composite audit readiness score (0–100%), calculated from NIST CSF (40%), ISO 27001 (35%), and Policy Currency (25%), with a deduction for stale evidence.",
+          "how_to_read": "The gauge has three colour zones: red (0–40%) = significant gaps, amber (40–70%) = moderate readiness, green (70–100%) = strong readiness. A red threshold line at 70% marks the minimum acceptable score. The breakdown table below the gauge shows how each component contributes to the final score.",
+          "what_to_look_for": "If the score is below 70%, review the breakdown table to identify which component (NIST, ISO, or Policy) is dragging the score down. The evidence penalty row shows how many points are lost due to stale evidence — refreshing evidence is often the quickest way to improve the score."
+        }
+      ]
     }
   },
 
@@ -381,6 +600,33 @@
     "grc_connection": {
       "title": "GRC Engineering: Threat-Informed Compliance",
       "content": "Traditional compliance asks 'Do you have endpoint protection?' Engineering-driven compliance asks 'Can your endpoint protection detect the techniques used by threat actors targeting your industry?' ATT&CK coverage data is evidence for NIST CSF DE.CM (Continuous Monitoring) and DE.AE (Adverse Event Analysis). The gap analysis feeds directly into your risk register — each undetected technique is a risk that needs scoring and treatment.\n\nThis is where GRC transcends checklists. Instead of 'Do you have an IDS? Yes/No,' you can say 'Our detection coverage across ATT&CK is 82%, with gaps prioritized in the risk register and a 6-month roadmap to reach 90%.' That's a fundamentally more mature compliance posture."
+    },
+    "navigating_charts": {
+      "title": "Navigating the Threat Intel Charts & Diagrams",
+      "content": "The Threat Intelligence page uses stacked bar charts, Sankey diagrams, and detailed technique listings to visualise your MITRE ATT&CK coverage. Here is how to read each one.",
+      "charts": [
+        {
+          "name": "ATT&CK Coverage Stacked Bar Chart",
+          "tab": "Coverage Overview",
+          "description": "A horizontal stacked bar chart with one bar per ATT&CK tactic. Each bar is split into a green segment (Detected techniques) and a red segment (Gaps).",
+          "how_to_read": "The total bar length represents the total number of techniques mapped for that tactic. Green = techniques you can detect; Red = blind spots. Bars are sorted by tactic order (Reconnaissance → Impact). A percentage label shows your detection rate per tactic.",
+          "what_to_look_for": "Tactics with large red segments are your coverage gaps. Prioritise detection for tactics in the early kill chain (Reconnaissance, Initial Access) and high-impact phases (Lateral Movement, Exfiltration). A tactic with 0% detection is a critical blind spot."
+        },
+        {
+          "name": "Sankey Attack Chain Diagram",
+          "tab": "Attack Chain Analysis",
+          "description": "A Sankey (flow) diagram showing how adversary activity flows through ATT&CK tactics from left to right, modelling a realistic multi-stage attack chain.",
+          "how_to_read": "Nodes on the left are early tactics (Reconnaissance, Initial Access), nodes on the right are late-stage tactics (Exfiltration, Impact). The width of each flow band represents the proportion of techniques connecting those tactics. Node colours correspond to tactic colours used elsewhere on the page.",
+          "what_to_look_for": "Follow the thickest flows — these are the most common attack progressions. Where a flow passes through a tactic you have low coverage on (from the stacked bar chart), you have a dangerous blind spot in a real attack chain. The goal is to have detection at multiple points along every major flow path."
+        },
+        {
+          "name": "Tactic Coverage Detail Expanders",
+          "tab": "Gap Analysis",
+          "description": "Expandable sections per ATT&CK tactic listing each mapped technique with a Detected (✅) or Gap (❌) status and the associated control.",
+          "how_to_read": "Click a tactic to expand it. Each row shows the technique ID (e.g., T1566), name, detection status, and which control provides detection. Use the radio filter at the top to show All, Detected Only, or Gaps Only.",
+          "what_to_look_for": "Focus on Gaps Only view to build a remediation backlog. Techniques with 'recommended' in the control column are aspirational — you haven't deployed detection yet. Cross-reference gap techniques with your risk register to ensure each gap is recorded as a scored risk."
+        }
+      ]
     }
   },
 
@@ -472,6 +718,26 @@
         "Add a new vendor with 'Critical' criticality and 'Confidential' data classification. Notice how the reassessment interval is set to 180 days automatically.",
         "Run a security assessment on a vendor. Observe how the score determines the risk tier (Critical/High/Medium/Low) and sets the next reassessment date."
       ]
+    },
+    "navigating_charts": {
+      "title": "Navigating the Vendor Registry Charts & Diagrams",
+      "content": "The Vendor Registry uses a donut chart and detailed vendor cards to visualise your third-party risk landscape. Here is how to read each one.",
+      "charts": [
+        {
+          "name": "Vendor Risk Tier Distribution (Donut Chart)",
+          "tab": "Vendors",
+          "description": "A donut (ring) chart showing what proportion of your vendors fall into each risk tier: Critical, High, Medium, Low, and Not Assessed.",
+          "how_to_read": "Each coloured segment represents one risk tier. The segment size is proportional to the number of vendors in that tier. Hover over a segment to see the exact count. The hole in the centre keeps the chart uncluttered — focus on the relative sizes of segments.",
+          "what_to_look_for": "A healthy vendor portfolio has most vendors in the Low or Medium tier. If the Critical or High segments dominate, your supply chain risk is elevated. 'Not Assessed' vendors are unknown risk — prioritise their first assessment."
+        },
+        {
+          "name": "Vendor Detail Expanders",
+          "tab": "Vendors",
+          "description": "Expandable cards for each vendor showing their risk tier badge, criticality, data classification, last assessment score, reassessment due date, and assessment history.",
+          "how_to_read": "Vendors are sorted by criticality (Critical first). Each card header shows the vendor name, risk tier, and an ⏰ flag if the reassessment is overdue. Inside, you find contact details, the security assessment checklist, and a chart of score history over time.",
+          "what_to_look_for": "Look for vendors with ⏰ OVERDUE flags — these need immediate reassessment. Vendors with declining assessment scores may need contract review. Cross-reference Critical criticality vendors with their data classification — a Critical vendor handling Confidential data that scores poorly is your highest-priority remediation target."
+        }
+      ]
     }
   },
 
@@ -518,6 +784,47 @@
     "grc_connection": {
       "title": "GRC Engineering: From Log to Evidence",
       "content": "The activity report transforms raw audit log data into compliance evidence. When an auditor asks 'How do you ensure risks are reviewed periodically?', the answer isn't a policy document — it's the activity report showing consistent review actions across the reporting period.\n\nISO 27001 A.8.15 (Logging) and NIST CSF DE.AE (Adverse Event Analysis) both require not just *collecting* logs but *analysing* them. This report provides that analysis layer: per-user breakdowns prove segregation of duties, daily activity trends prove operational cadence, and entity change frequency identifies areas that may need additional oversight. The export button lets you package this as audit evidence with a single click."
+    },
+    "navigating_charts": {
+      "title": "Navigating the Activity Report Charts & Diagrams",
+      "content": "The Activity Report uses bar charts, donut charts, and styled data tables to summarise 90 days of audit log activity. Here is how to read each one.",
+      "charts": [
+        {
+          "name": "Daily Activity (Bar Chart)",
+          "tab": "Activity Report",
+          "description": "A vertical bar chart plotting the count of audit log actions per day over the 90-day reporting window.",
+          "how_to_read": "Each bar represents one calendar day. Bar height = number of logged actions (creates, updates, deletes) that day. The X-axis is the date, the Y-axis is the action count. Bars are coloured gold/amber.",
+          "what_to_look_for": "A healthy GRC program shows consistent daily activity — not long gaps followed by spikes. Extended gaps may indicate the program is dormant and only activated before audits. Sudden spikes may warrant investigation (bulk imports, data cleanup, or potential issues)."
+        },
+        {
+          "name": "Actions by Type (Donut Chart)",
+          "tab": "Activity Report",
+          "description": "A donut chart showing the proportion of each action type — typically Create, Update, and Delete — across the reporting period.",
+          "how_to_read": "Each coloured segment represents one action type. Segment size is proportional to the count of that action. Hover for exact numbers.",
+          "what_to_look_for": "A balanced program shows mostly Creates and Updates with few Deletes. An unusually high proportion of Deletes could indicate data cleanup — or data manipulation that should be investigated. If Updates dominate, the team is actively maintaining records."
+        },
+        {
+          "name": "Actions by Entity Type (Horizontal Bar Chart)",
+          "tab": "Activity Report",
+          "description": "A horizontal bar chart showing how many actions were performed on each entity type (e.g., Risk, Control, Vendor, Incident) during the period.",
+          "how_to_read": "Each bar represents an entity type (what was acted on). Bar length = total action count for that entity. Bars are sorted by count descending.",
+          "what_to_look_for": "Entity types with the most activity are your most-managed GRC areas. If certain entity types (e.g., Vendor, Control Test) have zero activity, those areas may be neglected. Cross-reference with the compliance calendar to check if scheduled activities are happening."
+        },
+        {
+          "name": "Per-User Activity (Styled Table)",
+          "tab": "Activity Report",
+          "description": "A table showing each user's total action count and breakdown by action type during the reporting period.",
+          "how_to_read": "Each row is a user. Columns show total actions, creates, updates, and deletes. The table is styled with alternating row colours for readability.",
+          "what_to_look_for": "Segregation of duties: if one user is performing all actions, that's a red flag for auditors. Ideally, creates and approvals are performed by different users. Users with zero activity during the period may have inactive accounts that should be reviewed."
+        },
+        {
+          "name": "Most Changed Records (Styled Table)",
+          "tab": "Activity Report",
+          "description": "A table listing the records (risks, controls, vendors, etc.) that were modified most frequently during the reporting period.",
+          "how_to_read": "Each row shows an entity type, record identifier, and total change count. Records are sorted by change count descending.",
+          "what_to_look_for": "Frequently changed records may need additional scrutiny — are scores oscillating? Is a risk being repeatedly re-scored without clear justification? Conversely, records with very few changes that should be reviewed regularly (e.g., critical risks) highlight potential review gaps."
+        }
+      ]
     }
   }
 }

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, Integer, String, Text, func
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from cyberresilient.database import Base
@@ -26,6 +26,7 @@ class RiskRow(Base):
     mitigation_effectiveness: Mapped[str] = mapped_column(String(20), default="None")
     evidence_date: Mapped[str] = mapped_column(String(20), default="")
     sign_off_by: Mapped[str] = mapped_column(String(100), default="")
+    last_reviewed_at: Mapped[str] = mapped_column(String(20), nullable=True, default=None)
     owner: Mapped[str] = mapped_column(String(100))
     status: Mapped[str] = mapped_column(String(50))
     mitigation: Mapped[str] = mapped_column(Text)
@@ -47,6 +48,7 @@ class RiskRow(Base):
             "mitigation_effectiveness": self.mitigation_effectiveness or "None",
             "evidence_date": self.evidence_date or "",
             "sign_off_by": self.sign_off_by or "",
+            "last_reviewed_at": self.last_reviewed_at or "",
             "owner": self.owner,
             "status": self.status,
             "mitigation": self.mitigation,
@@ -288,3 +290,146 @@ class UserRow(Base):
             "role": self.role,
             "is_active": bool(self.is_active),
         }
+
+
+# ── Evidence Artifacts ──────────────────────────────────────
+class EvidenceArtifactRow(Base):
+    __tablename__ = "evidence_artifacts"
+
+    id = Column(String(36), primary_key=True)
+    entity_type = Column(String(16), nullable=False)
+    entity_id = Column(String(64), nullable=False)
+    original_filename = Column(String(256), nullable=False)
+    stored_filename = Column(String(256), nullable=False)
+    description = Column(Text, default="")
+    size_bytes = Column(Integer, nullable=False)
+    sha256 = Column(String(64), nullable=False)
+    uploaded_by = Column(String(128), nullable=False)
+    uploaded_at = Column(String(10), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+# ── Risk Treatments ─────────────────────────────────────────
+class RiskTreatmentRow(Base):
+    __tablename__ = "risk_treatments"
+
+    id = Column(String(36), primary_key=True)
+    risk_id = Column(String(16), nullable=False)
+    treatment_type = Column(String(16), nullable=False)
+    mitigation_plan = Column(Text, default="")
+    target_date = Column(String(10), default="")
+    justification = Column(Text, default="")
+    sign_off_by = Column(String(128), default="")
+    policy_reference = Column(String(256), default="")
+    third_party = Column(String(256), default="")
+    notes = Column(Text, default="")
+    recorded_by = Column(String(128), nullable=False)
+    recorded_at = Column(String(10), nullable=False)
+    active = Column(Boolean, nullable=False, default=True)
+
+    def to_dict(self) -> dict:
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+# ── Control Tests ───────────────────────────────────────────
+class ControlTestRow(Base):
+    __tablename__ = "control_tests"
+
+    id = Column(String(36), primary_key=True)
+    control_id = Column(String(64), nullable=False)
+    framework = Column(String(32), nullable=False)
+    test_method = Column(String(32), nullable=False)
+    result = Column(String(16), nullable=False)
+    result_weight = Column(Float, nullable=False)
+    tester = Column(String(128), nullable=False)
+    finding = Column(Text, default="")
+    corrective_action_id = Column(String(36), default="")
+    notes = Column(Text, default="")
+    tested_at = Column(String(10), nullable=False)
+    retest_due = Column(String(10), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+# ── Risk Reviews ────────────────────────────────────────────
+class RiskReviewRow(Base):
+    __tablename__ = "risk_reviews"
+
+    id = Column(String(36), primary_key=True)
+    risk_id = Column(String(16), nullable=False)
+    reviewer = Column(String(128), nullable=False)
+    outcome = Column(String(32), nullable=False)
+    notes = Column(Text, default="")
+    residual_score_at_review = Column(Integer, default=0)
+    reviewed_at = Column(String(10), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+# ── Corrective Action Plans ─────────────────────────────────
+class CAPRow(Base):
+    __tablename__ = "corrective_action_plans"
+
+    id = Column(String(36), primary_key=True)
+    title = Column(String(256), nullable=False)
+    description = Column(Text, default="")
+    owner = Column(String(128), nullable=False)
+    priority = Column(String(16), nullable=False)
+    status = Column(String(32), nullable=False, default="Open")
+    target_date = Column(String(10), nullable=False)
+    linked_control_id = Column(String(64), default="")
+    linked_risk_id = Column(String(16), default="")
+    linked_test_id = Column(String(36), default="")
+    resolution_notes = Column(Text, default="")
+    created_by = Column(String(128), nullable=False)
+    created_at = Column(String(10), nullable=False)
+    closed_at = Column(String(10), default="")
+
+    def to_dict(self) -> dict:
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+# ── Vendors ─────────────────────────────────────────────────
+class VendorRow(Base):
+    __tablename__ = "vendors"
+
+    id = Column(String(36), primary_key=True)
+    name = Column(String(256), nullable=False)
+    category = Column(String(64), nullable=False)
+    criticality = Column(String(16), nullable=False)
+    data_classification = Column(String(64), nullable=False)
+    contact_name = Column(String(128), default="")
+    contact_email = Column(String(256), default="")
+    contract_reference = Column(String(256), default="")
+    contract_expiry = Column(String(10), default="")
+    notes = Column(Text, default="")
+    current_risk_tier = Column(String(32), default="Not Assessed")
+    last_assessment_score = Column(Integer, nullable=True)
+    last_assessed_at = Column(String(10), default="")
+    reassessment_due = Column(String(10), nullable=False)
+    created_by = Column(String(128), nullable=False)
+    created_at = Column(String(10), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+# ── Vendor Assessments ──────────────────────────────────────
+class VendorAssessmentRow(Base):
+    __tablename__ = "vendor_assessments"
+
+    id = Column(String(36), primary_key=True)
+    vendor_id = Column(String(36), nullable=False)
+    score_pct = Column(Integer, nullable=False)
+    risk_tier = Column(String(32), nullable=False)
+    passed = Column(Integer, default=0)
+    failed = Column(Integer, default=0)
+    assessed_by = Column(String(128), nullable=False)
+    assessed_at = Column(String(10), nullable=False)
+
+    def to_dict(self) -> dict:
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}

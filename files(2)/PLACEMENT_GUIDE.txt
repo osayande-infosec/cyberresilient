@@ -1,0 +1,106 @@
+# CyberResilient — Full Enhancement Placement Guide
+# =====================================================
+# Drop each file into the path shown. Run migrations after placing services.
+
+# ── BATCH 1: Evidence Artifacts, Risk Treatment, Control Testing ──────────
+
+batch1/evidence_service.py
+  → cyberresilient/services/evidence_service.py          (NEW)
+
+batch1/treatment_service.py
+  → cyberresilient/services/treatment_service.py         (NEW)
+
+batch1/control_testing_service.py
+  → cyberresilient/services/control_testing_service.py   (NEW)
+
+batch1/db_models_batch1.py
+  → Merge EvidenceArtifactRow, RiskTreatmentRow, ControlTestRow
+    into cyberresilient/models/db_models.py
+
+batch1/migration_0003_batch1.py
+  → alembic/versions/0003_batch1_evidence_treatment_testing.py
+
+
+# ── BATCH 2: Review Cadence, CAPs, Vendor Registry ───────────────────────
+
+batch2/review_service.py
+  → cyberresilient/services/review_service.py            (NEW)
+
+batch2/cap_service.py
+  → cyberresilient/services/cap_service.py               (NEW)
+
+batch2/vendor_service.py
+  → cyberresilient/services/vendor_service.py            (NEW)
+
+batch2/db_models_batch2.py
+  → Merge RiskReviewRow, CAPRow, VendorRow, VendorAssessmentRow
+    into cyberresilient/models/db_models.py
+  → Add last_reviewed_at column to existing RiskRow
+
+batch2/migration_0004_batch2.py
+  → alembic/versions/0004_batch2_reviews_caps_vendors.py
+
+
+# ── BATCH 3: Notifications, Activity Report, New Pages ───────────────────
+
+batch3/activity_service.py
+  → cyberresilient/services/activity_service.py          (NEW)
+
+batch3/notification_service.py
+  → cyberresilient/services/notification_service.py      (NEW)
+
+batch3/notify.yml
+  → .github/workflows/notify.yml                         (NEW)
+
+batch3/8_CAP_Tracker.py
+  → pages/8_CAP_Tracker.py                               (NEW PAGE)
+
+batch3/9_Vendor_Registry.py
+  → pages/9_Vendor_Registry.py                           (NEW PAGE)
+
+batch3/10_Activity_Report.py
+  → pages/10_Activity_Report.py                          (NEW PAGE)
+
+
+# ── PREVIOUSLY DELIVERED (earlier in this session) ───────────────────────
+
+risk_service_enhanced.py
+  → cyberresilient/services/risk_service.py              (REPLACE)
+
+compliance_service_enhanced.py
+  → cyberresilient/services/compliance_service.py        (REPLACE)
+
+1_Dashboard.py
+  → pages/1_Dashboard.py                                 (REPLACE)
+
+4_Risk_Register.py
+  → pages/4_Risk_Register.py                             (REPLACE)
+
+5_Compliance.py
+  → pages/5_Compliance.py                                (REPLACE)
+
+migration_0002_residual_evidence.py
+  → alembic/versions/0002_residual_evidence.py
+
+db_models_additions.py
+  → Merge residual_score, mitigation_effectiveness,
+    evidence_date, sign_off_by into RiskRow
+    review_date into PolicyRow
+
+
+# ── RUN AFTER ALL FILES ARE IN PLACE ─────────────────────────────────────
+
+alembic upgrade head
+cyberresilient init --seed     # re-seeds with new schema (won't overwrite existing data)
+
+
+# ── GITHUB SECRETS TO SET (for notifications) ────────────────────────────
+# Settings → Secrets and variables → Actions → New repository secret
+
+SMTP_HOST        your mail server e.g. smtp.gmail.com
+SMTP_PORT        587
+SMTP_USER        your sending address
+SMTP_PASS        app password (not account password)
+NOTIFY_TO        recipient address
+SLACK_WEBHOOK_URL  https://hooks.slack.com/services/...
+DATABASE_URL     sqlite:///cyberresilient.db  (or postgres URL for prod)

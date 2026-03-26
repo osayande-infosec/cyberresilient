@@ -33,7 +33,6 @@ from cyberresilient.services.report_service import generate_risk_report
 from cyberresilient.services.auth_service import learning_callout, get_current_user, has_permission
 from cyberresilient.services.learning_service import (
     get_content, learning_section, case_study_panel, try_this_panel, grc_insight,
-    chart_navigation_guide,
 )
 from cyberresilient.theme import get_theme_colors
 
@@ -513,11 +512,6 @@ with tab3:
         if lc.get("grc_connection"):
             grc = lc["grc_connection"]
             grc_insight(grc["title"].replace("GRC Engineering: ", ""), grc["content"])
-
-        if lc.get("navigating_charts"):
-            nc = lc["navigating_charts"]
-            learning_section(nc["title"], nc["content"], icon="📊")
-            chart_navigation_guide(nc["charts"])
 
         # ── Add New Risk ─────────────────────────────────────
         st.markdown("### ➕ Add New Risk")

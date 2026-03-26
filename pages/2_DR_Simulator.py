@@ -15,6 +15,7 @@ from cyberresilient.services.report_service import generate_dr_report
 from cyberresilient.services.auth_service import learning_callout, require_permission, get_current_user
 from cyberresilient.services.learning_service import (
     get_content, case_study_panel, try_this_panel, grc_insight,
+    learning_section, chart_navigation_guide,
 )
 from cyberresilient.theme import get_theme_colors
 
@@ -42,6 +43,11 @@ if lc.get("case_studies"):
     case_study_panel(lc["case_studies"]["cases"])
 if lc.get("try_this"):
     try_this_panel(lc["try_this"]["exercises"])
+
+if lc.get("navigating_charts"):
+    nc = lc["navigating_charts"]
+    learning_section(nc["title"], nc["content"], icon="📊")
+    chart_navigation_guide(nc.get("charts", []))
 
 # ── Load Data ───────────────────────────────────────────────
 systems = load_systems()

@@ -14,6 +14,7 @@ from cyberresilient.config import get_config
 from cyberresilient.services.auth_service import learning_callout, is_learning_mode
 from cyberresilient.services.learning_service import (
     get_content, case_study_panel, learning_section, grc_insight,
+    chart_navigation_guide,
 )
 from cyberresilient.theme import get_theme_colors
 
@@ -46,6 +47,11 @@ if lc.get("case_studies"):
 if lc.get("grc_connection"):
     grc = lc["grc_connection"]
     grc_insight(grc["title"].replace("GRC Engineering: ", ""), grc["content"])
+
+if lc.get("navigating_charts"):
+    nc = lc["navigating_charts"]
+    learning_section(nc["title"], nc["content"], icon="📊")
+    chart_navigation_guide(nc.get("charts", []))
 
 # ── Tabs ────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([

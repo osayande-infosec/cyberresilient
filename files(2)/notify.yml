@@ -1,0 +1,63 @@
+# .github/workflows/notify.yml
+#
+# Scheduled GRC alert digest — runs daily at 08:00 UTC.
+# Builds the notification digest and sends via email and/or Slack
+# without any manual intervention.
+#
+# Required GitHub Secrets:
+#   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, NOTIFY_TO
+#   SLACK_WEBHOOK_URL
+#   DATABASE_URL   (if using PostgreSQL in production)
+
+name: GRC Alert Digest
+
+on:
+  schedule:
+    - cron: "0 8 * * 1-5"      # 08:00 UTC, Monday–Friday
+  workflow_dispatch:             # Allow manual trigger from GitHub UI
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]" --quiet
+
+      - name: Initialise database (SQLite fallback)
+        run: cyberresilient init
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'sqlite:///cyberresilient.db' }}
+
+      - name: Send alert digest
+        run: |
+          python - <<'EOF'
+          from cyberresilient.services.notification_service import build_digest, notify_all
+          digest = build_digest()
+          print(f"Alerts: {digest['total_alerts']} "
+                f"({digest['high_severity']} high, {digest['medium_severity']} medium)")
+          if digest["total_alerts"]:
+              result = notify_all(digest)
+              print(f"Email sent: {result['email']}")
+              print(f"Slack sent: {result['slack']}")
+          else:
+              print("No alerts — nothing to send.")
+          EOF
+        env:
+          DATABASE_URL:      ${{ secrets.DATABASE_URL }}
+          SMTP_HOST:         ${{ secrets.SMTP_HOST }}
+          SMTP_PORT:         ${{ secrets.SMTP_PORT }}
+          SMTP_USER:         ${{ secrets.SMTP_USER }}
+          SMTP_PASS:         ${{ secrets.SMTP_PASS }}
+          NOTIFY_TO:         ${{ secrets.NOTIFY_TO }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
