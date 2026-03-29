@@ -19,7 +19,7 @@ RISK_LEVELS = {
 
 
 def load_risks():
-    with open(DATA_DIR / "risks.json", "r") as f:
+    with open(DATA_DIR / "risks.json") as f:
         return json.load(f)
 
 
@@ -162,11 +162,13 @@ def run_architecture_assessment(answers: dict[str, bool]) -> dict:
             pass_count += 1
         else:
             fail_count += 1
-        results.append({
-            **check,
-            "passed": passed,
-            "status": "PASS" if passed else "FAIL",
-        })
+        results.append(
+            {
+                **check,
+                "passed": passed,
+                "status": "PASS" if passed else "FAIL",
+            }
+        )
 
     total = len(ARCHITECTURE_CHECKS)
     score = round((pass_count / total) * 100) if total > 0 else 0

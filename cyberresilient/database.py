@@ -51,6 +51,7 @@ def get_session() -> Session:
 def init_db():
     """Create all tables. Safe to call multiple times."""
     import cyberresilient.models.db_models  # noqa: F401 — register models
+
     Base.metadata.create_all(bind=get_engine())
 
 

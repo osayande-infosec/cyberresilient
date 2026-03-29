@@ -14,32 +14,42 @@ Each artifact is recorded in the DB (with JSON sidecar fallback).
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
+import re
 import uuid
 from datetime import date
 from pathlib import Path
-from typing import Optional
-
-import re
 
 from cyberresilient.config import DATA_DIR
 
 EVIDENCE_DIR: Path = DATA_DIR.parent / "evidence"
-_SAFE_ID = re.compile(r'^[A-Za-z0-9_.\-]+$')
+_SAFE_ID = re.compile(r"^[A-Za-z0-9_.\-]+$")
 EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
 
 ALLOWED_EXTENSIONS = {
-    ".pdf", ".png", ".jpg", ".jpeg", ".docx",
-    ".xlsx", ".csv", ".txt", ".eml", ".msg", ".zip",
+    ".pdf",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".docx",
+    ".xlsx",
+    ".csv",
+    ".txt",
+    ".eml",
+    ".msg",
+    ".zip",
 }
 MAX_FILE_SIZE_MB = 25
 
 
 def _db_available() -> bool:
     try:
-        from cyberresilient.database import get_engine
         from sqlalchemy import inspect
+
+        from cyberresilient.database import get_engine
+
         return inspect(get_engine()).has_table("evidence_artifacts")
     except Exception:
         return False
@@ -74,10 +84,7 @@ def upload_artifact(
     """
     suffix = Path(filename).suffix.lower()
     if suffix not in ALLOWED_EXTENSIONS:
-        raise ValueError(
-            f"File type '{suffix}' not allowed. "
-            f"Accepted: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
-        )
+        raise ValueError(f"File type '{suffix}' not allowed. Accepted: {', '.join(sorted(ALLOWED_EXTENSIONS))}")
     size_mb = len(file_bytes) / (1024 * 1024)
     if size_mb > MAX_FILE_SIZE_MB:
         raise ValueError(f"File {size_mb:.1f} MB exceeds limit of {MAX_FILE_SIZE_MB} MB.")
@@ -104,12 +111,18 @@ def upload_artifact(
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import EvidenceArtifactRow
         from cyberresilient.services.audit_service import log_action
+
         session = get_session()
         try:
             session.add(EvidenceArtifactRow(**meta))
-            log_action(session, action="upload_artifact",
-                       entity_type=entity_type, entity_id=entity_id,
-                       user=uploaded_by, after=meta)
+            log_action(
+                session,
+                action="upload_artifact",
+                entity_type=entity_type,
+                entity_id=entity_id,
+                user=uploaded_by,
+                after=meta,
+            )
             session.commit()
         except Exception:
             session.rollback()
@@ -127,6 +140,7 @@ def list_artifacts(entity_type: str, entity_id: str) -> list[dict]:
     if _db_available():
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import EvidenceArtifactRow
+
         session = get_session()
         try:
             rows = (
@@ -141,10 +155,8 @@ def list_artifacts(entity_type: str, entity_id: str) -> list[dict]:
     d = _artifact_dir(entity_type, entity_id)
     results = []
     for m in sorted(d.glob("*.json"), reverse=True):
-        try:
+        with contextlib.suppress(Exception):
             results.append(json.loads(m.read_text()))
-        except Exception:
-            pass
     return results
 
 
@@ -160,9 +172,7 @@ def get_artifact_bytes(entity_type: str, entity_id: str, artifact_id: str) -> tu
     return stored.read_bytes(), meta["original_filename"]
 
 
-def delete_artifact(
-    entity_type: str, entity_id: str, artifact_id: str, deleted_by: str = "system"
-) -> None:
+def delete_artifact(entity_type: str, entity_id: str, artifact_id: str, deleted_by: str = "system") -> None:
     meta = next(
         (a for a in list_artifacts(entity_type, entity_id) if a["id"] == artifact_id),
         None,
@@ -177,14 +187,20 @@ def delete_artifact(
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import EvidenceArtifactRow
         from cyberresilient.services.audit_service import log_action
+
         session = get_session()
         try:
             row = session.query(EvidenceArtifactRow).filter_by(id=artifact_id).first()
             if row:
                 session.delete(row)
-                log_action(session, action="delete_artifact",
-                            entity_type=entity_type, entity_id=entity_id,
-                            user=deleted_by, before=meta)
+                log_action(
+                    session,
+                    action="delete_artifact",
+                    entity_type=entity_type,
+                    entity_id=entity_id,
+                    user=deleted_by,
+                    before=meta,
+                )
             session.commit()
         except Exception:
             session.rollback()
@@ -200,6 +216,6 @@ def artifact_count(entity_type: str, entity_id: str) -> int:
 def format_size(size_bytes: int) -> str:
     if size_bytes < 1024:
         return f"{size_bytes} B"
-    if size_bytes < 1024 ** 2:
+    if size_bytes < 1024**2:
         return f"{size_bytes / 1024:.1f} KB"
-    return f"{size_bytes / (1024 ** 2):.1f} MB"
+    return f"{size_bytes / (1024**2):.1f} MB"

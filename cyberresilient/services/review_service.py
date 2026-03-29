@@ -16,15 +16,14 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, timedelta
-from typing import Optional
 
 from cyberresilient.models.risk import get_risk_level
 
 REVIEW_INTERVALS: dict[str, int] = {
     "Very High": 90,
-    "High":      90,
-    "Medium":    180,
-    "Low":       365,
+    "High": 90,
+    "Medium": 180,
+    "Low": 365,
 }
 
 
@@ -53,8 +52,10 @@ def days_until_review(risk: dict) -> int:
 
 def _db_available() -> bool:
     try:
-        from cyberresilient.database import get_engine
         from sqlalchemy import inspect
+
+        from cyberresilient.database import get_engine
+
         return inspect(get_engine()).has_table("risk_reviews")
     except Exception:
         return False
@@ -63,7 +64,7 @@ def _db_available() -> bool:
 def record_review(
     risk_id: str,
     reviewer: str,
-    outcome: str,           # "No Change" | "Score Updated" | "Closed" | "Escalated"
+    outcome: str,  # "No Change" | "Score Updated" | "Closed" | "Escalated"
     notes: str = "",
     residual_score_at_review: int = 0,
 ) -> dict:
@@ -72,10 +73,7 @@ def record_review(
     Updates last_reviewed_at on the risk row so next due date recalculates.
     """
     if outcome not in ("No Change", "Score Updated", "Closed", "Escalated"):
-        raise ValueError(
-            f"Invalid outcome '{outcome}'. "
-            "Choose: No Change, Score Updated, Closed, Escalated"
-        )
+        raise ValueError(f"Invalid outcome '{outcome}'. Choose: No Change, Score Updated, Closed, Escalated")
     record = {
         "id": str(uuid.uuid4()),
         "risk_id": risk_id,
@@ -89,6 +87,7 @@ def record_review(
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import RiskReviewRow, RiskRow
         from cyberresilient.services.audit_service import log_action
+
         session = get_session()
         try:
             session.add(RiskReviewRow(**record))
@@ -96,9 +95,9 @@ def record_review(
             risk_row = session.query(RiskRow).filter_by(id=risk_id).first()
             if risk_row:
                 risk_row.last_reviewed_at = record["reviewed_at"]
-            log_action(session, action="record_review",
-                       entity_type="risk", entity_id=risk_id,
-                       user=reviewer, after=record)
+            log_action(
+                session, action="record_review", entity_type="risk", entity_id=risk_id, user=reviewer, after=record
+            )
             session.commit()
         except Exception:
             session.rollback()
@@ -113,14 +112,10 @@ def get_review_history(risk_id: str) -> list[dict]:
         return []
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import RiskReviewRow
+
     session = get_session()
     try:
-        rows = (
-            session.query(RiskReviewRow)
-            .filter_by(risk_id=risk_id)
-            .order_by(RiskReviewRow.reviewed_at.desc())
-            .all()
-        )
+        rows = session.query(RiskReviewRow).filter_by(risk_id=risk_id).order_by(RiskReviewRow.reviewed_at.desc()).all()
         return [r.to_dict() for r in rows]
     finally:
         session.close()
@@ -134,8 +129,8 @@ def get_overdue_risks(risks: list[dict]) -> list[dict]:
 
 
 OUTCOME_ICONS = {
-    "No Change":     "📋",
+    "No Change": "📋",
     "Score Updated": "📊",
-    "Closed":        "✅",
-    "Escalated":     "🚨",
+    "Closed": "✅",
+    "Escalated": "🚨",
 }

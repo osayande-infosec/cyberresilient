@@ -11,23 +11,23 @@ import os
 import sys
 
 import pytest
-from hypothesis import given, settings, assume, HealthCheck
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 # Ensure the project root is importable
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from cyberresilient.models.risk import get_risk_level, get_risk_color, Risk
+from cyberresilient.models.risk import get_risk_color, get_risk_level
 from cyberresilient.services.risk_service import (
     build_heatmap_matrix,
     get_risk_summary,
     run_architecture_assessment,
 )
 
-
 # ═══════════════════════════════════════════════════════════
 # Risk Model Fuzzing
 # ═══════════════════════════════════════════════════════════
+
 
 @given(
     likelihood=st.integers(min_value=1, max_value=5),
@@ -69,22 +69,25 @@ def test_fuzz_risk_level_boundary_values(score):
 # Heatmap Matrix Fuzzing
 # ═══════════════════════════════════════════════════════════
 
+
 @given(
     risks=st.lists(
-        st.fixed_dictionaries({
-            "likelihood": st.integers(min_value=1, max_value=5),
-            "impact": st.integers(min_value=1, max_value=5),
-            "risk_score": st.integers(min_value=1, max_value=25),
-            "status": st.sampled_from(["Open", "Mitigating", "Monitoring", "Accepted", "Closed"]),
-            "id": st.text(min_size=1, max_size=20, alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"),
-            "title": st.text(min_size=1, max_size=100),
-            "category": st.text(min_size=1, max_size=50),
-            "owner": st.text(min_size=1, max_size=50),
-            "mitigation": st.text(max_size=200),
-            "asset": st.text(max_size=100),
-            "target_date": st.text(max_size=10),
-            "notes": st.text(max_size=200),
-        }),
+        st.fixed_dictionaries(
+            {
+                "likelihood": st.integers(min_value=1, max_value=5),
+                "impact": st.integers(min_value=1, max_value=5),
+                "risk_score": st.integers(min_value=1, max_value=25),
+                "status": st.sampled_from(["Open", "Mitigating", "Monitoring", "Accepted", "Closed"]),
+                "id": st.text(min_size=1, max_size=20, alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"),
+                "title": st.text(min_size=1, max_size=100),
+                "category": st.text(min_size=1, max_size=50),
+                "owner": st.text(min_size=1, max_size=50),
+                "mitigation": st.text(max_size=200),
+                "asset": st.text(max_size=100),
+                "target_date": st.text(max_size=10),
+                "notes": st.text(max_size=200),
+            }
+        ),
         min_size=0,
         max_size=50,
     )
@@ -103,20 +106,22 @@ def test_fuzz_heatmap_matrix_always_5x5(risks):
 
 @given(
     risks=st.lists(
-        st.fixed_dictionaries({
-            "likelihood": st.integers(min_value=1, max_value=5),
-            "impact": st.integers(min_value=1, max_value=5),
-            "risk_score": st.integers(min_value=1, max_value=25),
-            "status": st.sampled_from(["Open", "Mitigating", "Closed"]),
-            "id": st.just("R1"),
-            "title": st.just("test"),
-            "category": st.just("test"),
-            "owner": st.just("test"),
-            "mitigation": st.just(""),
-            "asset": st.just(""),
-            "target_date": st.just(""),
-            "notes": st.just(""),
-        }),
+        st.fixed_dictionaries(
+            {
+                "likelihood": st.integers(min_value=1, max_value=5),
+                "impact": st.integers(min_value=1, max_value=5),
+                "risk_score": st.integers(min_value=1, max_value=25),
+                "status": st.sampled_from(["Open", "Mitigating", "Closed"]),
+                "id": st.just("R1"),
+                "title": st.just("test"),
+                "category": st.just("test"),
+                "owner": st.just("test"),
+                "mitigation": st.just(""),
+                "asset": st.just(""),
+                "target_date": st.just(""),
+                "notes": st.just(""),
+            }
+        ),
         min_size=0,
         max_size=30,
     )
@@ -133,6 +138,7 @@ def test_fuzz_risk_summary_counts_match(risks):
 # ═══════════════════════════════════════════════════════════
 # Architecture Assessment Fuzzing
 # ═══════════════════════════════════════════════════════════
+
 
 @given(
     answers=st.dictionaries(
@@ -156,6 +162,7 @@ def test_fuzz_architecture_assessment_valid_output(answers):
 # Input Sanitization Fuzzing
 # ═══════════════════════════════════════════════════════════
 
+
 @given(text=st.text(min_size=0, max_size=500))
 @settings(max_examples=300, suppress_health_check=[HealthCheck.function_scoped_fixture])
 def test_fuzz_json_roundtrip_safety(text):
@@ -173,7 +180,7 @@ XSS_PAYLOADS = [
     "javascript:alert(1)",
     "<svg onload=alert(1)>",
     "{{7*7}}",  # SSTI
-    "${7*7}",   # Template injection
+    "${7*7}",  # Template injection
     "'; DROP TABLE risks; --",  # SQLi
     "' OR '1'='1",
     "../../../etc/passwd",  # Path traversal
@@ -186,12 +193,22 @@ XSS_PAYLOADS = [
 @pytest.mark.parametrize("payload", XSS_PAYLOADS)
 def test_malicious_input_in_risk_summary(payload):
     """Risk summary must handle malicious input without crashing."""
-    risks = [{
-        "id": "TEST-001", "title": payload, "category": payload,
-        "likelihood": 3, "impact": 3, "risk_score": 9,
-        "owner": payload, "status": "Open", "mitigation": payload,
-        "asset": payload, "target_date": "2026-01-01", "notes": payload,
-    }]
+    risks = [
+        {
+            "id": "TEST-001",
+            "title": payload,
+            "category": payload,
+            "likelihood": 3,
+            "impact": 3,
+            "risk_score": 9,
+            "owner": payload,
+            "status": "Open",
+            "mitigation": payload,
+            "asset": payload,
+            "target_date": "2026-01-01",
+            "notes": payload,
+        }
+    ]
     summary = get_risk_summary(risks)
     assert summary["total"] == 1
 
@@ -199,11 +216,21 @@ def test_malicious_input_in_risk_summary(payload):
 @pytest.mark.parametrize("payload", XSS_PAYLOADS)
 def test_malicious_input_in_heatmap(payload):
     """Heatmap must handle malicious string fields without crashing."""
-    risks = [{
-        "id": payload[:20], "title": payload, "category": payload,
-        "likelihood": 1, "impact": 1, "risk_score": 1,
-        "owner": payload, "status": "Open", "mitigation": payload,
-        "asset": payload, "target_date": payload, "notes": payload,
-    }]
+    risks = [
+        {
+            "id": payload[:20],
+            "title": payload,
+            "category": payload,
+            "likelihood": 1,
+            "impact": 1,
+            "risk_score": 1,
+            "owner": payload,
+            "status": "Open",
+            "mitigation": payload,
+            "asset": payload,
+            "target_date": payload,
+            "notes": payload,
+        }
+    ]
     matrix = build_heatmap_matrix(risks)
     assert len(matrix) == 5

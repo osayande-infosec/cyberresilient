@@ -26,7 +26,6 @@ from cyberresilient.services.compliance_service import (
 )
 from cyberresilient.services.learning_service import (
     auditor_questions_panel,
-    chart_navigation_guide,
     compliance_comparison_table,
     compliance_pipeline_panel,
     evidence_types_panel,
@@ -96,11 +95,6 @@ if lc.get("audit_readiness"):
     learning_section(ar["title"], ar["content"], icon="🔍")
     auditor_questions_panel(ar.get("auditor_questions", []))
 
-if lc.get("navigating_charts"):
-    nc = lc["navigating_charts"]
-    learning_section(nc["title"], nc["content"], icon="📊")
-    chart_navigation_guide(nc.get("charts", []))
-
 # ── Load & Score ─────────────────────────────────────────────
 controls_data = load_controls()
 policies = load_policies()
@@ -132,7 +126,7 @@ if total_stale or dep_breaches or expiring_soon:
                 "controls. These are credited at 85% — verify with your auditor."
             )
         if expiring_soon:
-            names = ", ".join(p["name"] for p in expiring_soon[:3])
+            names = ", ".join(p["title"] for p in expiring_soon[:3])
             more = f" (+{len(expiring_soon) - 3} more)" if len(expiring_soon) > 3 else ""
             st.error(
                 f"📋 **{len(expiring_soon)} policy/policies expiring within 30 days:** "
@@ -500,8 +494,8 @@ with tab3:
             days = p["days_remaining"]
             urgency = "🔴" if days <= 7 else "🟠" if days <= 14 else "🟡"
             st.markdown(
-                f"{urgency} **{p['name']}** — "
-                f"review due **{p['next_review']}** ({days} day{'s' if days != 1 else ''} remaining)"
+                f"{urgency} **{p['title']}** — "
+                f"review due **{p['review_date']}** ({days} day{'s' if days != 1 else ''} remaining)"
             )
         st.markdown("---")
 
@@ -545,11 +539,11 @@ with tab3:
     filtered_policies = [p for p in policies if p["status"] in filter_status]
 
     # Sort: expiring soonest first, then alphabetical
-    expiring_names = {p["name"] for p in expiring_soon}
+    expiring_ids = {p["id"] for p in expiring_soon}
 
     def _policy_sort_key(p):
-        if p.get("name") in expiring_names:
-            days = next((ep["days_remaining"] for ep in expiring_soon if ep["name"] == p.get("name")), 999)
+        if p.get("id") in expiring_ids:
+            days = next((ep["days_remaining"] for ep in expiring_soon if ep["id"] == p.get("id")), 999)
             return (0, days)
         status_order = {"Expired": 1, "Under Review": 2, "Draft": 3, "Current": 4}
         return (status_order.get(p["status"], 5), 999)
@@ -564,7 +558,7 @@ with tab3:
             "Expired": "⛔",
         }.get(p["status"], "❓")
 
-        is_expiring = p.get("name") in expiring_names
+        is_expiring = p.get("id") in expiring_ids
         expiry_flag = " 🔴 EXPIRING SOON" if is_expiring else ""
 
         with st.expander(f"{icon} {p['name']} — v{p['version']} ({p['status']}){expiry_flag}"):
@@ -579,7 +573,7 @@ with tab3:
                 st.markdown(f"**Next Review:** {p['next_review']}")
 
             if is_expiring:
-                days_rem = next((ep["days_remaining"] for ep in expiring_soon if ep["name"] == p.get("name")), None)
+                days_rem = next((ep["days_remaining"] for ep in expiring_soon if ep["id"] == p.get("id")), None)
                 if days_rem is not None:
                     st.error(
                         f"⏰ Review due in **{days_rem} day{'s' if days_rem != 1 else ''}**. "

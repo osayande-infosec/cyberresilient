@@ -4,27 +4,30 @@ pages/8_CAP_Tracker.py
 Corrective Action Plan Tracker
 """
 
-import streamlit as st
-import plotly.express as px
-import pandas as pd
+import html as _html
 from datetime import date
 
-from cyberresilient.services.cap_service import (
-    create_cap, update_cap_status, load_caps, cap_summary,
-    CAP_STATUSES, CAP_PRIORITIES, PRIORITY_COLORS, STATUS_ICONS,
-)
+import streamlit as st
+
 from cyberresilient.services.auth_service import get_current_user, has_permission, learning_callout
+from cyberresilient.services.cap_service import (
+    CAP_PRIORITIES,
+    CAP_STATUSES,
+    PRIORITY_COLORS,
+    STATUS_ICONS,
+    cap_summary,
+    create_cap,
+    load_caps,
+    update_cap_status,
+)
 from cyberresilient.services.learning_service import get_content, grc_insight, try_this_panel
 from cyberresilient.theme import get_theme_colors
-import html as _html
 
 colors = get_theme_colors()
 GOLD = colors["accent"]
 
 st.markdown("# 📋 Corrective Action Plan Tracker")
-st.markdown(
-    "Track remediation actions raised from control test failures and compliance gaps."
-)
+st.markdown("Track remediation actions raised from control test failures and compliance gaps.")
 st.markdown("---")
 
 lc = get_content("cap_tracker")
@@ -49,9 +52,9 @@ m1, m2, m3, m4 = st.columns(4)
 m1.metric("Total CAPs", summary["total"])
 m2.metric("Open", summary["by_status"].get("Open", 0))
 m3.metric("In Progress", summary["by_status"].get("In Progress", 0))
-m4.metric("Overdue", summary["overdue"],
-          delta=f"-{summary['overdue']}" if summary["overdue"] else None,
-          delta_color="inverse")
+m4.metric(
+    "Overdue", summary["overdue"], delta=f"-{summary['overdue']}" if summary["overdue"] else None, delta_color="inverse"
+)
 
 if summary["overdue"]:
     st.error(f"🚨 {summary['overdue']} CAP(s) are past their target date and not closed.")
@@ -62,10 +65,14 @@ tab1, tab2 = st.tabs(["📋 CAP Register", "➕ Raise New CAP"])
 
 with tab1:
     filter_status = st.multiselect(
-        "Filter by Status", CAP_STATUSES, default=CAP_STATUSES,
+        "Filter by Status",
+        CAP_STATUSES,
+        default=CAP_STATUSES,
     )
     filter_priority = st.multiselect(
-        "Filter by Priority", CAP_PRIORITIES, default=CAP_PRIORITIES,
+        "Filter by Priority",
+        CAP_PRIORITIES,
+        default=CAP_PRIORITIES,
     )
 
     caps = load_caps(status_filter=filter_status)
@@ -80,15 +87,14 @@ with tab1:
             overdue_flag = " ⏰ OVERDUE" if is_overdue else ""
             p_color = PRIORITY_COLORS.get(cap["priority"], "#888")
 
-            with st.expander(
-                f"{icon} [{cap['priority']}] {cap['title']} — {cap['status']}{overdue_flag}"
-            ):
+            with st.expander(f"{icon} [{cap['priority']}] {cap['title']} — {cap['status']}{overdue_flag}"):
                 c1, c2 = st.columns(2)
                 with c1:
                     st.markdown(f"**Owner:** {cap['owner']}")
-                    st.markdown(f"**Priority:** "
-                                f"<span style='color:{p_color}'>{_html.escape(cap['priority'])}</span>",
-                                unsafe_allow_html=True)
+                    st.markdown(
+                        f"**Priority:** <span style='color:{p_color}'>{_html.escape(cap['priority'])}</span>",
+                        unsafe_allow_html=True,
+                    )
                     st.markdown(f"**Target Date:** {cap['target_date']}")
                     if cap.get("linked_control_id"):
                         st.markdown(f"**Linked Control:** `{cap['linked_control_id']}`")
@@ -107,7 +113,8 @@ with tab1:
                 if cap["status"] != "Closed" and has_permission("edit_risks"):
                     st.markdown("**Update Status**")
                     new_status = st.selectbox(
-                        "New Status", CAP_STATUSES,
+                        "New Status",
+                        CAP_STATUSES,
                         index=CAP_STATUSES.index(cap["status"]),
                         key=f"status_{cap['id']}",
                     )
@@ -118,7 +125,9 @@ with tab1:
                     if st.button("Update", key=f"upd_{cap['id']}"):
                         try:
                             update_cap_status(
-                                cap["id"], new_status, res_notes,
+                                cap["id"],
+                                new_status,
+                                res_notes,
                                 updated_by=get_current_user().username,
                             )
                             st.success("CAP updated.")

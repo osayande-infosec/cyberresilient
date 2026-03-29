@@ -7,23 +7,31 @@ v2: Surfaces evidence staleness, dependency breaches, compensating controls,
 7-level lifecycle states, and policy expiry proximity alerts.
 """
 
-import streamlit as st
-import plotly.graph_objects as go
-import plotly.express as px
-import pandas as pd
 import json as _json
 
-from cyberresilient.services.compliance_service import (
-    load_controls, load_policies,
-    calc_nist_csf_scores, calc_iso27001_scores, get_policy_summary,
-    LIFECYCLE_WEIGHTS,
-)
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
+
 from cyberresilient.config import get_config
-from cyberresilient.services.auth_service import learning_callout, is_learning_mode
+from cyberresilient.services.auth_service import learning_callout
+from cyberresilient.services.compliance_service import (
+    LIFECYCLE_WEIGHTS,
+    calc_iso27001_scores,
+    calc_nist_csf_scores,
+    get_policy_summary,
+    load_controls,
+    load_policies,
+)
 from cyberresilient.services.learning_service import (
-    get_content, learning_section, grc_insight,
-    compliance_comparison_table, evidence_types_panel,
-    compliance_pipeline_panel, auditor_questions_panel,
+    auditor_questions_panel,
+    compliance_comparison_table,
+    compliance_pipeline_panel,
+    evidence_types_panel,
+    get_content,
+    grc_insight,
+    learning_section,
     nist_function_detail,
 )
 from cyberresilient.theme import get_theme_colors
@@ -33,30 +41,28 @@ colors = get_theme_colors()
 GOLD = colors["accent"]
 
 FUNC_COLORS = {
-    "Govern":   "#9C27B0",
+    "Govern": "#9C27B0",
     "Identify": "#2196F3",
-    "Protect":  "#4CAF50",
-    "Detect":   "#FF9800",
-    "Respond":  "#F44336",
-    "Recover":  GOLD,
+    "Protect": "#4CAF50",
+    "Detect": "#FF9800",
+    "Respond": "#F44336",
+    "Recover": GOLD,
 }
 
 # 7-level lifecycle → icon + colour
 LIFECYCLE_META = {
-    "Implemented":      {"icon": "✅", "color": "#4CAF50"},
-    "Compensating":     {"icon": "🔄", "color": "#8BC34A"},
-    "Largely":          {"icon": "⚡", "color": "#CDDC39"},
-    "Partial":          {"icon": "⚠️", "color": "#FFC107"},
-    "Planned":          {"icon": "📅", "color": "#2196F3"},
-    "Not Implemented":  {"icon": "❌", "color": "#F44336"},
-    "Gap":              {"icon": "❌", "color": "#F44336"},  # legacy alias
+    "Implemented": {"icon": "✅", "color": "#4CAF50"},
+    "Compensating": {"icon": "🔄", "color": "#8BC34A"},
+    "Largely": {"icon": "⚡", "color": "#CDDC39"},
+    "Partial": {"icon": "⚠️", "color": "#FFC107"},
+    "Planned": {"icon": "📅", "color": "#2196F3"},
+    "Not Implemented": {"icon": "❌", "color": "#F44336"},
+    "Gap": {"icon": "❌", "color": "#F44336"},  # legacy alias
 }
 
 # ── Header ──────────────────────────────────────────────────
 st.markdown("# ✅ Compliance & Policy Tracker")
-st.markdown(
-    "NIST CSF 2.0, ISO 27001:2022 compliance mapping and policy lifecycle management."
-)
+st.markdown("NIST CSF 2.0, ISO 27001:2022 compliance mapping and policy lifecycle management.")
 st.markdown("---")
 
 lc = get_content("compliance")
@@ -138,11 +144,13 @@ ov5.metric("ISO Stale Domains", iso_scores.get("stale_evidence_domains", 0))
 
 st.markdown("---")
 
-tab1, tab2, tab3 = st.tabs([
-    "🏛️ NIST CSF 2.0",
-    "📋 ISO 27001 & MFIPPA",
-    "📄 Policy Lifecycle",
-])
+tab1, tab2, tab3 = st.tabs(
+    [
+        "🏛️ NIST CSF 2.0",
+        "📋 ISO 27001 & MFIPPA",
+        "📄 Policy Lifecycle",
+    ]
+)
 
 
 # ╔══════════════════════════════════════════════════════════════╗
@@ -156,22 +164,30 @@ with tab1:
     func_colors_list = [FUNC_COLORS.get(f, "#888") for f in func_names]
 
     fig_func = go.Figure()
-    fig_func.add_trace(go.Bar(
-        x=func_names, y=func_pcts,
-        marker_color=func_colors_list,
-        text=[f"{p}%" for p in func_pcts],
-        textposition="outside",
-    ))
+    fig_func.add_trace(
+        go.Bar(
+            x=func_names,
+            y=func_pcts,
+            marker_color=func_colors_list,
+            text=[f"{p}%" for p in func_pcts],
+            textposition="outside",
+        )
+    )
     fig_func.add_hline(
-        y=80, line_dash="dash", line_color=GOLD,
+        y=80,
+        line_dash="dash",
+        line_color=GOLD,
         annotation_text="Target: 80%",
     )
     fig_func.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font_color="#EAEAEA", yaxis_title="Compliance %",
-        yaxis=dict(range=[0, 115], gridcolor="#222"),
-        xaxis=dict(gridcolor="#222"),
-        height=400, margin=dict(t=30),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font_color="#EAEAEA",
+        yaxis_title="Compliance %",
+        yaxis={"range": [0, 115], "gridcolor": "#222"},
+        xaxis={"gridcolor": "#222"},
+        height=400,
+        margin={"t": 30},
     )
     st.plotly_chart(fig_func, use_container_width=True)
 
@@ -187,7 +203,7 @@ with tab1:
                 f"<span style='font-size:18px'>{meta['icon']}</span><br>"
                 f"<span style='font-size:11px;color:{meta['color']};font-weight:600'>"
                 f"{status}</span><br>"
-                f"<span style='font-size:10px;color:#aaa'>{int(weight*100)}% weight</span>"
+                f"<span style='font-size:10px;color:#aaa'>{int(weight * 100)}% weight</span>"
                 f"</div>",
                 unsafe_allow_html=True,
             )
@@ -200,13 +216,9 @@ with tab1:
 
     for func_name, func_data in nist_scores["functions"].items():
         func_color = FUNC_COLORS.get(func_name, "#888")
-        stale_in_func = sum(
-            1 for cd in func_data.get("control_details", [])
-            if cd["evidence_status"]["stale"]
-        )
+        stale_in_func = sum(1 for cd in func_data.get("control_details", []) if cd["evidence_status"]["stale"])
         dep_in_func = sum(
-            1 for cd in func_data.get("control_details", [])
-            if any("Prerequisite" in n for n in cd.get("notes", []))
+            1 for cd in func_data.get("control_details", []) if any("Prerequisite" in n for n in cd.get("notes", []))
         )
 
         func_label = (
@@ -230,24 +242,17 @@ with tab1:
                     # Control header row
                     c_col1, c_col2, c_col3 = st.columns([3, 1, 1])
                     with c_col1:
-                        st.markdown(
-                            f"{meta['icon']} **{cd['id']}** — {cd['name']}"
-                        )
+                        st.markdown(f"{meta['icon']} **{cd['id']}** — {cd['name']}")
                     with c_col2:
                         st.markdown(
-                            f"<span style='color:{meta['color']};font-weight:600'>"
-                            f"{status}</span>",
+                            f"<span style='color:{meta['color']};font-weight:600'>{status}</span>",
                             unsafe_allow_html=True,
                         )
                     with c_col3:
-                        weight_color = (
-                            "#4CAF50" if eff_weight >= 0.8
-                            else "#FFC107" if eff_weight >= 0.4
-                            else "#F44336"
-                        )
+                        weight_color = "#4CAF50" if eff_weight >= 0.8 else "#FFC107" if eff_weight >= 0.4 else "#F44336"
                         st.markdown(
                             f"<span style='color:{weight_color};font-size:12px'>"
-                            f"Effective: {int(eff_weight*100)}%</span>",
+                            f"Effective: {int(eff_weight * 100)}%</span>",
                             unsafe_allow_html=True,
                         )
 
@@ -261,9 +266,7 @@ with tab1:
                         else:
                             st.caption("   🗂️ No evidence date recorded")
                     elif ev_status.get("days_remaining") and ev_status["days_remaining"] <= 90:
-                        st.caption(
-                            f"   🗂️ Evidence expires in {ev_status['days_remaining']} days"
-                        )
+                        st.caption(f"   🗂️ Evidence expires in {ev_status['days_remaining']} days")
 
                     # Advisory notes (dependency caps, compensating uplifts)
                     for note in notes:
@@ -291,7 +294,11 @@ with tab1:
     # ── Sunburst (coloured by effective weight tier) ─────────
     st.markdown("### NIST CSF Sunburst View")
     sunburst_data = {
-        "ids": [], "labels": [], "parents": [], "values": [], "colors": [],
+        "ids": [],
+        "labels": [],
+        "parents": [],
+        "values": [],
+        "colors": [],
     }
     sunburst_data["ids"].append("NIST CSF")
     sunburst_data["labels"].append("NIST CSF 2.0")
@@ -326,17 +333,21 @@ with tab1:
             sunburst_data["values"].append(1)
             sunburst_data["colors"].append(cell_color)
 
-    fig_sun = go.Figure(go.Sunburst(
-        ids=sunburst_data["ids"],
-        labels=sunburst_data["labels"],
-        parents=sunburst_data["parents"],
-        values=sunburst_data["values"],
-        marker=dict(colors=sunburst_data["colors"]),
-        branchvalues="total",
-    ))
+    fig_sun = go.Figure(
+        go.Sunburst(
+            ids=sunburst_data["ids"],
+            labels=sunburst_data["labels"],
+            parents=sunburst_data["parents"],
+            values=sunburst_data["values"],
+            marker={"colors": sunburst_data["colors"]},
+            branchvalues="total",
+        )
+    )
     fig_sun.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", font_color="#EAEAEA",
-        height=600, margin=dict(t=20, b=20, l=20, r=20),
+        paper_bgcolor="rgba(0,0,0,0)",
+        font_color="#EAEAEA",
+        height=600,
+        margin={"t": 20, "b": 20, "l": 20, "r": 20},
     )
     st.plotly_chart(fig_sun, use_container_width=True)
     st.caption(
@@ -354,30 +365,41 @@ with tab2:
     iso_df = pd.DataFrame(iso_scores["domains"])
 
     fig_iso = go.Figure()
-    fig_iso.add_trace(go.Bar(
-        name="Implemented",
-        x=iso_df["name"], y=iso_df["implemented"],
-        marker_color="#4CAF50",
-    ))
-    fig_iso.add_trace(go.Bar(
-        name="Partial",
-        x=iso_df["name"], y=iso_df["partial"],
-        marker_color="#FFC107",
-    ))
-    fig_iso.add_trace(go.Bar(
-        name="Gap",
-        x=iso_df["name"],
-        y=iso_df["total"] - iso_df["implemented"] - iso_df["partial"],
-        marker_color="#F44336",
-    ))
+    fig_iso.add_trace(
+        go.Bar(
+            name="Implemented",
+            x=iso_df["name"],
+            y=iso_df["implemented"],
+            marker_color="#4CAF50",
+        )
+    )
+    fig_iso.add_trace(
+        go.Bar(
+            name="Partial",
+            x=iso_df["name"],
+            y=iso_df["partial"],
+            marker_color="#FFC107",
+        )
+    )
+    fig_iso.add_trace(
+        go.Bar(
+            name="Gap",
+            x=iso_df["name"],
+            y=iso_df["total"] - iso_df["implemented"] - iso_df["partial"],
+            marker_color="#F44336",
+        )
+    )
     fig_iso.update_layout(
         barmode="stack",
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
         font_color="#EAEAEA",
-        yaxis_title="Controls", xaxis_title="",
+        yaxis_title="Controls",
+        xaxis_title="",
         height=400,
-        xaxis=dict(gridcolor="#222"), yaxis=dict(gridcolor="#222"),
-        legend=dict(bgcolor="rgba(0,0,0,0)"),
+        xaxis={"gridcolor": "#222"},
+        yaxis={"gridcolor": "#222"},
+        legend={"bgcolor": "rgba(0,0,0,0)"},
     )
     st.plotly_chart(fig_iso, use_container_width=True)
 
@@ -386,15 +408,10 @@ with tab2:
     for domain in iso_scores["domains"]:
         ev = domain.get("evidence_status", {})
         health = domain.get("health", "Unknown")
-        health_icon = {"Compliant": "✅", "At Risk": "⚠️", "Non-Compliant": "❌"}.get(
-            health, "❓"
-        )
+        health_icon = {"Compliant": "✅", "At Risk": "⚠️", "Non-Compliant": "❌"}.get(health, "❓")
         stale_flag = " 🗂️ stale evidence" if ev.get("stale") else ""
 
-        with st.expander(
-            f"{health_icon} **{domain['name']}** — {domain['percentage']}% "
-            f"({health}){stale_flag}"
-        ):
+        with st.expander(f"{health_icon} **{domain['name']}** — {domain['percentage']}% ({health}){stale_flag}"):
             dc1, dc2, dc3 = st.columns(3)
             dc1.metric("Total Controls", domain["total"])
             dc2.metric("Implemented", domain["implemented"])
@@ -407,15 +424,9 @@ with tab2:
                         "Score penalised to 80% of calculated until refreshed."
                     )
                 else:
-                    st.error(
-                        "🗂️ No evidence date recorded for this domain. "
-                        "Score penalised to 80% of calculated."
-                    )
+                    st.error("🗂️ No evidence date recorded for this domain. Score penalised to 80% of calculated.")
             elif ev.get("days_remaining") and ev["days_remaining"] <= 90:
-                st.warning(
-                    f"🗂️ Evidence expires in {ev['days_remaining']} days — "
-                    "schedule refresh before it lapses."
-                )
+                st.warning(f"🗂️ Evidence expires in {ev['days_remaining']} days — schedule refresh before it lapses.")
 
     st.markdown("---")
 
@@ -428,20 +439,41 @@ with tab2:
         st.markdown("### 🏛️ Additional Regulatory Frameworks")
 
     mfippa_items = [
-        {"requirement": "Privacy Impact Assessments (PIAs)", "status": "Implemented",
-         "detail": "PIAs required for all new systems processing personal information"},
-        {"requirement": "Access to Information Requests", "status": "Implemented",
-         "detail": "30-day response window; tracked in FOIP management system"},
-        {"requirement": "Privacy Breach Protocol", "status": "Implemented",
-         "detail": "IPC notification at earliest opportunity; target < 72 hours"},
-        {"requirement": "Data Minimization", "status": "Partial",
-         "detail": "Policy in place; enforcement gaps in legacy systems"},
-        {"requirement": "Retention & Disposal Schedules", "status": "Partial",
-         "detail": "Schedules exist for most record types; OT data retention under review"},
-        {"requirement": "Staff Privacy Training", "status": "Implemented",
-         "detail": "Annual mandatory training with completion tracking"},
-        {"requirement": "Third-Party Data Sharing Agreements", "status": "Partial",
-         "detail": "Template agreements exist; not all vendors have current DSAs"},
+        {
+            "requirement": "Privacy Impact Assessments (PIAs)",
+            "status": "Implemented",
+            "detail": "PIAs required for all new systems processing personal information",
+        },
+        {
+            "requirement": "Access to Information Requests",
+            "status": "Implemented",
+            "detail": "30-day response window; tracked in FOIP management system",
+        },
+        {
+            "requirement": "Privacy Breach Protocol",
+            "status": "Implemented",
+            "detail": "IPC notification at earliest opportunity; target < 72 hours",
+        },
+        {
+            "requirement": "Data Minimization",
+            "status": "Partial",
+            "detail": "Policy in place; enforcement gaps in legacy systems",
+        },
+        {
+            "requirement": "Retention & Disposal Schedules",
+            "status": "Partial",
+            "detail": "Schedules exist for most record types; OT data retention under review",
+        },
+        {
+            "requirement": "Staff Privacy Training",
+            "status": "Implemented",
+            "detail": "Annual mandatory training with completion tracking",
+        },
+        {
+            "requirement": "Third-Party Data Sharing Agreements",
+            "status": "Partial",
+            "detail": "Template agreements exist; not all vendors have current DSAs",
+        },
     ]
     for item in mfippa_items:
         icon = {"Implemented": "✅", "Partial": "⚠️", "Gap": "❌"}.get(item["status"], "❓")
@@ -481,13 +513,17 @@ with tab3:
         values=list(status_counts.values()),
         color=list(status_counts.keys()),
         color_discrete_map={
-            "Current": "#4CAF50", "Under Review": "#FFC107",
-            "Draft": "#2196F3", "Expired": "#F44336",
+            "Current": "#4CAF50",
+            "Under Review": "#FFC107",
+            "Draft": "#2196F3",
+            "Expired": "#F44336",
         },
         hole=0.4,
     )
     fig_pol.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", font_color="#EAEAEA", height=300,
+        paper_bgcolor="rgba(0,0,0,0)",
+        font_color="#EAEAEA",
+        height=300,
     )
     st.plotly_chart(fig_pol, use_container_width=True)
 
@@ -507,9 +543,7 @@ with tab3:
 
     def _policy_sort_key(p):
         if p.get("name") in expiring_names:
-            days = next(
-                (ep["days_remaining"] for ep in expiring_soon if ep["name"] == p.get("name")), 999
-            )
+            days = next((ep["days_remaining"] for ep in expiring_soon if ep["name"] == p.get("name")), 999)
             return (0, days)
         status_order = {"Expired": 1, "Under Review": 2, "Draft": 3, "Current": 4}
         return (status_order.get(p["status"], 5), 999)
@@ -518,16 +552,16 @@ with tab3:
 
     for p in filtered_policies:
         icon = {
-            "Current": "✅", "Under Review": "🔄",
-            "Draft": "📝", "Expired": "⛔",
+            "Current": "✅",
+            "Under Review": "🔄",
+            "Draft": "📝",
+            "Expired": "⛔",
         }.get(p["status"], "❓")
 
         is_expiring = p.get("name") in expiring_names
         expiry_flag = " 🔴 EXPIRING SOON" if is_expiring else ""
 
-        with st.expander(
-            f"{icon} {p['name']} — v{p['version']} ({p['status']}){expiry_flag}"
-        ):
+        with st.expander(f"{icon} {p['name']} — v{p['version']} ({p['status']}){expiry_flag}"):
             pc1, pc2 = st.columns(2)
             with pc1:
                 st.markdown(f"**Owner:** {p['owner']}")
@@ -539,9 +573,7 @@ with tab3:
                 st.markdown(f"**Next Review:** {p['next_review']}")
 
             if is_expiring:
-                days_rem = next(
-                    (ep["days_remaining"] for ep in expiring_soon if ep["name"] == p.get("name")), None
-                )
+                days_rem = next((ep["days_remaining"] for ep in expiring_soon if ep["name"] == p.get("name")), None)
                 if days_rem is not None:
                     st.error(
                         f"⏰ Review due in **{days_rem} day{'s' if days_rem != 1 else ''}**. "
@@ -561,32 +593,36 @@ with tab3:
 
     # Evidence quality penalty: deduct proportionally for stale evidence
     stale_ratio = total_stale / max(nist_scores["total_controls"], 1)
-    evidence_penalty = round(stale_ratio * 10)   # up to -10 pts for fully stale
+    evidence_penalty = round(stale_ratio * 10)  # up to -10 pts for fully stale
 
     audit_score = max(
         0,
         round(nist_pct * 0.4 + iso_pct * 0.35 + policy_pct * 0.25) - evidence_penalty,
     )
 
-    fig_audit = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=audit_score,
-        title={"text": "Audit Readiness", "font": {"color": "#EAEAEA", "size": 18}},
-        number={"suffix": "%", "font": {"color": GOLD, "size": 48}},
-        gauge={
-            "axis": {"range": [0, 100]},
-            "bar": {"color": GOLD},
-            "bgcolor": "#1A1A1A",
-            "steps": [
-                {"range": [0, 40], "color": "#3a1010"},
-                {"range": [40, 70], "color": "#3a3010"},
-                {"range": [70, 100], "color": "#103a10"},
-            ],
-            "threshold": {"line": {"color": "#F44336", "width": 2}, "value": 70},
-        },
-    ))
+    fig_audit = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=audit_score,
+            title={"text": "Audit Readiness", "font": {"color": "#EAEAEA", "size": 18}},
+            number={"suffix": "%", "font": {"color": GOLD, "size": 48}},
+            gauge={
+                "axis": {"range": [0, 100]},
+                "bar": {"color": GOLD},
+                "bgcolor": "#1A1A1A",
+                "steps": [
+                    {"range": [0, 40], "color": "#3a1010"},
+                    {"range": [40, 70], "color": "#3a3010"},
+                    {"range": [70, 100], "color": "#103a10"},
+                ],
+                "threshold": {"line": {"color": "#F44336", "width": 2}, "value": 70},
+            },
+        )
+    )
     fig_audit.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", height=300, margin=dict(t=80, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        height=300,
+        margin={"t": 80, "b": 10},
     )
     st.plotly_chart(fig_audit, use_container_width=True)
 
@@ -603,10 +639,7 @@ with tab3:
     if audit_score >= 80:
         st.success("✅ Strong audit readiness. Maintain current trajectory.")
     elif audit_score >= 60:
-        st.warning(
-            "⚠️ Moderate readiness. Address stale evidence and NIST CSF gaps "
-            "before the next audit cycle."
-        )
+        st.warning("⚠️ Moderate readiness. Address stale evidence and NIST CSF gaps before the next audit cycle.")
     else:
         st.error(
             "❌ Significant gaps. Prioritize compliance remediation, "
@@ -620,17 +653,22 @@ ce1, ce2 = st.columns(2)
 with ce1:
     policy_json = _json.dumps(
         [p.__dict__ if hasattr(p, "__dict__") else p for p in policies],
-        indent=2, default=str,
+        indent=2,
+        default=str,
     )
     st.download_button(
-        "📋 Policies JSON", data=policy_json,
-        file_name="policies_export.json", mime="application/json",
+        "📋 Policies JSON",
+        data=policy_json,
+        file_name="policies_export.json",
+        mime="application/json",
         use_container_width=True,
     )
 with ce2:
     nist_json = _json.dumps(controls_data, indent=2, default=str)
     st.download_button(
-        "📋 NIST CSF Controls JSON", data=nist_json,
-        file_name="nist_csf_controls.json", mime="application/json",
+        "📋 NIST CSF Controls JSON",
+        data=nist_json,
+        file_name="nist_csf_controls.json",
+        mime="application/json",
         use_container_width=True,
     )

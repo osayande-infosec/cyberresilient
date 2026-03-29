@@ -725,8 +725,8 @@ with tab3:
                     )
 
                     # Evidence date
-                    ev_raw = sel_risk.get("evidence_date") or ""
-                    ev_default = date.fromisoformat(ev_raw) if ev_raw.strip() else None
+                    ev_raw = sel_risk.get("evidence_date")
+                    ev_default = date.fromisoformat(ev_raw) if ev_raw else None
                     ed_evidence = st.date_input(
                         "Evidence Date",
                         value=ev_default,

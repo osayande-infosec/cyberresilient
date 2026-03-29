@@ -6,31 +6,38 @@ v2: Adds inherent vs residual risk split, appetite breach count,
 expired evidence count, and policy expiry proximity alerts.
 """
 
-import streamlit as st
+import json
+
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
-import json
-from pathlib import Path
+import streamlit as st
 
-from cyberresilient.config import get_config, DATA_DIR
-from cyberresilient.services.dashboard_service import load_dashboard_data
+from cyberresilient.config import get_config
 from cyberresilient.services.auth_service import learning_callout
-from cyberresilient.services.learning_service import (
-    get_content, learning_section, kpi_explanation,
-    grc_insight, evidence_mapping_table, chart_navigation_guide,
+from cyberresilient.services.compliance_service import (
+    calc_nist_csf_scores,
+    get_policy_summary,
+    load_controls,
+    load_policies,
 )
-from cyberresilient.theme import get_theme_colors
+from cyberresilient.services.dashboard_service import load_dashboard_data
+from cyberresilient.services.learning_service import (
+    chart_navigation_guide,
+    evidence_mapping_table,
+    get_content,
+    grc_insight,
+    kpi_explanation,
+    learning_section,
+)
 
 # Import risk and compliance services for the new GRC health panel
 from cyberresilient.services.risk_service import (
-    load_risks, get_risk_summary,
-    RISK_APPETITE_THRESHOLD, RISK_APPETITE_LABEL,
+    RISK_APPETITE_THRESHOLD,
+    get_risk_summary,
+    load_risks,
 )
-from cyberresilient.services.compliance_service import (
-    load_controls, load_policies,
-    calc_nist_csf_scores, get_policy_summary,
-)
+from cyberresilient.theme import get_theme_colors
 
 cfg = get_config()
 colors = get_theme_colors()
@@ -173,26 +180,30 @@ score = data["overall_security_score"]
 gauge_col, summary_col = st.columns([1, 3])
 
 with gauge_col:
-    fig_gauge = go.Figure(go.Indicator(
-        mode="gauge+number",
-        value=score,
-        title={"text": "Security Score", "font": {"color": "#EAEAEA", "size": 16}},
-        number={"font": {"color": GOLD, "size": 40}},
-        gauge={
-            "axis": {"range": [0, 100], "tickcolor": "#555"},
-            "bar": {"color": GOLD},
-            "bgcolor": "#1A1A1A",
-            "steps": [
-                {"range": [0, 40], "color": "#3a1010"},
-                {"range": [40, 70], "color": "#3a3010"},
-                {"range": [70, 100], "color": "#103a10"},
-            ],
-            "threshold": {"line": {"color": "#F44336", "width": 2}, "value": 60},
-        },
-    ))
+    fig_gauge = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=score,
+            title={"text": "Security Score", "font": {"color": "#EAEAEA", "size": 16}},
+            number={"font": {"color": GOLD, "size": 40}},
+            gauge={
+                "axis": {"range": [0, 100], "tickcolor": "#555"},
+                "bar": {"color": GOLD},
+                "bgcolor": "#1A1A1A",
+                "steps": [
+                    {"range": [0, 40], "color": "#3a1010"},
+                    {"range": [40, 70], "color": "#3a3010"},
+                    {"range": [70, 100], "color": "#103a10"},
+                ],
+                "threshold": {"line": {"color": "#F44336", "width": 2}, "value": 60},
+            },
+        )
+    )
     fig_gauge.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        height=250, margin=dict(t=60, b=10, l=30, r=30),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=250,
+        margin={"t": 60, "b": 10, "l": 30, "r": 30},
     )
     st.plotly_chart(fig_gauge, use_container_width=True)
 
@@ -232,34 +243,41 @@ with rph1:
     st.markdown("#### Inherent vs Residual Risk Distribution")
     levels = ["Very High", "High", "Medium", "Low"]
     level_colors = {
-        "Very High": "#B71C1C", "High": "#F44336",
-        "Medium": "#FF9800", "Low": "#4CAF50",
+        "Very High": "#B71C1C",
+        "High": "#F44336",
+        "Medium": "#FF9800",
+        "Low": "#4CAF50",
     }
 
     fig_risk_compare = go.Figure()
-    fig_risk_compare.add_trace(go.Bar(
-        name="Inherent (before controls)",
-        x=levels,
-        y=[risk_summary["by_inherent_level"].get(l, 0) for l in levels],
-        marker_color=[level_colors[l] for l in levels],
-        opacity=0.9,
-    ))
-    fig_risk_compare.add_trace(go.Bar(
-        name="Residual (after controls)",
-        x=levels,
-        y=[risk_summary["by_residual_level"].get(l, 0) for l in levels],
-        marker_color=[level_colors[l] for l in levels],
-        opacity=0.4,
-    ))
+    fig_risk_compare.add_trace(
+        go.Bar(
+            name="Inherent (before controls)",
+            x=levels,
+            y=[risk_summary["by_inherent_level"].get(l, 0) for l in levels],
+            marker_color=[level_colors[l] for l in levels],
+            opacity=0.9,
+        )
+    )
+    fig_risk_compare.add_trace(
+        go.Bar(
+            name="Residual (after controls)",
+            x=levels,
+            y=[risk_summary["by_residual_level"].get(l, 0) for l in levels],
+            marker_color=[level_colors[l] for l in levels],
+            opacity=0.4,
+        )
+    )
     fig_risk_compare.update_layout(
         barmode="group",
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
         font_color="#EAEAEA",
         height=300,
-        legend=dict(bgcolor="rgba(0,0,0,0)", orientation="h", y=-0.25),
-        margin=dict(t=20, b=60),
-        yaxis=dict(gridcolor="#222"),
-        xaxis=dict(gridcolor="#222"),
+        legend={"bgcolor": "rgba(0,0,0,0)", "orientation": "h", "y": -0.25},
+        margin={"t": 20, "b": 60},
+        yaxis={"gridcolor": "#222"},
+        xaxis={"gridcolor": "#222"},
     )
     st.plotly_chart(fig_risk_compare, use_container_width=True)
     st.caption(
@@ -304,11 +322,12 @@ with rph2:
             hole=0.5,
         )
         fig_status.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)", font_color="#EAEAEA",
+            paper_bgcolor="rgba(0,0,0,0)",
+            font_color="#EAEAEA",
             height=220,
-            margin=dict(t=10, b=10, l=10, r=10),
+            margin={"t": 10, "b": 10, "l": 10, "r": 10},
             showlegend=True,
-            legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(size=11)),
+            legend={"bgcolor": "rgba(0,0,0,0)", "font": {"size": 11}},
         )
         st.plotly_chart(fig_status, use_container_width=True)
 
@@ -321,15 +340,20 @@ with chart1:
     st.subheader("Monthly Security Incidents (12-Month Trend)")
     incidents_df = pd.DataFrame(data["monthly_incidents"])
     fig_inc = px.bar(
-        incidents_df, x="month", y="count",
+        incidents_df,
+        x="month",
+        y="count",
         color="count",
         color_continuous_scale=["#103a10", GOLD, "#F44336"],
         labels={"month": "Month", "count": "Incidents"},
     )
     fig_inc.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font_color="#EAEAEA", showlegend=False,
-        xaxis=dict(gridcolor="#222"), yaxis=dict(gridcolor="#222"),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font_color="#EAEAEA",
+        showlegend=False,
+        xaxis={"gridcolor": "#222"},
+        yaxis={"gridcolor": "#222"},
         height=350,
     )
     st.plotly_chart(fig_inc, use_container_width=True)
@@ -338,13 +362,17 @@ with chart2:
     st.subheader("Vulnerability Aging Distribution")
     vuln_df = pd.DataFrame(data["vulnerability_aging"])
     fig_vuln = px.pie(
-        vuln_df, names="age_bucket", values="count",
+        vuln_df,
+        names="age_bucket",
+        values="count",
         color_discrete_sequence=["#4CAF50", GOLD, "#FF9800", "#F44336"],
         hole=0.4,
     )
     fig_vuln.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font_color="#EAEAEA", height=350,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font_color="#EAEAEA",
+        height=350,
     )
     st.plotly_chart(fig_vuln, use_container_width=True)
 
@@ -355,21 +383,33 @@ with chart3:
     st.subheader("Compliance Trend (NIST CSF & ISO 27001)")
     comp_df = pd.DataFrame(data["compliance_trend"])
     fig_comp = go.Figure()
-    fig_comp.add_trace(go.Scatter(
-        x=comp_df["quarter"], y=comp_df["nist_csf_pct"],
-        name="NIST CSF", line=dict(color=GOLD, width=3),
-        mode="lines+markers",
-    ))
-    fig_comp.add_trace(go.Scatter(
-        x=comp_df["quarter"], y=comp_df["iso27001_pct"],
-        name="ISO 27001", line=dict(color="#4CAF50", width=3),
-        mode="lines+markers",
-    ))
+    fig_comp.add_trace(
+        go.Scatter(
+            x=comp_df["quarter"],
+            y=comp_df["nist_csf_pct"],
+            name="NIST CSF",
+            line={"color": GOLD, "width": 3},
+            mode="lines+markers",
+        )
+    )
+    fig_comp.add_trace(
+        go.Scatter(
+            x=comp_df["quarter"],
+            y=comp_df["iso27001_pct"],
+            name="ISO 27001",
+            line={"color": "#4CAF50", "width": 3},
+            mode="lines+markers",
+        )
+    )
     fig_comp.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font_color="#EAEAEA", yaxis_title="Compliance %",
-        xaxis=dict(gridcolor="#222"), yaxis=dict(gridcolor="#222", range=[0, 100]),
-        height=350, legend=dict(bgcolor="rgba(0,0,0,0)"),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font_color="#EAEAEA",
+        yaxis_title="Compliance %",
+        xaxis={"gridcolor": "#222"},
+        yaxis={"gridcolor": "#222", "range": [0, 100]},
+        height=350,
+        legend={"bgcolor": "rgba(0,0,0,0)"},
     )
     st.plotly_chart(fig_comp, use_container_width=True)
 
@@ -377,19 +417,27 @@ with chart4:
     st.subheader("Threat Categories")
     threat_df = pd.DataFrame(data["threat_categories"])
     fig_threat = px.bar(
-        threat_df, x="count", y="category", orientation="h",
+        threat_df,
+        x="count",
+        y="category",
+        orientation="h",
         color="severity",
         color_discrete_map={
-            "Critical": "#F44336", "High": "#FF9800",
-            "Medium": GOLD, "Low": "#4CAF50",
+            "Critical": "#F44336",
+            "High": "#FF9800",
+            "Medium": GOLD,
+            "Low": "#4CAF50",
         },
         labels={"count": "Incidents", "category": ""},
     )
     fig_threat.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font_color="#EAEAEA", height=350,
-        xaxis=dict(gridcolor="#222"), yaxis=dict(gridcolor="#222"),
-        legend=dict(bgcolor="rgba(0,0,0,0)"),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font_color="#EAEAEA",
+        height=350,
+        xaxis={"gridcolor": "#222"},
+        yaxis={"gridcolor": "#222"},
+        legend={"bgcolor": "rgba(0,0,0,0)"},
     )
     st.plotly_chart(fig_threat, use_container_width=True)
 
@@ -400,25 +448,33 @@ st.subheader("Department Security Metrics")
 dept_data = data["department_metrics"]
 dept_names = [d["department"] for d in dept_data]
 selected_dept = st.selectbox(
-    "Filter by Department", ["All Departments"] + dept_names,
+    "Filter by Department",
+    ["All Departments", *dept_names],
 )
 
 if selected_dept != "All Departments":
     dept_data = [d for d in dept_data if d["department"] == selected_dept]
 
 dept_df = pd.DataFrame(dept_data)
-dept_display = dept_df[[
-    "department", "risk_score", "compliance_pct",
-    "open_incidents", "patch_compliance_pct",
-]].copy()
+dept_display = dept_df[
+    [
+        "department",
+        "risk_score",
+        "compliance_pct",
+        "open_incidents",
+        "patch_compliance_pct",
+    ]
+].copy()
 dept_display.columns = [
-    "Department", "Risk Score", "Compliance %",
-    "Open Incidents", "Patch Compliance %",
+    "Department",
+    "Risk Score",
+    "Compliance %",
+    "Open Incidents",
+    "Patch Compliance %",
 ]
 
 st.dataframe(
-    dept_display.style
-    .background_gradient(subset=["Risk Score"], cmap="RdYlGn_r")
+    dept_display.style.background_gradient(subset=["Risk Score"], cmap="RdYlGn_r")
     .background_gradient(subset=["Compliance %"], cmap="RdYlGn")
     .background_gradient(subset=["Patch Compliance %"], cmap="RdYlGn"),
     use_container_width=True,
@@ -429,27 +485,32 @@ if selected_dept == "All Departments":
     st.subheader("Department Risk Comparison")
     fig_radar = go.Figure()
     for d in data["department_metrics"]:
-        fig_radar.add_trace(go.Scatterpolar(
-            r=[
-                d["risk_score"], d["compliance_pct"],
-                d["patch_compliance_pct"],
-                100 - d["open_incidents"] * 10,
-                d.get("training_completion_pct", 80),
-            ],
-            theta=["Risk Score", "Compliance", "Patch Compliance", "Incident Score", "Training"],
-            fill="toself",
-            name=d["department"],
-            opacity=0.6,
-        ))
+        fig_radar.add_trace(
+            go.Scatterpolar(
+                r=[
+                    d["risk_score"],
+                    d["compliance_pct"],
+                    d["patch_compliance_pct"],
+                    100 - d["open_incidents"] * 10,
+                    d.get("training_completion_pct", 80),
+                ],
+                theta=["Risk Score", "Compliance", "Patch Compliance", "Incident Score", "Training"],
+                fill="toself",
+                name=d["department"],
+                opacity=0.6,
+            )
+        )
     fig_radar.update_layout(
-        polar=dict(
-            bgcolor="rgba(0,0,0,0)",
-            radialaxis=dict(visible=True, range=[0, 100], gridcolor="#333"),
-            angularaxis=dict(gridcolor="#333"),
-        ),
-        paper_bgcolor="rgba(0,0,0,0)", font_color="#EAEAEA",
-        height=500, showlegend=True,
-        legend=dict(bgcolor="rgba(0,0,0,0)"),
+        polar={
+            "bgcolor": "rgba(0,0,0,0)",
+            "radialaxis": {"visible": True, "range": [0, 100], "gridcolor": "#333"},
+            "angularaxis": {"gridcolor": "#333"},
+        },
+        paper_bgcolor="rgba(0,0,0,0)",
+        font_color="#EAEAEA",
+        height=500,
+        showlegend=True,
+        legend={"bgcolor": "rgba(0,0,0,0)"},
     )
     st.plotly_chart(fig_radar, use_container_width=True)
 
@@ -466,6 +527,7 @@ e1, e2 = st.columns(2)
 with e1:
     if st.button("📊 Generate Executive Brief (PPTX)", type="primary", use_container_width=True):
         from cyberresilient.services.report_service import generate_executive_pptx
+
         filepath = generate_executive_pptx(data)
         with open(filepath, "rb") as f:
             st.download_button(

@@ -18,31 +18,32 @@ from __future__ import annotations
 
 import uuid
 from datetime import date
-from typing import Optional
 
 TEST_METHODS = ["Interview", "Observation", "Inspection", "Re-performance"]
 TEST_RESULTS = ["Pass", "Partial", "Fail"]
 
 # How each result maps to an effective compliance contribution
 RESULT_WEIGHTS = {
-    "Pass":    1.0,
+    "Pass": 1.0,
     "Partial": 0.5,
-    "Fail":    0.0,
+    "Fail": 0.0,
 }
 
 # Controls tested by each method need re-testing after N days
 RETEST_INTERVALS: dict[str, int] = {
-    "Interview":      365,
-    "Observation":    365,
-    "Inspection":     180,
+    "Interview": 365,
+    "Observation": 365,
+    "Inspection": 180,
     "Re-performance": 180,
 }
 
 
 def _db_available() -> bool:
     try:
-        from cyberresilient.database import get_engine
         from sqlalchemy import inspect
+
+        from cyberresilient.database import get_engine
+
         return inspect(get_engine()).has_table("control_tests")
     except Exception:
         return False
@@ -50,12 +51,12 @@ def _db_available() -> bool:
 
 def record_test(
     control_id: str,
-    framework: str,             # "nist_csf" | "iso27001"
+    framework: str,  # "nist_csf" | "iso27001"
     test_method: str,
     result: str,
     tester: str,
     finding: str = "",
-    corrective_action_id: Optional[str] = None,
+    corrective_action_id: str | None = None,
     notes: str = "",
 ) -> dict:
     """
@@ -66,19 +67,11 @@ def record_test(
     auditors need to know what failed.
     """
     if test_method not in TEST_METHODS:
-        raise ValueError(
-            f"Invalid test method '{test_method}'. "
-            f"Choose from: {', '.join(TEST_METHODS)}"
-        )
+        raise ValueError(f"Invalid test method '{test_method}'. Choose from: {', '.join(TEST_METHODS)}")
     if result not in TEST_RESULTS:
-        raise ValueError(
-            f"Invalid result '{result}'. Choose from: {', '.join(TEST_RESULTS)}"
-        )
+        raise ValueError(f"Invalid result '{result}'. Choose from: {', '.join(TEST_RESULTS)}")
     if result == "Fail" and not finding.strip():
-        raise ValueError(
-            "A finding note is required when result is Fail. "
-            "Describe what the test revealed."
-        )
+        raise ValueError("A finding note is required when result is Fail. Describe what the test revealed.")
 
     record = {
         "id": str(uuid.uuid4()),
@@ -99,12 +92,18 @@ def record_test(
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import ControlTestRow
         from cyberresilient.services.audit_service import log_action
+
         session = get_session()
         try:
             session.add(ControlTestRow(**record))
-            log_action(session, action="record_control_test",
-                       entity_type="control", entity_id=control_id,
-                       user=tester, after=record)
+            log_action(
+                session,
+                action="record_control_test",
+                entity_type="control",
+                entity_id=control_id,
+                user=tester,
+                after=record,
+            )
             session.commit()
         except Exception:
             session.rollback()
@@ -117,11 +116,12 @@ def record_test(
 
 def _retest_due(method: str) -> str:
     from datetime import timedelta
+
     days = RETEST_INTERVALS.get(method, 365)
     return (date.today() + timedelta(days=days)).isoformat()
 
 
-def get_latest_test(control_id: str) -> Optional[dict]:
+def get_latest_test(control_id: str) -> dict | None:
     """Return the most recent test record for a control."""
     return next(iter(get_test_history(control_id)), None)
 
@@ -132,6 +132,7 @@ def get_test_history(control_id: str) -> list[dict]:
         return []
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import ControlTestRow
+
     session = get_session()
     try:
         rows = (
@@ -162,6 +163,7 @@ def get_overdue_controls(framework: str) -> list[dict]:
         return []
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import ControlTestRow
+
     session = get_session()
     try:
         today = date.today().isoformat()
@@ -191,6 +193,7 @@ def test_summary(framework: str) -> dict:
         return {"tested": 0, "passed": 0, "partial": 0, "failed": 0, "untested": 0}
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import ControlTestRow
+
     session = get_session()
     try:
         rows = session.query(ControlTestRow).filter_by(framework=framework).all()

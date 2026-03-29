@@ -3,9 +3,7 @@
 from cyberresilient.services.auth_service import (
     ROLE_PERMISSIONS,
     Role,
-    has_permission,
     is_auth_enabled,
-    is_learning_mode,
 )
 
 

@@ -5,7 +5,7 @@ Add RiskReviewRow, CAPRow, VendorRow, VendorAssessmentRow to your db_models.py.
 Also add last_reviewed_at column to existing RiskRow.
 """
 
-from sqlalchemy import Boolean, Column, Float, Integer, String, Text
+from sqlalchemy import Column, Integer, String, Text
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()

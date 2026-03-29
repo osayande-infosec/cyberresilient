@@ -4,13 +4,13 @@ Map organizational threats to the MITRE ATT&CK framework,
 visualize attack chains, and correlate with existing controls.
 """
 
-import streamlit as st
-import plotly.graph_objects as go
 import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
 
 from cyberresilient.config import get_config
-from cyberresilient.services.auth_service import learning_callout, is_learning_mode
-from cyberresilient.services.learning_service import get_content, grc_insight, learning_section, chart_navigation_guide
+from cyberresilient.services.auth_service import learning_callout
+from cyberresilient.services.learning_service import chart_navigation_guide, get_content, grc_insight, learning_section
 from cyberresilient.theme import get_theme_colors
 
 cfg = get_config()
@@ -38,7 +38,12 @@ ATTACK_DATA = {
         "color": "#9C27B0",
         "techniques": [
             {"id": "T1595", "name": "Active Scanning", "detected": True, "control": "Network monitoring, IDS/IPS"},
-            {"id": "T1589", "name": "Gather Victim Identity Info", "detected": False, "control": "OSINT monitoring recommended"},
+            {
+                "id": "T1589",
+                "name": "Gather Victim Identity Info",
+                "detected": False,
+                "control": "OSINT monitoring recommended",
+            },
             {"id": "T1591", "name": "Gather Victim Org Info", "detected": False, "control": "Public data minimization"},
         ],
     },
@@ -46,15 +51,30 @@ ATTACK_DATA = {
         "color": "#F44336",
         "techniques": [
             {"id": "T1566", "name": "Phishing", "detected": True, "control": "Email gateway + phishing simulation"},
-            {"id": "T1190", "name": "Exploit Public-Facing App", "detected": True, "control": "WAF, vulnerability scanning"},
+            {
+                "id": "T1190",
+                "name": "Exploit Public-Facing App",
+                "detected": True,
+                "control": "WAF, vulnerability scanning",
+            },
             {"id": "T1078", "name": "Valid Accounts", "detected": True, "control": "Azure AD Conditional Access + MFA"},
-            {"id": "T1133", "name": "External Remote Services", "detected": True, "control": "VPN with MFA, network segmentation"},
+            {
+                "id": "T1133",
+                "name": "External Remote Services",
+                "detected": True,
+                "control": "VPN with MFA, network segmentation",
+            },
         ],
     },
     "Execution": {
         "color": "#FF5722",
         "techniques": [
-            {"id": "T1059", "name": "Command & Scripting Interpreter", "detected": True, "control": "PowerShell logging, AMSI"},
+            {
+                "id": "T1059",
+                "name": "Command & Scripting Interpreter",
+                "detected": True,
+                "control": "PowerShell logging, AMSI",
+            },
             {"id": "T1204", "name": "User Execution", "detected": True, "control": "AppLocker, endpoint protection"},
             {"id": "T1047", "name": "WMI", "detected": True, "control": "WMI event monitoring via SIEM"},
         ],
@@ -70,38 +90,88 @@ ATTACK_DATA = {
     "Privilege Escalation": {
         "color": "#FFC107",
         "techniques": [
-            {"id": "T1068", "name": "Exploitation for Privilege Escalation", "detected": True, "control": "Patch management, EDR"},
+            {
+                "id": "T1068",
+                "name": "Exploitation for Privilege Escalation",
+                "detected": True,
+                "control": "Patch management, EDR",
+            },
             {"id": "T1548", "name": "Abuse Elevation Control", "detected": True, "control": "UAC enforcement, PAM"},
-            {"id": "T1134", "name": "Access Token Manipulation", "detected": False, "control": "Advanced EDR correlation needed"},
+            {
+                "id": "T1134",
+                "name": "Access Token Manipulation",
+                "detected": False,
+                "control": "Advanced EDR correlation needed",
+            },
         ],
     },
     "Defense Evasion": {
         "color": "#CDDC39",
         "techniques": [
-            {"id": "T1027", "name": "Obfuscated Files/Information", "detected": True, "control": "AMSI, sandbox analysis"},
-            {"id": "T1562", "name": "Impair Defenses", "detected": True, "control": "Tamper protection, EDR monitoring"},
-            {"id": "T1070", "name": "Indicator Removal", "detected": False, "control": "Centralized logging, WORM storage"},
+            {
+                "id": "T1027",
+                "name": "Obfuscated Files/Information",
+                "detected": True,
+                "control": "AMSI, sandbox analysis",
+            },
+            {
+                "id": "T1562",
+                "name": "Impair Defenses",
+                "detected": True,
+                "control": "Tamper protection, EDR monitoring",
+            },
+            {
+                "id": "T1070",
+                "name": "Indicator Removal",
+                "detected": False,
+                "control": "Centralized logging, WORM storage",
+            },
         ],
     },
     "Credential Access": {
         "color": "#4CAF50",
         "techniques": [
-            {"id": "T1003", "name": "OS Credential Dumping", "detected": True, "control": "Credential Guard, LSASS protection"},
-            {"id": "T1110", "name": "Brute Force", "detected": True, "control": "Account lockout, Azure AD Smart Lockout"},
-            {"id": "T1557", "name": "Adversary-in-the-Middle", "detected": False, "control": "Certificate pinning recommended"},
+            {
+                "id": "T1003",
+                "name": "OS Credential Dumping",
+                "detected": True,
+                "control": "Credential Guard, LSASS protection",
+            },
+            {
+                "id": "T1110",
+                "name": "Brute Force",
+                "detected": True,
+                "control": "Account lockout, Azure AD Smart Lockout",
+            },
+            {
+                "id": "T1557",
+                "name": "Adversary-in-the-Middle",
+                "detected": False,
+                "control": "Certificate pinning recommended",
+            },
         ],
     },
     "Discovery": {
         "color": "#009688",
         "techniques": [
             {"id": "T1087", "name": "Account Discovery", "detected": True, "control": "SIEM correlation, honeytokens"},
-            {"id": "T1082", "name": "System Information Discovery", "detected": True, "control": "EDR behavioral analytics"},
+            {
+                "id": "T1082",
+                "name": "System Information Discovery",
+                "detected": True,
+                "control": "EDR behavioral analytics",
+            },
         ],
     },
     "Lateral Movement": {
         "color": "#2196F3",
         "techniques": [
-            {"id": "T1021", "name": "Remote Services (RDP/SMB)", "detected": True, "control": "Network segmentation, jump servers"},
+            {
+                "id": "T1021",
+                "name": "Remote Services (RDP/SMB)",
+                "detected": True,
+                "control": "Network segmentation, jump servers",
+            },
             {"id": "T1570", "name": "Lateral Tool Transfer", "detected": True, "control": "File integrity monitoring"},
         ],
     },
@@ -115,7 +185,12 @@ ATTACK_DATA = {
     "Exfiltration": {
         "color": "#673AB7",
         "techniques": [
-            {"id": "T1048", "name": "Exfiltration Over Alternative Protocol", "detected": True, "control": "DNS monitoring, proxy inspection"},
+            {
+                "id": "T1048",
+                "name": "Exfiltration Over Alternative Protocol",
+                "detected": True,
+                "control": "DNS monitoring, proxy inspection",
+            },
             {"id": "T1567", "name": "Exfiltration to Cloud Storage", "detected": True, "control": "CASB, DLP policies"},
         ],
     },
@@ -124,7 +199,12 @@ ATTACK_DATA = {
         "techniques": [
             {"id": "T1486", "name": "Data Encrypted for Impact", "detected": True, "control": "EDR, immutable backups"},
             {"id": "T1489", "name": "Service Stop", "detected": True, "control": "Service monitoring, auto-restart"},
-            {"id": "T1499", "name": "Endpoint Denial of Service", "detected": True, "control": "DDoS protection, rate limiting"},
+            {
+                "id": "T1499",
+                "name": "Endpoint Denial of Service",
+                "detected": True,
+                "control": "DDoS protection, rate limiting",
+            },
         ],
     },
 }
@@ -163,22 +243,37 @@ with tab1:
 
     # Stacked bar chart
     fig_cov = go.Figure()
-    fig_cov.add_trace(go.Bar(
-        name="Detected", x=tactics, y=detected_counts,
-        marker_color="#4CAF50", text=detected_counts, textposition="inside",
-    ))
-    fig_cov.add_trace(go.Bar(
-        name="Gap", x=tactics, y=gap_counts,
-        marker_color="#F44336", text=gap_counts, textposition="inside",
-    ))
+    fig_cov.add_trace(
+        go.Bar(
+            name="Detected",
+            x=tactics,
+            y=detected_counts,
+            marker_color="#4CAF50",
+            text=detected_counts,
+            textposition="inside",
+        )
+    )
+    fig_cov.add_trace(
+        go.Bar(
+            name="Gap",
+            x=tactics,
+            y=gap_counts,
+            marker_color="#F44336",
+            text=gap_counts,
+            textposition="inside",
+        )
+    )
     fig_cov.update_layout(
         barmode="stack",
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font_color="#EAEAEA", yaxis_title="Techniques",
-        xaxis=dict(gridcolor="#222", tickangle=45),
-        yaxis=dict(gridcolor="#222"),
-        height=450, legend=dict(bgcolor="rgba(0,0,0,0)"),
-        margin=dict(b=120),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font_color="#EAEAEA",
+        yaxis_title="Techniques",
+        xaxis={"gridcolor": "#222", "tickangle": 45},
+        yaxis={"gridcolor": "#222"},
+        height=450,
+        legend={"bgcolor": "rgba(0,0,0,0)"},
+        margin={"b": 120},
     )
     st.plotly_chart(fig_cov, use_container_width=True)
 
@@ -195,16 +290,19 @@ with tab1:
 
     # Per-tactic table
     st.markdown("### Tactic Coverage Detail")
-    tactic_df = pd.DataFrame({
-        "Tactic": tactics,
-        "Total": total_counts,
-        "Detected": detected_counts,
-        "Gaps": gap_counts,
-        "Coverage %": coverage_pcts,
-    })
+    tactic_df = pd.DataFrame(
+        {
+            "Tactic": tactics,
+            "Total": total_counts,
+            "Detected": detected_counts,
+            "Gaps": gap_counts,
+            "Coverage %": coverage_pcts,
+        }
+    )
     st.dataframe(
         tactic_df.style.background_gradient(subset=["Coverage %"], cmap="RdYlGn"),
-        use_container_width=True, hide_index=True,
+        use_container_width=True,
+        hide_index=True,
     )
 
 
@@ -272,20 +370,27 @@ with tab2:
             targets.append(i)
             values.append(1)
 
-    fig_chain = go.Figure(go.Sankey(
-        node=dict(
-            pad=15, thickness=20,
-            label=labels,
-            color=node_colors,
-        ),
-        link=dict(
-            source=sources, target=targets, value=values,
-            color="rgba(200,200,200,0.3)",
-        ),
-    ))
+    fig_chain = go.Figure(
+        go.Sankey(
+            node={
+                "pad": 15,
+                "thickness": 20,
+                "label": labels,
+                "color": node_colors,
+            },
+            link={
+                "source": sources,
+                "target": targets,
+                "value": values,
+                "color": "rgba(200,200,200,0.3)",
+            },
+        )
+    )
     fig_chain.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", font_color="#EAEAEA",
-        height=400, margin=dict(t=20, b=20),
+        paper_bgcolor="rgba(0,0,0,0)",
+        font_color="#EAEAEA",
+        height=400,
+        margin={"t": 20, "b": 20},
     )
     st.plotly_chart(fig_chain, use_container_width=True)
 

@@ -7,33 +7,47 @@ v2: Surfaces residual risk, mitigation effectiveness, appetite breach warnings,
 evidence expiry alerts, and sign-off guard for closure.
 """
 
-import streamlit as st
-import plotly.graph_objects as go
-import plotly.express as px
-import pandas as pd
-import json
-import io
 import csv
+import io
+import json
 from datetime import date
 
-from cyberresilient.services.risk_service import (
-    load_risks, build_heatmap_matrix, get_risk_summary,
-    ARCHITECTURE_CHECKS, run_architecture_assessment,
-    create_risk, update_risk, delete_risk, _db_available,
-    calc_inherent_score, calc_residual_score,
-    can_close_risk, is_evidence_expired, days_until_evidence_expires,
-    RISK_APPETITE_THRESHOLD, RISK_APPETITE_LABEL,
-    MITIGATION_EFFECTIVENESS_MULTIPLIERS,
-)
+import plotly.graph_objects as go
+import streamlit as st
+
 from cyberresilient.models.risk import (
-    get_risk_level, get_risk_color,
-    LIKELIHOOD_LABELS, IMPACT_LABELS,
+    IMPACT_LABELS,
+    LIKELIHOOD_LABELS,
+    get_risk_level,
+)
+from cyberresilient.services.auth_service import get_current_user, has_permission, learning_callout
+from cyberresilient.services.learning_service import (
+    case_study_panel,
+    chart_navigation_guide,
+    get_content,
+    grc_insight,
+    learning_section,
+    try_this_panel,
 )
 from cyberresilient.services.report_service import generate_risk_report
-from cyberresilient.services.auth_service import learning_callout, get_current_user, has_permission
-from cyberresilient.services.learning_service import (
-    get_content, learning_section, case_study_panel, try_this_panel, grc_insight,
-    chart_navigation_guide,
+from cyberresilient.services.risk_service import (
+    ARCHITECTURE_CHECKS,
+    MITIGATION_EFFECTIVENESS_MULTIPLIERS,
+    RISK_APPETITE_LABEL,
+    RISK_APPETITE_THRESHOLD,
+    _db_available,
+    build_heatmap_matrix,
+    calc_inherent_score,
+    calc_residual_score,
+    can_close_risk,
+    create_risk,
+    days_until_evidence_expires,
+    delete_risk,
+    get_risk_summary,
+    is_evidence_expired,
+    load_risks,
+    run_architecture_assessment,
+    update_risk,
 )
 from cyberresilient.theme import get_theme_colors
 
@@ -44,8 +58,11 @@ lc = get_content("risk_register")
 EFFECTIVENESS_OPTIONS = list(MITIGATION_EFFECTIVENESS_MULTIPLIERS.keys())
 STATUS_OPTIONS = ["Open", "Mitigating", "Monitoring", "Accepted", "Closed"]
 LIFECYCLE_STATUS_OPTIONS = [
-    "Open", "Mitigating", "Monitoring",
-    "Accepted", "Closed",
+    "Open",
+    "Mitigating",
+    "Monitoring",
+    "Accepted",
+    "Closed",
 ]
 
 LEVEL_COLORS = {
@@ -78,6 +95,7 @@ if lc.get("heat_map_guide"):
     hmg = lc["heat_map_guide"]
     learning_section(hmg["title"], hmg["content"], icon="🟩")
     from cyberresilient.services.auth_service import is_learning_mode
+
     if is_learning_mode() and "key_concepts" in hmg:
         with st.expander("📚 Key Risk Concepts", expanded=False):
             for concept in hmg["key_concepts"]:
@@ -91,11 +109,13 @@ if lc.get("try_this"):
 
 st.markdown("---")
 
-tab1, tab2, tab3 = st.tabs([
-    "📊 Risk Register & Heat Map",
-    "🏗️ Architecture Security Advisor",
-    "✏️ Risk Management",
-])
+tab1, tab2, tab3 = st.tabs(
+    [
+        "📊 Risk Register & Heat Map",
+        "🏗️ Architecture Security Advisor",
+        "✏️ Risk Management",
+    ]
+)
 
 
 # ╔══════════════════════════════════════════════════════════════╗
@@ -171,43 +191,56 @@ with tab1:
                 score = (li + 1) * (im + 1)
                 count = matrix[li][im]
                 row.append(score)
-                annotations.append(dict(
-                    x=im, y=li,
-                    text=f"{score}" + (f"\n({count})" if count > 0 else ""),
-                    showarrow=False,
-                    font=dict(color="white" if score >= 10 else "#CCC", size=11),
-                ))
+                annotations.append(
+                    {
+                        "x": im,
+                        "y": li,
+                        "text": f"{score}" + (f"\n({count})" if count > 0 else ""),
+                        "showarrow": False,
+                        "font": {"color": "white" if score >= 10 else "#CCC", "size": 11},
+                    }
+                )
             z_values.append(row)
 
         # Appetite threshold line: draw a shape across the heatmap
         # Any cell where score > RISK_APPETITE_THRESHOLD is above appetite
-        fig_hmap = go.Figure(data=go.Heatmap(
-            z=z_values,
-            x=[IMPACT_LABELS[i] for i in range(1, 6)],
-            y=[LIKELIHOOD_LABELS[i] for i in range(1, 6)],
-            colorscale=[
-                [0.0, "#1a3a1a"], [0.25, "#4CAF50"],
-                [0.4, "#FFC107"], [0.6, "#FF9800"],
-                [0.8, "#F44336"], [1.0, "#B71C1C"],
-            ],
-            showscale=False,
-            hovertemplate="Likelihood: %{y}<br>Impact: %{x}<br>Score: %{z}<extra></extra>",
-        ))
+        fig_hmap = go.Figure(
+            data=go.Heatmap(
+                z=z_values,
+                x=[IMPACT_LABELS[i] for i in range(1, 6)],
+                y=[LIKELIHOOD_LABELS[i] for i in range(1, 6)],
+                colorscale=[
+                    [0.0, "#1a3a1a"],
+                    [0.25, "#4CAF50"],
+                    [0.4, "#FFC107"],
+                    [0.6, "#FF9800"],
+                    [0.8, "#F44336"],
+                    [1.0, "#B71C1C"],
+                ],
+                showscale=False,
+                hovertemplate="Likelihood: %{y}<br>Impact: %{x}<br>Score: %{z}<extra></extra>",
+            )
+        )
 
         # Appetite boundary annotation
         fig_hmap.add_annotation(
-            x=4.5, y=4.5,
+            x=4.5,
+            y=4.5,
             text=f"Appetite threshold: {RISK_APPETITE_THRESHOLD}",
             showarrow=False,
-            font=dict(color="#FF6B6B", size=10),
-            xanchor="right", yanchor="top",
+            font={"color": "#FF6B6B", "size": 10},
+            xanchor="right",
+            yanchor="top",
         )
 
         # Draw appetite boundary shape — shade above-appetite region
         fig_hmap.add_shape(
             type="rect",
-            x0=-0.5, y0=-0.5, x1=4.5, y1=4.5,
-            line=dict(color="#FF6B6B", width=2, dash="dot"),
+            x0=-0.5,
+            y0=-0.5,
+            x1=4.5,
+            y1=4.5,
+            line={"color": "#FF6B6B", "width": 2, "dash": "dot"},
             fillcolor="rgba(0,0,0,0)",
         )
 
@@ -215,10 +248,11 @@ with tab1:
             annotations=annotations,
             xaxis_title="Impact →",
             yaxis_title="Likelihood →",
-            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
             font_color="#EAEAEA",
             height=450,
-            margin=dict(t=30, b=60, l=80, r=20),
+            margin={"t": 30, "b": 60, "l": 80, "r": 20},
         )
         st.plotly_chart(fig_hmap, use_container_width=True)
         st.caption(
@@ -231,28 +265,33 @@ with tab1:
         st.markdown("### Inherent vs Residual Distribution")
         levels = ["Very High", "High", "Medium", "Low"]
         fig_compare = go.Figure()
-        fig_compare.add_trace(go.Bar(
-            name="Inherent",
-            x=levels,
-            y=[summary["by_inherent_level"][l] for l in levels],
-            marker_color=["#B71C1C", "#F44336", "#FF9800", "#4CAF50"],
-            opacity=0.85,
-        ))
-        fig_compare.add_trace(go.Bar(
-            name="Residual",
-            x=levels,
-            y=[summary["by_residual_level"][l] for l in levels],
-            marker_color=["#B71C1C", "#F44336", "#FF9800", "#4CAF50"],
-            opacity=0.45,
-        ))
+        fig_compare.add_trace(
+            go.Bar(
+                name="Inherent",
+                x=levels,
+                y=[summary["by_inherent_level"][l] for l in levels],
+                marker_color=["#B71C1C", "#F44336", "#FF9800", "#4CAF50"],
+                opacity=0.85,
+            )
+        )
+        fig_compare.add_trace(
+            go.Bar(
+                name="Residual",
+                x=levels,
+                y=[summary["by_residual_level"][l] for l in levels],
+                marker_color=["#B71C1C", "#F44336", "#FF9800", "#4CAF50"],
+                opacity=0.45,
+            )
+        )
         fig_compare.update_layout(
             barmode="group",
-            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
             font_color="#EAEAEA",
             height=280,
-            legend=dict(bgcolor="rgba(0,0,0,0)"),
-            margin=dict(t=20, b=20),
-            yaxis=dict(gridcolor="#222"),
+            legend={"bgcolor": "rgba(0,0,0,0)"},
+            margin={"t": 20, "b": 20},
+            yaxis={"gridcolor": "#222"},
         )
         st.plotly_chart(fig_compare, use_container_width=True)
 
@@ -284,11 +323,7 @@ with tab1:
             ["Residual Score (High→Low)", "Inherent Score (High→Low)", "Target Date"],
         )
 
-    filtered = [
-        r for r in risks
-        if get_risk_level(r["risk_score"]) in filter_level
-        and r["status"] in filter_status
-    ]
+    filtered = [r for r in risks if get_risk_level(r["risk_score"]) in filter_level and r["status"] in filter_status]
 
     if sort_by == "Residual Score (High→Low)":
         filtered.sort(key=lambda x: x.get("residual_score", x["risk_score"]), reverse=True)
@@ -328,10 +363,7 @@ with tab1:
 
                 # Appetite warning
                 if residual > RISK_APPETITE_THRESHOLD:
-                    st.error(
-                        f"🚨 Exceeds risk appetite ({RISK_APPETITE_THRESHOLD}). "
-                        f"Sign-off required to close."
-                    )
+                    st.error(f"🚨 Exceeds risk appetite ({RISK_APPETITE_THRESHOLD}). Sign-off required to close.")
                     sign_off = r.get("sign_off_by", "")
                     if sign_off:
                         st.success(f"✅ Sign-off recorded: **{sign_off}**")
@@ -372,8 +404,10 @@ with tab1:
     with ex1:
         risk_json = json.dumps(risks, indent=2, default=str)
         st.download_button(
-            "📋 Download JSON", data=risk_json,
-            file_name="risk_register.json", mime="application/json",
+            "📋 Download JSON",
+            data=risk_json,
+            file_name="risk_register.json",
+            mime="application/json",
             use_container_width=True,
         )
     with ex2:
@@ -385,8 +419,10 @@ with tab1:
                 flat = {k: json.dumps(v) if isinstance(v, (list, dict)) else v for k, v in r.items()}
                 writer.writerow(flat)
         st.download_button(
-            "📊 Download CSV", data=buf.getvalue(),
-            file_name="risk_register.csv", mime="text/csv",
+            "📊 Download CSV",
+            data=buf.getvalue(),
+            file_name="risk_register.csv",
+            mime="text/csv",
             use_container_width=True,
         )
 
@@ -436,24 +472,28 @@ with tab2:
 
         gc1, gc2 = st.columns([1, 2])
         with gc1:
-            fig = go.Figure(go.Indicator(
-                mode="gauge+number",
-                value=score,
-                title={"text": "Security Score", "font": {"color": "#EAEAEA"}},
-                number={"suffix": "%", "font": {"color": gauge_color}},
-                gauge={
-                    "axis": {"range": [0, 100]},
-                    "bar": {"color": gauge_color},
-                    "bgcolor": "#1A1A1A",
-                    "steps": [
-                        {"range": [0, 50], "color": "#3a1010"},
-                        {"range": [50, 70], "color": "#3a3010"},
-                        {"range": [70, 100], "color": "#103a10"},
-                    ],
-                },
-            ))
+            fig = go.Figure(
+                go.Indicator(
+                    mode="gauge+number",
+                    value=score,
+                    title={"text": "Security Score", "font": {"color": "#EAEAEA"}},
+                    number={"suffix": "%", "font": {"color": gauge_color}},
+                    gauge={
+                        "axis": {"range": [0, 100]},
+                        "bar": {"color": gauge_color},
+                        "bgcolor": "#1A1A1A",
+                        "steps": [
+                            {"range": [0, 50], "color": "#3a1010"},
+                            {"range": [50, 70], "color": "#3a3010"},
+                            {"range": [70, 100], "color": "#103a10"},
+                        ],
+                    },
+                )
+            )
             fig.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)", height=250, margin=dict(t=60, b=10),
+                paper_bgcolor="rgba(0,0,0,0)",
+                height=250,
+                margin={"t": 60, "b": 10},
             )
             st.plotly_chart(fig, use_container_width=True)
 
@@ -478,7 +518,8 @@ with tab2:
             filepath = generate_risk_report(assessment, vendor)
             with open(filepath, "rb") as f:
                 st.download_button(
-                    label="💾 Save PDF", data=f.read(),
+                    label="💾 Save PDF",
+                    data=f.read(),
                     file_name=filepath.split("\\")[-1].split("/")[-1],
                     mime="application/pdf",
                 )
@@ -494,10 +535,7 @@ with tab2:
 with tab3:
     db_ok = _db_available()
     if not db_ok:
-        st.warning(
-            "Database not initialised. "
-            "Run `CyberResilient init --seed` to enable CRUD operations."
-        )
+        st.warning("Database not initialised. Run `CyberResilient init --seed` to enable CRUD operations.")
     else:
         current_user = get_current_user()
         can_edit = has_permission("edit_risks")
@@ -526,12 +564,20 @@ with tab3:
 
             with c1:
                 new_title = st.text_input("Title *")
-                new_category = st.selectbox("Category", [
-                    "Malware / Ransomware", "Vulnerability Management",
-                    "Third-Party / Supply Chain", "Insider Threat",
-                    "Cloud Security", "Compliance / Regulatory",
-                    "Physical Security", "Data Loss", "Other",
-                ])
+                new_category = st.selectbox(
+                    "Category",
+                    [
+                        "Malware / Ransomware",
+                        "Vulnerability Management",
+                        "Third-Party / Supply Chain",
+                        "Insider Threat",
+                        "Cloud Security",
+                        "Compliance / Regulatory",
+                        "Physical Security",
+                        "Data Loss",
+                        "Other",
+                    ],
+                )
                 new_likelihood = st.slider("Likelihood", 1, 5, 3)
                 new_impact = st.slider("Impact", 1, 5, 3)
 
@@ -581,7 +627,9 @@ with tab3:
                 new_notes = st.text_area("Notes")
 
             add_submitted = st.form_submit_button(
-                "➕ Create Risk", type="primary", disabled=not can_edit,
+                "➕ Create Risk",
+                type="primary",
+                disabled=not can_edit,
             )
 
         if add_submitted:
@@ -631,11 +679,8 @@ with tab3:
                     else:
                         st.success(f"✅ Closure permitted: {reason}")
 
-            eff_index = EFFECTIVENESS_OPTIONS.index(
-                sel_risk.get("mitigation_effectiveness", "None")
-            )
-            status_index = STATUS_OPTIONS.index(sel_risk["status"]) \
-                if sel_risk["status"] in STATUS_OPTIONS else 0
+            eff_index = EFFECTIVENESS_OPTIONS.index(sel_risk.get("mitigation_effectiveness", "None"))
+            status_index = STATUS_OPTIONS.index(sel_risk["status"]) if sel_risk["status"] in STATUS_OPTIONS else 0
 
             with st.form("edit_risk"):
                 e1, e2 = st.columns(2)
@@ -644,10 +689,18 @@ with tab3:
                     ed_title = st.text_input("Title", value=sel_risk["title"])
                     ed_category = st.text_input("Category", value=sel_risk["category"])
                     ed_likelihood = st.slider(
-                        "Likelihood", 1, 5, sel_risk["likelihood"], key="ed_l",
+                        "Likelihood",
+                        1,
+                        5,
+                        sel_risk["likelihood"],
+                        key="ed_l",
                     )
                     ed_impact = st.slider(
-                        "Impact", 1, 5, sel_risk["impact"], key="ed_i",
+                        "Impact",
+                        1,
+                        5,
+                        sel_risk["impact"],
+                        key="ed_i",
                     )
                     ed_effectiveness = st.selectbox(
                         "Mitigation Effectiveness",
@@ -662,19 +715,19 @@ with tab3:
                         f"**Residual:** {ed_residual} ({get_risk_level(ed_residual)})"
                     )
                     if ed_residual > RISK_APPETITE_THRESHOLD:
-                        st.warning(
-                            f"⚠️ Residual {ed_residual} exceeds appetite. "
-                            "Sign-off required to close."
-                        )
+                        st.warning(f"⚠️ Residual {ed_residual} exceeds appetite. Sign-off required to close.")
 
                 with e2:
                     ed_owner = st.text_input("Owner", value=sel_risk["owner"])
                     ed_status = st.selectbox(
-                        "Status", STATUS_OPTIONS, index=status_index,
+                        "Status",
+                        STATUS_OPTIONS,
+                        index=status_index,
                     )
                     ed_asset = st.text_input("Asset", value=sel_risk.get("asset", ""))
                     ed_target = st.text_input(
-                        "Target Date", value=sel_risk.get("target_date", ""),
+                        "Target Date",
+                        value=sel_risk.get("target_date", ""),
                     )
 
                     # Evidence date
@@ -697,20 +750,25 @@ with tab3:
                         ),
                     )
                     ed_mitigation = st.text_area(
-                        "Mitigation", value=sel_risk.get("mitigation", ""),
+                        "Mitigation",
+                        value=sel_risk.get("mitigation", ""),
                     )
                     ed_notes = st.text_area(
-                        "Notes", value=sel_risk.get("notes", ""),
+                        "Notes",
+                        value=sel_risk.get("notes", ""),
                     )
 
                 ec1, ec2 = st.columns(2)
                 with ec1:
                     update_submitted = st.form_submit_button(
-                        "💾 Update Risk", type="primary", disabled=not can_edit,
+                        "💾 Update Risk",
+                        type="primary",
+                        disabled=not can_edit,
                     )
                 with ec2:
                     delete_submitted = st.form_submit_button(
-                        "🗑️ Delete Risk", disabled=not can_edit,
+                        "🗑️ Delete Risk",
+                        disabled=not can_edit,
                     )
 
             if update_submitted:

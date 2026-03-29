@@ -1,8 +1,8 @@
 """Tests for compliance scoring logic."""
 
 from cyberresilient.services.compliance_service import (
-    calc_nist_csf_scores,
     calc_iso27001_scores,
+    calc_nist_csf_scores,
     get_policy_summary,
 )
 
@@ -14,8 +14,18 @@ def test_nist_csf_scores():
                 "Identify": {
                     "description": "Asset management and risk assessment",
                     "categories": {
-                        "ID.AM": {"name": "Asset Management", "status": "Implemented", "evidence": "CMDB", "evidence_date": "2026-01-01"},
-                        "ID.RA": {"name": "Risk Assessment", "status": "Partial", "evidence": "Annual RA", "evidence_date": "2026-01-01"},
+                        "ID.AM": {
+                            "name": "Asset Management",
+                            "status": "Implemented",
+                            "evidence": "CMDB",
+                            "evidence_date": "2026-01-01",
+                        },
+                        "ID.RA": {
+                            "name": "Risk Assessment",
+                            "status": "Partial",
+                            "evidence": "Annual RA",
+                            "evidence_date": "2026-01-01",
+                        },
                     },
                 },
             },
@@ -30,8 +40,22 @@ def test_iso27001_scores():
     data = {
         "iso27001": {
             "domains": [
-                {"id": "A.5", "name": "Organizational", "total": 10, "implemented": 8, "partial": 2, "evidence_date": "2026-01-01"},
-                {"id": "A.6", "name": "People", "total": 5, "implemented": 5, "partial": 0, "evidence_date": "2026-01-01"},
+                {
+                    "id": "A.5",
+                    "name": "Organizational",
+                    "total": 10,
+                    "implemented": 8,
+                    "partial": 2,
+                    "evidence_date": "2026-01-01",
+                },
+                {
+                    "id": "A.6",
+                    "name": "People",
+                    "total": 5,
+                    "implemented": 5,
+                    "partial": 0,
+                    "evidence_date": "2026-01-01",
+                },
             ],
         },
     }

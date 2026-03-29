@@ -12,14 +12,13 @@ Roles:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 import bcrypt
 import streamlit as st
-from sqlalchemy.orm import Session
 
 
-class Role(str, Enum):
+class Role(StrEnum):
     ADMIN = "admin"
     ANALYST = "analyst"
     AUDITOR = "auditor"
@@ -29,20 +28,45 @@ class Role(str, Enum):
 # Permissions per role
 ROLE_PERMISSIONS: dict[str, set[str]] = {
     "admin": {
-        "view_dashboard", "view_dr", "view_ir", "view_risks", "view_compliance",
-        "run_simulation", "edit_risks", "export_data", "import_data",
-        "view_audit_log", "manage_users", "manage_settings",
+        "view_dashboard",
+        "view_dr",
+        "view_ir",
+        "view_risks",
+        "view_compliance",
+        "run_simulation",
+        "edit_risks",
+        "export_data",
+        "import_data",
+        "view_audit_log",
+        "manage_users",
+        "manage_settings",
     },
     "analyst": {
-        "view_dashboard", "view_dr", "view_ir", "view_risks", "view_compliance",
-        "run_simulation", "edit_risks", "export_data", "import_data",
+        "view_dashboard",
+        "view_dr",
+        "view_ir",
+        "view_risks",
+        "view_compliance",
+        "run_simulation",
+        "edit_risks",
+        "export_data",
+        "import_data",
     },
     "auditor": {
-        "view_dashboard", "view_dr", "view_ir", "view_risks", "view_compliance",
-        "export_data", "view_audit_log",
+        "view_dashboard",
+        "view_dr",
+        "view_ir",
+        "view_risks",
+        "view_compliance",
+        "export_data",
+        "view_audit_log",
     },
     "student": {
-        "view_dashboard", "view_dr", "view_ir", "view_risks", "view_compliance",
+        "view_dashboard",
+        "view_dr",
+        "view_ir",
+        "view_risks",
+        "view_compliance",
         "run_simulation",
     },
 }
@@ -59,6 +83,7 @@ class CurrentUser:
 def is_auth_enabled() -> bool:
     """Check if authentication is enabled via config or env."""
     import os
+
     return os.environ.get("CYBERRESILIENT_AUTH", "false").lower() == "true"
 
 
@@ -113,6 +138,7 @@ def authenticate(username: str, password: str) -> CurrentUser | None:
             return None
 
         from datetime import datetime
+
         user.last_login = datetime.now()
         log_action(
             session,

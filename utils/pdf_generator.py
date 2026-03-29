@@ -4,10 +4,10 @@ Creates professional PDF reports for DR tests, risk assessments,
 and compliance summaries using fpdf2.
 """
 
-from fpdf import FPDF
 from datetime import datetime
 from pathlib import Path
-import os
+
+from fpdf import FPDF
 
 REPORTS_DIR = Path(__file__).resolve().parent.parent / "reports"
 
@@ -25,7 +25,9 @@ class DurhamPDF(FPDF):
         self.cell(0, 10, "DurhamShield", align="L")
         self.set_font("Helvetica", "", 8)
         self.set_text_color(120, 120, 120)
-        self.cell(0, 10, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", align="R", new_x="LMARGIN", new_y="NEXT")
+        self.cell(
+            0, 10, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", align="R", new_x="LMARGIN", new_y="NEXT"
+        )
         self.line(10, self.get_y(), 200, self.get_y())
         self.ln(5)
 
@@ -33,7 +35,12 @@ class DurhamPDF(FPDF):
         self.set_y(-15)
         self.set_font("Helvetica", "I", 8)
         self.set_text_color(150, 150, 150)
-        self.cell(0, 10, f"DurhamShield — Municipal Cybersecurity Resilience Platform | Page {self.page_no()}/{{nb}}", align="C")
+        self.cell(
+            0,
+            10,
+            f"DurhamShield — Municipal Cybersecurity Resilience Platform | Page {self.page_no()}/{{nb}}",
+            align="C",
+        )
 
     def section_title(self, title: str):
         self.set_font("Helvetica", "B", 12)
@@ -135,7 +142,7 @@ def generate_dr_report(sim_result: dict, raci: list) -> str:
     pdf.set_font("Helvetica", "B", 8)
     col_widths = [45, 30, 25, 45, 40]
     headers = ["Activity", "Responsible", "Accountable", "Consulted", "Informed"]
-    for w, h in zip(col_widths, headers):
+    for w, h in zip(col_widths, headers, strict=False):
         pdf.cell(w, 7, h, border=1)
     pdf.ln()
 
@@ -143,7 +150,7 @@ def generate_dr_report(sim_result: dict, raci: list) -> str:
     for row in raci:
         vals = [row["activity"], row["responsible"], row["accountable"], row["consulted"], row["informed"]]
         max_h = 7
-        for w, v in zip(col_widths, vals):
+        for w, v in zip(col_widths, vals, strict=False):
             pdf.cell(w, max_h, v[:30], border=1)
         pdf.ln()
 

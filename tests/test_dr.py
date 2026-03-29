@@ -1,7 +1,6 @@
 """Tests for DR simulation logic."""
 
-from cyberresilient.services.dr_service import simulate_dr, generate_raci
-
+from cyberresilient.services.dr_service import generate_raci, simulate_dr
 
 SAMPLE_SYSTEM = {
     "id": "SYS-001",

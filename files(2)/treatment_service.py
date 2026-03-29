@@ -16,15 +16,13 @@ The most recent decision is the active treatment.
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime
-from typing import Optional
+from datetime import date
 
 TREATMENT_OPTIONS = ["Mitigate", "Accept", "Transfer", "Avoid"]
 
 TREATMENT_DESCRIPTIONS = {
     "Mitigate": (
-        "Implement or improve controls to reduce likelihood or impact. "
-        "Requires a mitigation plan and target date."
+        "Implement or improve controls to reduce likelihood or impact. Requires a mitigation plan and target date."
     ),
     "Accept": (
         "Acknowledge the risk and accept it without further action. "
@@ -43,17 +41,19 @@ TREATMENT_DESCRIPTIONS = {
 
 # Fields required per treatment type
 TREATMENT_REQUIRED_FIELDS: dict[str, list[str]] = {
-    "Mitigate":  ["mitigation_plan", "target_date"],
-    "Accept":    ["justification", "sign_off_by"],
-    "Transfer":  ["policy_reference", "third_party"],
-    "Avoid":     ["justification", "sign_off_by"],
+    "Mitigate": ["mitigation_plan", "target_date"],
+    "Accept": ["justification", "sign_off_by"],
+    "Transfer": ["policy_reference", "third_party"],
+    "Avoid": ["justification", "sign_off_by"],
 }
 
 
 def _db_available() -> bool:
     try:
-        from cyberresilient.database import get_engine
         from sqlalchemy import inspect
+
+        from cyberresilient.database import get_engine
+
         return inspect(get_engine()).has_table("risk_treatments")
     except Exception:
         return False
@@ -89,14 +89,11 @@ def record_treatment(
     Raises ValueError if required fields are missing.
     """
     if treatment_type not in TREATMENT_OPTIONS:
-        raise ValueError(f"Invalid treatment type '{treatment_type}'. "
-                         f"Choose from: {', '.join(TREATMENT_OPTIONS)}")
+        raise ValueError(f"Invalid treatment type '{treatment_type}'. Choose from: {', '.join(TREATMENT_OPTIONS)}")
 
     missing = validate_treatment(treatment_type, fields)
     if missing:
-        raise ValueError(
-            f"Treatment '{treatment_type}' requires: {', '.join(missing)}"
-        )
+        raise ValueError(f"Treatment '{treatment_type}' requires: {', '.join(missing)}")
 
     record = {
         "id": str(uuid.uuid4()),
@@ -118,16 +115,20 @@ def record_treatment(
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import RiskTreatmentRow
         from cyberresilient.services.audit_service import log_action
+
         session = get_session()
         try:
             # Deactivate previous treatments for this risk
-            session.query(RiskTreatmentRow).filter_by(
-                risk_id=risk_id, active=True
-            ).update({"active": False})
+            session.query(RiskTreatmentRow).filter_by(risk_id=risk_id, active=True).update({"active": False})
             session.add(RiskTreatmentRow(**record))
-            log_action(session, action="record_treatment",
-                       entity_type="risk", entity_id=risk_id,
-                       user=recorded_by, after=record)
+            log_action(
+                session,
+                action="record_treatment",
+                entity_type="risk",
+                entity_id=risk_id,
+                user=recorded_by,
+                after=record,
+            )
             session.commit()
         except Exception:
             session.rollback()
@@ -138,12 +139,13 @@ def record_treatment(
     return record
 
 
-def get_active_treatment(risk_id: str) -> Optional[dict]:
+def get_active_treatment(risk_id: str) -> dict | None:
     """Return the current active treatment for a risk, or None."""
     if not _db_available():
         return None
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import RiskTreatmentRow
+
     session = get_session()
     try:
         row = (
@@ -163,6 +165,7 @@ def get_treatment_history(risk_id: str) -> list[dict]:
         return []
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import RiskTreatmentRow
+
     session = get_session()
     try:
         rows = (
@@ -178,14 +181,14 @@ def get_treatment_history(risk_id: str) -> list[dict]:
 
 TREATMENT_ICONS = {
     "Mitigate": "🔧",
-    "Accept":   "✅",
+    "Accept": "✅",
     "Transfer": "🤝",
-    "Avoid":    "🚫",
+    "Avoid": "🚫",
 }
 
 TREATMENT_COLORS = {
     "Mitigate": "#2196F3",
-    "Accept":   "#4CAF50",
+    "Accept": "#4CAF50",
     "Transfer": "#9C27B0",
-    "Avoid":    "#FF9800",
+    "Avoid": "#FF9800",
 }

@@ -7,7 +7,6 @@ GRC engineering insights, and jargon tooltips for learning mode.
 from __future__ import annotations
 
 import json
-from functools import lru_cache
 from pathlib import Path
 
 import streamlit as st
@@ -100,8 +99,7 @@ def evidence_mapping_table(mappings: list[dict]) -> None:
     with st.expander("📋 Evidence-to-Framework Mapping", expanded=False):
         header = "| Metric | NIST CSF | ISO 27001 | Evidence Type |\n|---|---|---|---|\n"
         rows = "\n".join(
-            f"| {m['metric']} | {m['nist_csf']} | {m['iso27001']} | {m['evidence_type']} |"
-            for m in mappings
+            f"| {m['metric']} | {m['nist_csf']} | {m['iso27001']} | {m['evidence_type']} |" for m in mappings
         )
         st.markdown(header + rows)
 
@@ -122,10 +120,7 @@ def compliance_comparison_table(comparisons: list[dict]) -> None:
         return
     with st.expander("⚖️ Traditional GRC vs. Compliance Engineering", expanded=False):
         header = "| Traditional GRC | Engineering-Driven GRC |\n|---|---|\n"
-        rows = "\n".join(
-            f"| ❌ {c['traditional']} | ✅ {c['engineering']} |"
-            for c in comparisons
-        )
+        rows = "\n".join(f"| ❌ {c['traditional']} | ✅ {c['engineering']} |" for c in comparisons)
         st.markdown(header + rows)
 
 
@@ -159,7 +154,7 @@ def auditor_questions_panel(questions: list[dict]) -> None:
         return
     with st.expander("🔍 What Auditors Actually Ask (and How to Answer)", expanded=False):
         for q in questions:
-            st.markdown(f"**Q:** *\"{q['question']}\"*")
+            st.markdown(f'**Q:** *"{q["question"]}"*')
             st.markdown(f"**Evidence:** {q['evidence']}")
             st.markdown("")
 

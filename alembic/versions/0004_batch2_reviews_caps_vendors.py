@@ -7,8 +7,9 @@ Revises: 0003_batch1_evidence_treatment_testing
 Create Date: 2026-03-23
 """
 
-from alembic import op
 import sqlalchemy as sa
+
+from alembic import op
 
 revision = "0004_batch2_reviews_caps_vendors"
 down_revision = "0003_batch1_evidence_treatment_testing"
@@ -19,9 +20,7 @@ depends_on = None
 def upgrade() -> None:
     # Add last_reviewed_at to existing risks table
     with op.batch_alter_table("risks") as batch_op:
-        batch_op.add_column(
-            sa.Column("last_reviewed_at", sa.String(10), nullable=True)
-        )
+        batch_op.add_column(sa.Column("last_reviewed_at", sa.String(10), nullable=True))
 
     op.create_table(
         "risk_reviews",

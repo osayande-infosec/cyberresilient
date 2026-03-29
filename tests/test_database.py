@@ -1,12 +1,10 @@
 """Tests for database layer, CLI seeding, and audit logging."""
 
 import json
-import os
-import tempfile
 
 import pytest
 
-from cyberresilient.database import Base, get_engine, get_session, init_db, reset_engine
+from cyberresilient.database import get_engine, get_session, init_db, reset_engine
 
 
 @pytest.fixture(autouse=True)
@@ -23,6 +21,7 @@ def _use_temp_db(tmp_path, monkeypatch):
 
 def test_init_db_creates_tables():
     from sqlalchemy import inspect
+
     inspector = inspect(get_engine())
     tables = inspector.get_table_names()
     assert "risks" in tables
@@ -37,6 +36,7 @@ def test_init_db_creates_tables():
 
 def test_risk_crud():
     from cyberresilient.models.db_models import RiskRow
+
     session = get_session()
     try:
         risk = RiskRow(
@@ -69,6 +69,7 @@ def test_risk_crud():
 
 def test_audit_logging():
     from cyberresilient.services.audit_service import get_audit_log, log_action
+
     session = get_session()
     try:
         log_action(
@@ -91,13 +92,24 @@ def test_audit_logging():
 def test_import_export_json():
     from cyberresilient.models.db_models import RiskRow
     from cyberresilient.services.import_export_service import export_json, import_json
+
     session = get_session()
     try:
-        session.add(RiskRow(
-            id="EXP-001", title="Export Test", category="Technical",
-            likelihood=2, impact=3, risk_score=6, owner="Tester",
-            status="Open", mitigation="None", asset="Test", target_date="2026-01-01",
-        ))
+        session.add(
+            RiskRow(
+                id="EXP-001",
+                title="Export Test",
+                category="Technical",
+                likelihood=2,
+                impact=3,
+                risk_score=6,
+                owner="Tester",
+                status="Open",
+                mitigation="None",
+                asset="Test",
+                target_date="2026-01-01",
+            )
+        )
         session.commit()
 
         json_str = export_json(session, "risks")
@@ -120,13 +132,24 @@ def test_import_export_json():
 def test_export_csv():
     from cyberresilient.models.db_models import RiskRow
     from cyberresilient.services.import_export_service import export_csv
+
     session = get_session()
     try:
-        session.add(RiskRow(
-            id="CSV-001", title="CSV Test", category="Operational",
-            likelihood=1, impact=2, risk_score=2, owner="Tester",
-            status="Open", mitigation="None", asset="Test", target_date="2026-01-01",
-        ))
+        session.add(
+            RiskRow(
+                id="CSV-001",
+                title="CSV Test",
+                category="Operational",
+                likelihood=1,
+                impact=2,
+                risk_score=2,
+                owner="Tester",
+                status="Open",
+                mitigation="None",
+                asset="Test",
+                target_date="2026-01-01",
+            )
+        )
         session.commit()
 
         csv_str = export_csv(session, "risks")

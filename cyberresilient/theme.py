@@ -27,17 +27,17 @@ def get_custom_css() -> str:
     c = get_theme_colors()
     return f"""
 <style>
-    .stMetric .metric-container {{ border-left: 3px solid {c['accent']}; padding-left: 12px; }}
-    div[data-testid="stSidebar"] {{ border-right: 1px solid {c['border']}; }}
-    h1, h2, h3 {{ color: {c['text']} !important; }}
-    .gold {{ color: {c['accent']}; }}
-    .status-pass {{ color: {c['pass']}; font-weight: 700; }}
-    .status-fail {{ color: {c['fail']}; font-weight: 700; }}
-    .status-partial {{ color: {c['warn']}; font-weight: 700; }}
+    .stMetric .metric-container {{ border-left: 3px solid {c["accent"]}; padding-left: 12px; }}
+    div[data-testid="stSidebar"] {{ border-right: 1px solid {c["border"]}; }}
+    h1, h2, h3 {{ color: {c["text"]} !important; }}
+    .gold {{ color: {c["accent"]}; }}
+    .status-pass {{ color: {c["pass"]}; font-weight: 700; }}
+    .status-fail {{ color: {c["fail"]}; font-weight: 700; }}
+    .status-partial {{ color: {c["warn"]}; font-weight: 700; }}
     div[data-testid="stMetricValue"] {{ font-size: 1.8rem; }}
     .sidebar-brand {{ text-align: center; padding: 1rem 0 0.5rem 0; }}
-    .sidebar-brand h1 {{ font-size: 1.6rem; margin: 0; color: {c['accent']} !important; }}
-    .sidebar-brand p {{ font-size: 0.8rem; color: {c['muted']}; margin: 0; }}
+    .sidebar-brand h1 {{ font-size: 1.6rem; margin: 0; color: {c["accent"]} !important; }}
+    .sidebar-brand p {{ font-size: 0.8rem; color: {c["muted"]}; margin: 0; }}
 </style>
 """
 

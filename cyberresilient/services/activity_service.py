@@ -16,17 +16,17 @@ Produces:
 from __future__ import annotations
 
 from collections import defaultdict
-from datetime import date, datetime, timedelta
-from typing import Optional
-
+from datetime import date, timedelta
 
 REPORT_WINDOW_DAYS = 90
 
 
 def _db_available() -> bool:
     try:
-        from cyberresilient.database import get_engine
         from sqlalchemy import inspect
+
+        from cyberresilient.database import get_engine
+
         return inspect(get_engine()).has_table("audit_log")
     except Exception:
         return False
@@ -38,15 +38,11 @@ def _load_raw_logs(days: int = REPORT_WINDOW_DAYS) -> list[dict]:
         return []
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import AuditLog
+
     cutoff = (date.today() - timedelta(days=days)).isoformat()
     session = get_session()
     try:
-        rows = (
-            session.query(AuditLog)
-            .filter(AuditLog.timestamp >= cutoff)
-            .order_by(AuditLog.timestamp.desc())
-            .all()
-        )
+        rows = session.query(AuditLog).filter(AuditLog.timestamp >= cutoff).order_by(AuditLog.timestamp.desc()).all()
         return [r.to_dict() for r in rows]
     finally:
         session.close()
@@ -73,9 +69,9 @@ def generate_activity_report(days: int = REPORT_WINDOW_DAYS) -> dict:
     today = date.today()
     from_date = (today - timedelta(days=days)).isoformat()
 
-    by_user: dict[str, dict] = defaultdict(lambda: {
-        "actions": 0, "last_seen": "", "action_breakdown": defaultdict(int)
-    })
+    by_user: dict[str, dict] = defaultdict(
+        lambda: {"actions": 0, "last_seen": "", "action_breakdown": defaultdict(int)}
+    )
     by_action: dict[str, int] = defaultdict(int)
     by_entity: dict[str, int] = defaultdict(int)
     entity_changes: dict[tuple, int] = defaultdict(int)
@@ -100,10 +96,7 @@ def generate_activity_report(days: int = REPORT_WINDOW_DAYS) -> dict:
 
     # Most changed entities — top 10
     most_changed = sorted(
-        [
-            {"entity_type": k[0], "entity_id": k[1], "change_count": v}
-            for k, v in entity_changes.items()
-        ],
+        [{"entity_type": k[0], "entity_id": k[1], "change_count": v} for k, v in entity_changes.items()],
         key=lambda x: x["change_count"],
         reverse=True,
     )[:10]
@@ -149,14 +142,10 @@ def get_recent_actions(limit: int = 50) -> list[dict]:
         return []
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import AuditLog
+
     session = get_session()
     try:
-        rows = (
-            session.query(AuditLog)
-            .order_by(AuditLog.timestamp.desc())
-            .limit(limit)
-            .all()
-        )
+        rows = session.query(AuditLog).order_by(AuditLog.timestamp.desc()).limit(limit).all()
         return [r.to_dict() for r in rows]
     finally:
         session.close()

@@ -29,7 +29,9 @@ class BrandedPDF(FPDF):
         self.cell(0, 10, cfg.branding.app_title, align="L")
         self.set_font("Helvetica", "", 8)
         self.set_text_color(120, 120, 120)
-        self.cell(0, 10, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", align="R", new_x="LMARGIN", new_y="NEXT")
+        self.cell(
+            0, 10, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", align="R", new_x="LMARGIN", new_y="NEXT"
+        )
         self.line(10, self.get_y(), 200, self.get_y())
         self.ln(5)
 
@@ -39,7 +41,8 @@ class BrandedPDF(FPDF):
         self.set_font("Helvetica", "I", 8)
         self.set_text_color(150, 150, 150)
         self.cell(
-            0, 10,
+            0,
+            10,
             f"{cfg.branding.app_title} — {cfg.branding.app_subtitle} | Page {self.page_no()}/{{nb}}",
             align="C",
         )
@@ -137,14 +140,14 @@ def generate_dr_report(sim_result: dict, raci: list[dict]) -> str:
     pdf.set_font("Helvetica", "B", 8)
     col_widths = [45, 30, 25, 45, 40]
     headers = ["Activity", "Responsible", "Accountable", "Consulted", "Informed"]
-    for w, h in zip(col_widths, headers):
+    for w, h in zip(col_widths, headers, strict=False):
         pdf.cell(w, 7, h, border=1)
     pdf.ln()
 
     pdf.set_font("Helvetica", "", 7)
     for row in raci:
         vals = [row["activity"], row["responsible"], row["accountable"], row["consulted"], row["informed"]]
-        for w, v in zip(col_widths, vals):
+        for w, v in zip(col_widths, vals, strict=False):
             pdf.cell(w, 7, v[:30], border=1)
         pdf.ln()
 
@@ -201,9 +204,9 @@ def generate_risk_report(assessment: dict, vendor_name: str) -> str:
 def generate_executive_pptx(dashboard_data: dict) -> str:
     """Generate a PPTX executive security brief from dashboard data. Returns file path."""
     from pptx import Presentation
-    from pptx.util import Inches, Pt, Emu
     from pptx.dml.color import RGBColor
     from pptx.enum.text import PP_ALIGN
+    from pptx.util import Inches, Pt
 
     _ensure_reports_dir()
     cfg = get_config()
@@ -223,7 +226,9 @@ def generate_executive_pptx(dashboard_data: dict) -> str:
         fill.solid()
         fill.fore_color.rgb = color
 
-    def _add_text(slide, text, left, top, width, height, font_size=18, color=WHITE, bold=False, alignment=PP_ALIGN.LEFT):
+    def _add_text(
+        slide, text, left, top, width, height, font_size=18, color=WHITE, bold=False, alignment=PP_ALIGN.LEFT
+    ):
         txbox = slide.shapes.add_textbox(Inches(left), Inches(top), Inches(width), Inches(height))
         tf = txbox.text_frame
         tf.word_wrap = True
@@ -238,9 +243,21 @@ def generate_executive_pptx(dashboard_data: dict) -> str:
     # ── Slide 1: Title ──────────────────────────────────────
     slide1 = prs.slides.add_slide(prs.slide_layouts[6])  # Blank
     _set_slide_bg(slide1)
-    _add_text(slide1, cfg.branding.app_title, 1, 1.5, 11, 1.5, font_size=40, color=GOLD, bold=True, alignment=PP_ALIGN.CENTER)
+    _add_text(
+        slide1, cfg.branding.app_title, 1, 1.5, 11, 1.5, font_size=40, color=GOLD, bold=True, alignment=PP_ALIGN.CENTER
+    )
     _add_text(slide1, "Executive Security Brief", 1, 3, 11, 1, font_size=28, color=WHITE, alignment=PP_ALIGN.CENTER)
-    _add_text(slide1, f"Generated: {datetime.now().strftime('%B %d, %Y')}", 1, 4.5, 11, 0.5, font_size=14, color=WHITE, alignment=PP_ALIGN.CENTER)
+    _add_text(
+        slide1,
+        f"Generated: {datetime.now().strftime('%B %d, %Y')}",
+        1,
+        4.5,
+        11,
+        0.5,
+        font_size=14,
+        color=WHITE,
+        alignment=PP_ALIGN.CENTER,
+    )
     _add_text(slide1, cfg.organization.name, 1, 5.2, 11, 0.5, font_size=16, color=GOLD, alignment=PP_ALIGN.CENTER)
 
     # ── Slide 2: Security Posture ───────────────────────────
@@ -250,7 +267,9 @@ def generate_executive_pptx(dashboard_data: dict) -> str:
 
     score = dashboard_data.get("overall_security_score", 0)
     score_color = GREEN if score >= 70 else RED
-    _add_text(slide2, f"Overall Security Score: {score}/100", 0.5, 1.3, 6, 0.6, font_size=24, color=score_color, bold=True)
+    _add_text(
+        slide2, f"Overall Security Score: {score}/100", 0.5, 1.3, 6, 0.6, font_size=24, color=score_color, bold=True
+    )
 
     kpis = dashboard_data.get("kpi_data", [])
     for i, kpi in enumerate(kpis[:8]):
@@ -269,13 +288,19 @@ def generate_executive_pptx(dashboard_data: dict) -> str:
     _set_slide_bg(slide3)
     _add_text(slide3, "Risk Landscape", 0.5, 0.3, 12, 0.8, font_size=30, color=GOLD, bold=True)
 
-    from cyberresilient.services.risk_service import load_risks, get_risk_summary
+    from cyberresilient.services.risk_service import get_risk_summary, load_risks
+
     risks = load_risks()
     summary = get_risk_summary(risks)
 
     _add_text(slide3, f"Total Risks: {summary['total']}", 0.5, 1.3, 5, 0.5, font_size=20, color=WHITE)
     y_pos = 2.0
-    level_colors = {"Very High": RED, "High": RGBColor(0xFF, 0x98, 0x00), "Medium": RGBColor(0xFF, 0xC1, 0x07), "Low": GREEN}
+    level_colors = {
+        "Very High": RED,
+        "High": RGBColor(0xFF, 0x98, 0x00),
+        "Medium": RGBColor(0xFF, 0xC1, 0x07),
+        "Low": GREEN,
+    }
     for level, count in summary["by_level"].items():
         _add_text(slide3, f"{level}: {count}", 0.5, y_pos, 4, 0.4, font_size=16, color=level_colors.get(level, WHITE))
         y_pos += 0.5
@@ -298,8 +323,28 @@ def generate_executive_pptx(dashboard_data: dict) -> str:
         latest = compliance_trend[-1] if compliance_trend else {}
         nist_score = latest.get("nist_csf", 0)
         iso_score = latest.get("iso_27001", 0)
-        _add_text(slide4, f"NIST CSF 2.0 Score: {nist_score}%", 0.5, 1.5, 5, 0.5, font_size=22, color=GREEN if nist_score >= 70 else RED, bold=True)
-        _add_text(slide4, f"ISO 27001 Score: {iso_score}%", 0.5, 2.3, 5, 0.5, font_size=22, color=GREEN if iso_score >= 70 else RED, bold=True)
+        _add_text(
+            slide4,
+            f"NIST CSF 2.0 Score: {nist_score}%",
+            0.5,
+            1.5,
+            5,
+            0.5,
+            font_size=22,
+            color=GREEN if nist_score >= 70 else RED,
+            bold=True,
+        )
+        _add_text(
+            slide4,
+            f"ISO 27001 Score: {iso_score}%",
+            0.5,
+            2.3,
+            5,
+            0.5,
+            font_size=22,
+            color=GREEN if iso_score >= 70 else RED,
+            bold=True,
+        )
 
     threats = dashboard_data.get("threat_categories", [])
     if threats:
@@ -327,7 +372,17 @@ def generate_executive_pptx(dashboard_data: dict) -> str:
     for i, rec in enumerate(recommendations):
         _add_text(slide5, f"{i + 1}. {rec}", 0.5, 1.3 + i * 0.6, 12, 0.5, font_size=16, color=WHITE)
 
-    _add_text(slide5, "Prepared by Security Operations  |  CONFIDENTIAL", 0.5, 6.5, 12, 0.4, font_size=10, color=GOLD, alignment=PP_ALIGN.CENTER)
+    _add_text(
+        slide5,
+        "Prepared by Security Operations  |  CONFIDENTIAL",
+        0.5,
+        6.5,
+        12,
+        0.4,
+        font_size=10,
+        color=GOLD,
+        alignment=PP_ALIGN.CENTER,
+    )
 
     filename = f"Executive_Brief_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pptx"
     filepath = REPORTS_DIR / filename

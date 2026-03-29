@@ -4,17 +4,17 @@ IR lifecycle walkthrough, interactive tabletop scenario builder,
 post-mortem generator, and communication templates.
 """
 
-import streamlit as st
 import plotly.graph_objects as go
-import json
-from pathlib import Path
-from datetime import datetime
+import streamlit as st
 
 from cyberresilient.config import get_config
-from cyberresilient.services.auth_service import learning_callout, is_learning_mode
+from cyberresilient.services.auth_service import is_learning_mode, learning_callout
 from cyberresilient.services.learning_service import (
-    get_content, case_study_panel, learning_section, grc_insight,
+    case_study_panel,
     chart_navigation_guide,
+    get_content,
+    grc_insight,
+    learning_section,
 )
 from cyberresilient.theme import get_theme_colors
 
@@ -54,9 +54,9 @@ if lc.get("navigating_charts"):
     chart_navigation_guide(nc.get("charts", []))
 
 # ── Tabs ────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs([
-    "📋 IR Lifecycle", "🎯 Tabletop Exercise", "📝 Post-Mortem Generator", "📨 Communication Templates"
-])
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["📋 IR Lifecycle", "🎯 Tabletop Exercise", "📝 Post-Mortem Generator", "📨 Communication Templates"]
+)
 
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  TAB 1 — IR Lifecycle (NIST 800-61r2)                       ║
@@ -79,7 +79,7 @@ with tab1:
                 "Define severity classification criteria (P1–P4)",
                 "Coordinate with legal, HR, communications, and executive leadership",
             ],
-            "durham_context": f"Organization Context: Coordinate with all departments, law enforcement, privacy regulators, and provincial CSIRT as applicable."
+            "durham_context": "Organization Context: Coordinate with all departments, law enforcement, privacy regulators, and provincial CSIRT as applicable.",
         },
         {
             "name": "2. Detection & Analysis",
@@ -95,7 +95,7 @@ with tab1:
                 "Determine scope: which systems, data, and departments affected",
                 "Notify CISO and initiate ICS (Incident Command Structure) if P1/P2",
             ],
-            "durham_context": "MTTD target: < 2.5 hours. OT/SCADA incidents require immediate WaterOps and Safety notification."
+            "durham_context": "MTTD target: < 2.5 hours. OT/SCADA incidents require immediate WaterOps and Safety notification.",
         },
         {
             "name": "3. Containment",
@@ -111,7 +111,7 @@ with tab1:
                 "Reset compromised credentials; force MFA re-enrollment",
                 "Communicate containment status to stakeholders",
             ],
-            "durham_context": "OT containment: Engage SCADA vendor before isolating — manual overrides must be verified first."
+            "durham_context": "OT containment: Engage SCADA vendor before isolating — manual overrides must be verified first.",
         },
         {
             "name": "4. Eradication",
@@ -126,7 +126,7 @@ with tab1:
                 "Scan environment with updated signatures to confirm eradication",
                 "Review privileged account activity for unauthorized changes",
             ],
-            "durham_context": "SCADA re-imaging requires vendor coordination — 48-hour minimum lead time."
+            "durham_context": "SCADA re-imaging requires vendor coordination — 48-hour minimum lead time.",
         },
         {
             "name": "5. Recovery",
@@ -141,7 +141,7 @@ with tab1:
                 "Gradually re-enable services; validate with business owners",
                 "Confirm RTO/RPO targets were met; document deviations",
             ],
-            "durham_context": "Public-facing services (water, traffic) prioritized per Tier 1 classification."
+            "durham_context": "Public-facing services (water, traffic) prioritized per Tier 1 classification.",
         },
         {
             "name": "6. Lessons Learned",
@@ -157,7 +157,7 @@ with tab1:
                 "Update risk register with new risk entries or adjusted scores",
                 "Schedule follow-up tabletop exercise based on lessons learned",
             ],
-            "durham_context": "MFIPPA breach notification to IPC must occur 'at the earliest opportunity' — target < 72 hours."
+            "durham_context": "MFIPPA breach notification to IPC must occur 'at the earliest opportunity' — target < 72 hours.",
         },
     ]
 
@@ -173,25 +173,33 @@ with tab1:
     st.markdown("### IR Lifecycle Flow")
     fig = go.Figure()
     for i, phase in enumerate(phases):
-        fig.add_trace(go.Scatter(
-            x=[i], y=[0],
-            mode="markers+text",
-            marker=dict(size=40, color=phase["color"]),
-            text=[phase["icon"]],
-            textposition="middle center",
-            name=phase["name"],
-            hovertext=phase["description"],
-        ))
+        fig.add_trace(
+            go.Scatter(
+                x=[i],
+                y=[0],
+                mode="markers+text",
+                marker={"size": 40, "color": phase["color"]},
+                text=[phase["icon"]],
+                textposition="middle center",
+                name=phase["name"],
+                hovertext=phase["description"],
+            )
+        )
         if i < len(phases) - 1:
             fig.add_annotation(
-                x=i + 0.5, y=0, text="→", showarrow=False,
-                font=dict(size=24, color="#555"),
+                x=i + 0.5,
+                y=0,
+                text="→",
+                showarrow=False,
+                font={"size": 24, "color": "#555"},
             )
     fig.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        xaxis=dict(showgrid=False, showticklabels=False, zeroline=False),
-        yaxis=dict(showgrid=False, showticklabels=False, zeroline=False, range=[-0.5, 0.5]),
-        height=120, margin=dict(t=10, b=10, l=10, r=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis={"showgrid": False, "showticklabels": False, "zeroline": False},
+        yaxis={"showgrid": False, "showticklabels": False, "zeroline": False, "range": [-0.5, 0.5]},
+        height=120,
+        margin={"t": 10, "b": 10, "l": 10, "r": 10},
         showlegend=False,
     )
     st.plotly_chart(fig, use_container_width=True)
@@ -334,8 +342,8 @@ with tab2:
     max_score = len(exercise["questions"]) * 10
 
     for i, q in enumerate(exercise["questions"]):
-        st.markdown(f"---")
-        st.markdown(f"**Decision Point {i+1}:** {q['question']}")
+        st.markdown("---")
+        st.markdown(f"**Decision Point {i + 1}:** {q['question']}")
         choice = st.radio(
             "Select your response:",
             list(q["options"].keys()),
@@ -353,8 +361,7 @@ with tab2:
             total_score += result["score"]
 
     if any(
-        st.session_state.get(f"tabletop_{selected_exercise}_{i}") is not None
-        for i in range(len(exercise["questions"]))
+        st.session_state.get(f"tabletop_{selected_exercise}_{i}") is not None for i in range(len(exercise["questions"]))
     ):
         st.markdown("---")
         pct = round((total_score / max_score) * 100) if max_score > 0 else 0
@@ -379,20 +386,38 @@ with tab3:
         with col1:
             inc_id = st.text_input("Incident ID", value="INC-2024-001")
             inc_date = st.date_input("Incident Date")
-            inc_type = st.selectbox("Incident Type", [
-                "Ransomware", "Phishing", "Data Breach", "DDoS",
-                "Insider Threat", "OT/SCADA Compromise", "Unauthorized Access",
-                "System Outage", "Malware", "Other"
-            ])
+            inc_type = st.selectbox(
+                "Incident Type",
+                [
+                    "Ransomware",
+                    "Phishing",
+                    "Data Breach",
+                    "DDoS",
+                    "Insider Threat",
+                    "OT/SCADA Compromise",
+                    "Unauthorized Access",
+                    "System Outage",
+                    "Malware",
+                    "Other",
+                ],
+            )
             severity = st.selectbox("Severity", ["P1 — Critical", "P2 — High", "P3 — Medium", "P4 — Low"])
 
         with col2:
             lead = st.text_input("Incident Commander", "Senior Cybersecurity Specialist")
             affected_systems = st.text_area("Affected Systems", "ERP Financial System, M365 Email")
-            detection_method = st.selectbox("Detection Method", [
-                "SIEM Alert", "User Report", "EDR Alert", "DLP Alert",
-                "Network Anomaly", "Vendor Notification", "External Report"
-            ])
+            detection_method = st.selectbox(
+                "Detection Method",
+                [
+                    "SIEM Alert",
+                    "User Report",
+                    "EDR Alert",
+                    "DLP Alert",
+                    "Network Anomaly",
+                    "Vendor Notification",
+                    "External Report",
+                ],
+            )
 
         st.markdown("#### Timeline")
         timeline = st.text_area(
@@ -409,7 +434,10 @@ with tab3:
             height=200,
         )
 
-        root_cause = st.text_area("Root Cause Analysis", "Phishing email bypassed email gateway. User clicked link and entered credentials on spoofed login page. Attacker used stolen credentials to deploy ransomware via RDP.")
+        root_cause = st.text_area(
+            "Root Cause Analysis",
+            "Phishing email bypassed email gateway. User clicked link and entered credentials on spoofed login page. Attacker used stolen credentials to deploy ransomware via RDP.",
+        )
         lessons = st.text_area(
             "Lessons Learned & Action Items",
             "1. Implement conditional access policies to block legacy auth\n"

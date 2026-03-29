@@ -4,32 +4,37 @@ pages/9_Vendor_Registry.py
 Third-Party / Vendor Risk Registry
 """
 
-import streamlit as st
-import plotly.express as px
-import plotly.graph_objects as go
-import pandas as pd
 from datetime import date
 
-from cyberresilient.services.vendor_service import (
-    create_vendor, load_vendors, record_assessment,
-    get_assessment_history, vendor_summary, get_overdue_vendors,
-    VENDOR_CRITICALITIES, VENDOR_CATEGORIES, DATA_CLASSIFICATIONS,
-    TIER_COLORS, CRITICALITY_COLORS,
-)
-from cyberresilient.services.risk_service import (
-    ARCHITECTURE_CHECKS, run_architecture_assessment,
-)
+import pandas as pd
+import plotly.express as px
+import streamlit as st
+
 from cyberresilient.services.auth_service import get_current_user, has_permission
+from cyberresilient.services.risk_service import (
+    ARCHITECTURE_CHECKS,
+    run_architecture_assessment,
+)
+from cyberresilient.services.vendor_service import (
+    CRITICALITY_COLORS,
+    DATA_CLASSIFICATIONS,
+    TIER_COLORS,
+    VENDOR_CATEGORIES,
+    VENDOR_CRITICALITIES,
+    create_vendor,
+    get_assessment_history,
+    get_overdue_vendors,
+    load_vendors,
+    record_assessment,
+    vendor_summary,
+)
 from cyberresilient.theme import get_theme_colors
 
 colors = get_theme_colors()
 GOLD = colors["accent"]
 
 st.markdown("# 🤝 Vendor Risk Registry")
-st.markdown(
-    "Third-party risk management — vendor profiles, assessment history, "
-    "and re-assessment scheduling."
-)
+st.markdown("Third-party risk management — vendor profiles, assessment history, and re-assessment scheduling.")
 st.markdown("---")
 
 summary = vendor_summary()
@@ -50,11 +55,13 @@ if overdue:
 
 st.markdown("---")
 
-tab1, tab2, tab3 = st.tabs([
-    "📋 Vendor Register",
-    "🔍 Assess a Vendor",
-    "➕ Add Vendor",
-])
+tab1, tab2, tab3 = st.tabs(
+    [
+        "📋 Vendor Register",
+        "🔍 Assess a Vendor",
+        "➕ Add Vendor",
+    ]
+)
 
 with tab1:
     vendors = load_vendors()
@@ -73,7 +80,9 @@ with tab1:
                 title="Vendor Risk Tier Distribution",
             )
             fig.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)", font_color="#EAEAEA", height=280,
+                paper_bgcolor="rgba(0,0,0,0)",
+                font_color="#EAEAEA",
+                height=280,
             )
             st.plotly_chart(fig, use_container_width=True)
 
@@ -84,20 +93,21 @@ with tab1:
             overdue_flag = " ⏰ REASSESSMENT OVERDUE" if v["reassessment_due"] < today else ""
 
             with st.expander(
-                f"**{v['name']}** — {v['current_risk_tier']}{overdue_flag} "
-                f"| Criticality: {v['criticality']}"
+                f"**{v['name']}** — {v['current_risk_tier']}{overdue_flag} | Criticality: {v['criticality']}"
             ):
                 vc1, vc2, vc3 = st.columns(3)
                 with vc1:
                     st.markdown(f"**Category:** {v['category']}")
-                    st.markdown(f"**Criticality:** "
-                                f"<span style='color:{crit_color}'>{v['criticality']}</span>",
-                                unsafe_allow_html=True)
+                    st.markdown(
+                        f"**Criticality:** <span style='color:{crit_color}'>{v['criticality']}</span>",
+                        unsafe_allow_html=True,
+                    )
                     st.markdown(f"**Data Classification:** {v['data_classification']}")
                 with vc2:
-                    st.markdown(f"**Risk Tier:** "
-                                f"<span style='color:{tier_color}'>{v['current_risk_tier']}</span>",
-                                unsafe_allow_html=True)
+                    st.markdown(
+                        f"**Risk Tier:** <span style='color:{tier_color}'>{v['current_risk_tier']}</span>",
+                        unsafe_allow_html=True,
+                    )
                     if v.get("last_assessment_score") is not None:
                         st.markdown(f"**Last Score:** {v['last_assessment_score']}%")
                     st.markdown(f"**Last Assessed:** {v.get('last_assessed_at') or 'Never'}")
@@ -152,8 +162,7 @@ with tab2:
                 assessed_by=get_current_user().username,
             )
             st.success(
-                f"Assessment recorded — {selected_name} scored **{result['score_pct']}%** "
-                f"({result['overall_risk']})"
+                f"Assessment recorded — {selected_name} scored **{result['score_pct']}%** ({result['overall_risk']})"
             )
             for r in result["results"]:
                 if not r["passed"]:

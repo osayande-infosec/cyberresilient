@@ -1,6 +1,6 @@
 """Tests for risk scoring logic."""
 
-from cyberresilient.models.risk import get_risk_level, get_risk_color
+from cyberresilient.models.risk import get_risk_color, get_risk_level
 from cyberresilient.services.risk_service import (
     build_heatmap_matrix,
     get_risk_summary,
@@ -20,10 +20,10 @@ def test_risk_level_classification():
 
 
 def test_risk_color_mapping():
-    assert get_risk_color(3) == "#4CAF50"    # Low = green
-    assert get_risk_color(7) == "#FFC107"    # Medium = yellow
-    assert get_risk_color(12) == "#FF9800"   # High = orange
-    assert get_risk_color(20) == "#F44336"   # Very High = red
+    assert get_risk_color(3) == "#4CAF50"  # Low = green
+    assert get_risk_color(7) == "#FFC107"  # Medium = yellow
+    assert get_risk_color(12) == "#FF9800"  # High = orange
+    assert get_risk_color(20) == "#F44336"  # Very High = red
 
 
 def test_heatmap_matrix():

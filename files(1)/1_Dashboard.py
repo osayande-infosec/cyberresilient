@@ -48,7 +48,7 @@ def load_kpis():
     return load_dashboard_data()
 
 
-@st.cache_data(ttl=300)
+@st.cache_data
 def load_grc_health():
     """Load and compute GRC health indicators for the dashboard panel."""
     risks = load_risks()
@@ -163,8 +163,8 @@ if has_alerts:
                     days = p["days_remaining"]
                     urgency = "🔴" if days <= 7 else "🟠" if days <= 14 else "🟡"
                     st.markdown(
-                        f"{urgency} **{p['name']}** — "
-                        f"due {p['next_review']} ({days} day{'s' if days != 1 else ''} remaining)"
+                        f"{urgency} **{p['title']}** — "
+                        f"due {p['review_date']} ({days} day{'s' if days != 1 else ''} remaining)"
                     )
 
         st.markdown("---")

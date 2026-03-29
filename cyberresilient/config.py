@@ -19,7 +19,7 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 class BrandingConfig(BaseModel):
     app_title: str = "CyberResilient"
     app_subtitle: str = "Cybersecurity Resilience Platform"
-    app_icon: str = "\U0001F6E1\uFE0F"
+    app_icon: str = "\U0001f6e1\ufe0f"
     accent_color: str = "#C9A84C"
     card_bg: str = "#1A1A1A"
 

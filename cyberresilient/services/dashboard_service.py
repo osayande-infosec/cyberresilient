@@ -12,8 +12,10 @@ from cyberresilient.config import DATA_DIR
 
 def _db_available() -> bool:
     try:
-        from cyberresilient.database import get_engine
         from sqlalchemy import inspect
+
+        from cyberresilient.database import get_engine
+
         return inspect(get_engine()).has_table("kpi_metrics")
     except Exception:
         return False

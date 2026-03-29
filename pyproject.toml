@@ -82,14 +82,29 @@ select = [
     "RUF",  # ruff-specific
 ]
 ignore = [
-    "S101",  # assert used (fine in tests)
-    "T201",  # print used (CLI output)
-    "E501",  # line too long (handled by formatter)
+    "S101",   # assert used (fine in tests)
+    "T201",   # print used (CLI output)
+    "E501",   # line too long (handled by formatter)
+    "DTZ011", # date.today() without tz — acceptable for Streamlit UI
+    "DTZ005", # datetime.now() without tz — acceptable for local timestamps
+    "DTZ007", # datetime.strptime without tz — parsing user/log dates
+    "RUF001", # ambiguous unicode chars in strings (emojis in UI)
+    "RUF002", # ambiguous unicode chars in docstrings
+    "E741",   # ambiguous variable names (l, I, O) — used in data loops
+    "N806",   # uppercase variable in function — used for constants like GOLD
+    "S105",   # hardcoded password — false positive on demo/seed data
+    "S311",   # suspicious non-crypto random — fine for UI demo data
+    "C408",   # unnecessary dict/list call — stylistic preference
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]
+"tests/*" = ["S101", "RUF012"]
 "pages/*" = ["T201"]
+"alembic/*" = ["UP007"]
+"cyberresilient/services/notification_service.py" = ["S110", "S310"]
+"files(2)/notification_service.py" = ["S110", "S310"]
+"security/check_headers.py" = ["S310"]
+"tests/test_security_iast.py" = ["S310"]
 
 # ── Pytest ──────────────────────────────────────────────────
 [tool.pytest.ini_options]

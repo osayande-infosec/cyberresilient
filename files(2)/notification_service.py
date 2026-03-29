@@ -26,15 +26,14 @@ import json
 import os
 import smtplib
 import urllib.request
-from datetime import date, timedelta
+from datetime import date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Optional
-
 
 # ---------------------------------------------------------------------------
 # Digest builder
 # ---------------------------------------------------------------------------
+
 
 def build_digest() -> dict:
     """
@@ -46,104 +45,123 @@ def build_digest() -> dict:
     # 1. Risk evidence expiry
     try:
         from cyberresilient.services.risk_service import (
-            load_risks, is_evidence_expired, days_until_evidence_expires,
+            days_until_evidence_expires,
+            is_evidence_expired,
+            load_risks,
         )
+
         for r in load_risks():
             ev = r.get("evidence_date")
             if is_evidence_expired(ev):
-                alerts.append({
-                    "type": "risk_evidence_expired",
-                    "severity": "high",
-                    "entity": r["id"],
-                    "title": r["title"],
-                    "message": f"Evidence expired or missing for risk {r['id']}: {r['title']}",
-                    "due": ev or "never collected",
-                })
+                alerts.append(
+                    {
+                        "type": "risk_evidence_expired",
+                        "severity": "high",
+                        "entity": r["id"],
+                        "title": r["title"],
+                        "message": f"Evidence expired or missing for risk {r['id']}: {r['title']}",
+                        "due": ev or "never collected",
+                    }
+                )
             else:
                 days = days_until_evidence_expires(ev)
                 if days is not None and days <= 30:
-                    alerts.append({
-                        "type": "risk_evidence_expiring",
-                        "severity": "medium",
-                        "entity": r["id"],
-                        "title": r["title"],
-                        "message": f"Risk {r['id']} evidence expires in {days} days",
-                        "due": ev,
-                    })
+                    alerts.append(
+                        {
+                            "type": "risk_evidence_expiring",
+                            "severity": "medium",
+                            "entity": r["id"],
+                            "title": r["title"],
+                            "message": f"Risk {r['id']} evidence expires in {days} days",
+                            "due": ev,
+                        }
+                    )
     except Exception:
         pass
 
     # 2. Risk review overdue
     try:
-        from cyberresilient.services.risk_service import load_risks
         from cyberresilient.services.review_service import (
-            is_review_overdue, days_until_review,
+            days_until_review,
+            is_review_overdue,
         )
+        from cyberresilient.services.risk_service import load_risks
+
         for r in load_risks():
             if is_review_overdue(r):
                 overdue_days = abs(days_until_review(r))
-                alerts.append({
-                    "type": "risk_review_overdue",
-                    "severity": "high" if overdue_days > 30 else "medium",
-                    "entity": r["id"],
-                    "title": r["title"],
-                    "message": f"Risk {r['id']} review overdue by {overdue_days} days",
-                    "due": r.get("last_reviewed_at", "never reviewed"),
-                })
+                alerts.append(
+                    {
+                        "type": "risk_review_overdue",
+                        "severity": "high" if overdue_days > 30 else "medium",
+                        "entity": r["id"],
+                        "title": r["title"],
+                        "message": f"Risk {r['id']} review overdue by {overdue_days} days",
+                        "due": r.get("last_reviewed_at", "never reviewed"),
+                    }
+                )
     except Exception:
         pass
 
     # 3. Policy expiry
     try:
         from cyberresilient.services.compliance_service import (
-            load_policies, get_policy_summary,
+            get_policy_summary,
+            load_policies,
         )
+
         summary = get_policy_summary(load_policies())
         for p in summary.get("expiring_soon", []):
             days = p["days_remaining"]
-            alerts.append({
-                "type": "policy_expiring",
-                "severity": "high" if days <= 7 else "medium",
-                "entity": p.get("id", ""),
-                "title": p["title"],
-                "message": f"Policy '{p['title']}' review due in {days} days",
-                "due": p["review_date"],
-            })
+            alerts.append(
+                {
+                    "type": "policy_expiring",
+                    "severity": "high" if days <= 7 else "medium",
+                    "entity": p.get("id", ""),
+                    "title": p["title"],
+                    "message": f"Policy '{p['title']}' review due in {days} days",
+                    "due": p["review_date"],
+                }
+            )
     except Exception:
         pass
 
     # 4. CAP overdue
     try:
         from cyberresilient.services.cap_service import load_caps
+
         today = date.today().isoformat()
         for cap in load_caps():
             if cap["status"] not in ("Closed",) and cap["target_date"] < today:
-                overdue_days = (
-                    date.today() - date.fromisoformat(cap["target_date"])
-                ).days
-                alerts.append({
-                    "type": "cap_overdue",
-                    "severity": "high" if cap["priority"] in ("Critical", "High") else "medium",
-                    "entity": cap["id"],
-                    "title": cap["title"],
-                    "message": f"CAP '{cap['title']}' overdue by {overdue_days} days",
-                    "due": cap["target_date"],
-                })
+                overdue_days = (date.today() - date.fromisoformat(cap["target_date"])).days
+                alerts.append(
+                    {
+                        "type": "cap_overdue",
+                        "severity": "high" if cap["priority"] in ("Critical", "High") else "medium",
+                        "entity": cap["id"],
+                        "title": cap["title"],
+                        "message": f"CAP '{cap['title']}' overdue by {overdue_days} days",
+                        "due": cap["target_date"],
+                    }
+                )
     except Exception:
         pass
 
     # 5. Vendor reassessment overdue
     try:
         from cyberresilient.services.vendor_service import get_overdue_vendors
+
         for v in get_overdue_vendors():
-            alerts.append({
-                "type": "vendor_reassessment_overdue",
-                "severity": "high" if v["criticality"] in ("Critical", "High") else "medium",
-                "entity": v["id"],
-                "title": v["name"],
-                "message": f"Vendor '{v['name']}' reassessment overdue (due {v['reassessment_due']})",
-                "due": v["reassessment_due"],
-            })
+            alerts.append(
+                {
+                    "type": "vendor_reassessment_overdue",
+                    "severity": "high" if v["criticality"] in ("Critical", "High") else "medium",
+                    "entity": v["id"],
+                    "title": v["name"],
+                    "message": f"Vendor '{v['name']}' reassessment overdue (due {v['reassessment_due']})",
+                    "due": v["reassessment_due"],
+                }
+            )
     except Exception:
         pass
 
@@ -163,11 +181,11 @@ def build_digest() -> dict:
 # Formatters
 # ---------------------------------------------------------------------------
 
+
 def _format_email_body(digest: dict) -> str:
     lines = [
         f"CyberResilient GRC Alert Digest — {digest['generated_at']}",
-        f"Total alerts: {digest['total_alerts']} "
-        f"({digest['high_severity']} high, {digest['medium_severity']} medium)",
+        f"Total alerts: {digest['total_alerts']} ({digest['high_severity']} high, {digest['medium_severity']} medium)",
         "",
     ]
     for a in digest["alerts"]:
@@ -198,15 +216,17 @@ def _format_slack_blocks(digest: dict) -> list[dict]:
         },
         {"type": "divider"},
     ]
-    for a in digest["alerts"][:20]:   # Slack has block limits
+    for a in digest["alerts"][:20]:  # Slack has block limits
         emoji = ":red_circle:" if a["severity"] == "high" else ":large_yellow_circle:"
-        blocks.append({
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"{emoji} *{a['title']}*\n{a['message']} — due `{a['due']}`",
-            },
-        })
+        blocks.append(
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f"{emoji} *{a['title']}*\n{a['message']} — due `{a['due']}`",
+                },
+            }
+        )
     return blocks
 
 
@@ -214,7 +234,8 @@ def _format_slack_blocks(digest: dict) -> list[dict]:
 # Delivery
 # ---------------------------------------------------------------------------
 
-def send_email_digest(digest: dict, to_address: Optional[str] = None) -> bool:
+
+def send_email_digest(digest: dict, to_address: str | None = None) -> bool:
     """
     Send digest via SMTP. Reads config from environment variables.
     Returns True on success.
@@ -229,10 +250,7 @@ def send_email_digest(digest: dict, to_address: Optional[str] = None) -> bool:
         return False
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = (
-        f"CyberResilient GRC Alerts — {digest['high_severity']} High, "
-        f"{digest['medium_severity']} Medium"
-    )
+    msg["Subject"] = f"CyberResilient GRC Alerts — {digest['high_severity']} High, {digest['medium_severity']} Medium"
     msg["From"] = user
     msg["To"] = to
     msg.attach(MIMEText(_format_email_body(digest), "plain"))
@@ -247,7 +265,7 @@ def send_email_digest(digest: dict, to_address: Optional[str] = None) -> bool:
         return False
 
 
-def send_slack_digest(digest: dict, webhook_url: Optional[str] = None) -> bool:
+def send_slack_digest(digest: dict, webhook_url: str | None = None) -> bool:
     """
     Post digest to Slack via incoming webhook.
     Returns True on success.
@@ -270,7 +288,7 @@ def send_slack_digest(digest: dict, webhook_url: Optional[str] = None) -> bool:
         return False
 
 
-def notify_all(digest: Optional[dict] = None) -> dict:
+def notify_all(digest: dict | None = None) -> dict:
     """
     Build digest and attempt all configured delivery channels.
     Returns delivery status per channel.

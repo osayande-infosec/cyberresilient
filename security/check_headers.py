@@ -6,9 +6,9 @@ Run: python security/check_headers.py [url]
 
 from __future__ import annotations
 
+import ssl
 import sys
 import urllib.request
-import ssl
 
 REQUIRED_HEADERS = {
     "X-Content-Type-Options": {
@@ -147,7 +147,9 @@ def check_headers(url: str) -> dict:
     if headers.get("server"):
         dangerous.append({"header": "Server", "value": headers["server"], "message": "Server version disclosure"})
     if headers.get("x-powered-by"):
-        dangerous.append({"header": "X-Powered-By", "value": headers["x-powered-by"], "message": "Technology disclosure"})
+        dangerous.append(
+            {"header": "X-Powered-By", "value": headers["x-powered-by"], "message": "Technology disclosure"}
+        )
 
     return {
         "url": url,

@@ -20,17 +20,23 @@ from cyberresilient.models.risk import (
 
 # ---------------------------------------------------------------------------
 # Risk appetite configuration
+# Any residual risk score above this threshold requires explicit sign-off
+# before a risk can be marked Accepted or Closed.
 # ---------------------------------------------------------------------------
-RISK_APPETITE_THRESHOLD: int = 12
-RISK_APPETITE_LABEL: str = "High"
+RISK_APPETITE_THRESHOLD: int = 12  # on a 1-25 scale (e.g. 4x3 or 3x4)
+RISK_APPETITE_LABEL: str = "High"  # human-readable name for UI
 
+# Mitigation effectiveness multipliers applied to raw score
+# to derive residual risk. Keys match the "mitigation_effectiveness"
+# field stored on each risk row.
 MITIGATION_EFFECTIVENESS_MULTIPLIERS: dict[str, float] = {
-    "None": 1.00,
-    "Partial": 0.65,
-    "Largely": 0.35,
-    "Full": 0.10,
+    "None": 1.00,  # no controls in place
+    "Partial": 0.65,  # some controls, gaps remain
+    "Largely": 0.35,  # controls mostly in place, minor gaps
+    "Full": 0.10,  # fully mitigated; residual is near-zero
 }
 
+# Evidence expires after this many days if not refreshed
 EVIDENCE_EXPIRY_DAYS: int = 365
 
 
@@ -64,7 +70,10 @@ def calc_residual_score(
     inherent_score: int,
     mitigation_effectiveness: str = "None",
 ) -> int:
-    """Residual risk score after applying mitigation effectiveness multiplier."""
+    """
+    Residual risk score after applying mitigation effectiveness multiplier.
+    Always returns at least 1 to acknowledge residual risk can never be zero.
+    """
     multiplier = MITIGATION_EFFECTIVENESS_MULTIPLIERS.get(mitigation_effectiveness, 1.0)
     return max(1, round(inherent_score * multiplier))
 
@@ -80,7 +89,10 @@ def exceeds_risk_appetite(residual_score: int) -> bool:
 
 
 def is_evidence_expired(evidence_date: str | None) -> bool:
-    """Return True if evidence is older than EVIDENCE_EXPIRY_DAYS or unset."""
+    """
+    Return True if the evidence collection date is older than EVIDENCE_EXPIRY_DAYS
+    or has never been set.
+    """
     if not evidence_date:
         return True
     try:
@@ -91,7 +103,10 @@ def is_evidence_expired(evidence_date: str | None) -> bool:
 
 
 def days_until_evidence_expires(evidence_date: str | None) -> int | None:
-    """Days remaining before evidence expires, or None if already expired."""
+    """
+    Return the number of days until evidence expires, or None if already expired
+    or never set.
+    """
     if not evidence_date:
         return None
     try:
@@ -127,7 +142,7 @@ def load_risks() -> list[dict]:
 
 
 def build_heatmap_matrix(risks: list[dict]) -> list[list[int]]:
-    """Build a 5x5 matrix counting risks at each likelihood x impact cell."""
+    """Build a 5×5 matrix counting risks at each likelihood × impact cell."""
     matrix = [[0] * 5 for _ in range(5)]
     for r in risks:
         li = r["likelihood"] - 1
@@ -137,7 +152,10 @@ def build_heatmap_matrix(risks: list[dict]) -> list[list[int]]:
 
 
 def get_risk_summary(risks: list[dict]) -> dict:
-    """Summarise risks by inherent level, residual level, and status."""
+    """
+    Summarise risks by inherent level, residual level, status,
+    and flag counts for appetite breaches and expired evidence.
+    """
     total = len(risks)
     by_inherent_level: dict[str, int] = {"Very High": 0, "High": 0, "Medium": 0, "Low": 0}
     by_residual_level: dict[str, int] = {"Very High": 0, "High": 0, "Medium": 0, "Low": 0}
@@ -146,10 +164,8 @@ def get_risk_summary(risks: list[dict]) -> dict:
     expired_evidence = 0
 
     for r in risks:
-        inherent = r.get("risk_score") or 0
-        if not inherent and "likelihood" in r and "impact" in r:
-            inherent = calc_inherent_score(r["likelihood"], r["impact"])
-        residual = r.get("residual_score") or inherent
+        inherent = r.get("risk_score", calc_inherent_score(r["likelihood"], r["impact"]))
+        residual = r.get("residual_score", inherent)
 
         by_inherent_level[get_risk_level(inherent)] = by_inherent_level.get(get_risk_level(inherent), 0) + 1
         by_residual_level[get_risk_level(residual)] = by_residual_level.get(get_risk_level(residual), 0) + 1
@@ -162,7 +178,6 @@ def get_risk_summary(risks: list[dict]) -> dict:
 
     return {
         "total": total,
-        "by_level": by_inherent_level,
         "by_inherent_level": by_inherent_level,
         "by_residual_level": by_residual_level,
         "by_status": by_status,
@@ -177,7 +192,13 @@ def get_risk_summary(risks: list[dict]) -> dict:
 
 
 def can_close_risk(risk: dict) -> tuple[bool, str]:
-    """Determine whether a risk is eligible for Accepted / Closed status."""
+    """
+    Determine whether a risk is eligible for Accepted / Closed status.
+
+    Returns (allowed: bool, reason: str).
+    A risk that exceeds appetite requires an explicit approver sign-off
+    stored in the `sign_off_by` field before closure is permitted.
+    """
     residual = risk.get(
         "residual_score",
         calc_residual_score(
@@ -200,92 +221,12 @@ def can_close_risk(risk: dict) -> tuple[bool, str]:
     )
 
 
-ARCHITECTURE_CHECKS: list[dict] = [
-    {
-        "id": "CHK-01",
-        "control": "Single Sign-On (SSO) Integration",
-        "framework": "NIST 800-53 IA-2",
-        "question": "Does the solution support SSO (SAML/OIDC)?",
-        "risk_if_missing": "Credential sprawl, inability to enforce MFA, audit gaps",
-        "recommendation": "Require SAML 2.0 or OIDC integration before procurement approval",
-    },
-    {
-        "id": "CHK-02",
-        "control": "Data Encryption at Rest",
-        "framework": "NIST 800-53 SC-28",
-        "question": "Is all data encrypted at rest using AES-256 or equivalent?",
-        "risk_if_missing": "Data exposure in event of physical theft or cloud misconfiguration",
-        "recommendation": "Require AES-256 encryption at rest; verify key management practices",
-    },
-    {
-        "id": "CHK-03",
-        "control": "Data Encryption in Transit",
-        "framework": "NIST 800-53 SC-8",
-        "question": "Is all data encrypted in transit using TLS 1.2+?",
-        "risk_if_missing": "Man-in-the-middle attacks, data interception",
-        "recommendation": "Mandate TLS 1.2+ minimum; disable legacy protocols",
-    },
-    {
-        "id": "CHK-04",
-        "control": "Multi-Factor Authentication",
-        "framework": "NIST 800-53 IA-2(1)",
-        "question": "Does the solution enforce MFA for all administrative access?",
-        "risk_if_missing": "Credential compromise leads to full administrative takeover",
-        "recommendation": "Require MFA for all privileged and standard user access",
-    },
-    {
-        "id": "CHK-05",
-        "control": "SOC 2 Type II Certification",
-        "framework": "AICPA TSC",
-        "question": "Does the vendor hold a current SOC 2 Type II report?",
-        "risk_if_missing": "No independent verification of security controls",
-        "recommendation": "Require annual SOC 2 Type II; review for exceptions",
-    },
-    {
-        "id": "CHK-06",
-        "control": "Data Residency Compliance",
-        "framework": "Regulatory / Privacy",
-        "question": "Is all data stored and processed within the required jurisdiction?",
-        "risk_if_missing": "Regulatory compliance violation — data may need to remain in-jurisdiction",
-        "recommendation": "Contractually require data residency; verify cloud region",
-    },
-    {
-        "id": "CHK-07",
-        "control": "Backup & Disaster Recovery",
-        "framework": "NIST 800-53 CP-9",
-        "question": "Does the vendor provide automated backups with tested DR?",
-        "risk_if_missing": "Data loss in vendor outage; no recovery capability",
-        "recommendation": "Require documented RTO/RPO SLAs with evidence of testing",
-    },
-    {
-        "id": "CHK-08",
-        "control": "Breach Notification SLA",
-        "framework": "NIST 800-53 IR-6",
-        "question": "Does the vendor commit to breach notification within 24 hours?",
-        "risk_if_missing": "Delayed awareness of compromise affecting your data",
-        "recommendation": "Require ≤24-hour notification SLA in contract",
-    },
-    {
-        "id": "CHK-09",
-        "control": "API Security & Rate Limiting",
-        "framework": "OWASP API Top 10",
-        "question": "Are APIs secured with authentication, authorization, and rate limiting?",
-        "risk_if_missing": "API abuse, data exfiltration, denial of service",
-        "recommendation": "Require API key/OAuth, rate limiting, and input validation",
-    },
-    {
-        "id": "CHK-10",
-        "control": "Vulnerability Management",
-        "framework": "CIS Control 7",
-        "question": "Does the vendor patch critical vulnerabilities within 72 hours?",
-        "risk_if_missing": "Prolonged exposure to known exploits",
-        "recommendation": "Require documented patching SLA: Critical <72h, High <7d",
-    },
-]
+# ---------------------------------------------------------------------------
+# CRUD
+# ---------------------------------------------------------------------------
 
 
 def _next_risk_id() -> str:
-    """Generate the next RISK-NNN id."""
     if _db_available():
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import RiskRow
@@ -302,7 +243,12 @@ def _next_risk_id() -> str:
 
 
 def create_risk(data: dict, user: str = "system") -> dict:
-    """Create a new risk entry with inherent and residual scoring."""
+    """
+    Create a new risk entry.
+
+    Computes both inherent_score and residual_score from the submitted data.
+    Enforces closure guard if status is Accepted/Closed at creation time.
+    """
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import RiskRow
     from cyberresilient.services.audit_service import log_action
@@ -338,7 +284,7 @@ def create_risk(data: dict, user: str = "system") -> dict:
             asset=data.get("asset", ""),
             target_date=data.get("target_date", ""),
             notes=data.get("notes", ""),
-            evidence_date=data.get("evidence_date", ""),
+            evidence_date=data.get("evidence_date"),
             sign_off_by=data.get("sign_off_by", ""),
         )
         session.add(row)
@@ -360,7 +306,12 @@ def create_risk(data: dict, user: str = "system") -> dict:
 
 
 def update_risk(risk_id: str, data: dict, user: str = "system") -> dict:
-    """Update a risk entry with re-derived inherent/residual scores."""
+    """
+    Update an existing risk entry.
+
+    Re-derives inherent and residual scores from current field values.
+    Blocks transition to Accepted/Closed if appetite guard fails.
+    """
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import RiskRow
     from cyberresilient.services.audit_service import log_action
@@ -373,6 +324,7 @@ def update_risk(risk_id: str, data: dict, user: str = "system") -> dict:
 
         before = row.to_dict()
 
+        # Recalculate scores
         likelihood = data.get("likelihood", row.likelihood)
         impact = data.get("impact", row.impact)
         mitigation_effectiveness = data.get(
@@ -457,6 +409,94 @@ def delete_risk(risk_id: str, user: str = "system") -> None:
         raise
     finally:
         session.close()
+
+
+# ---------------------------------------------------------------------------
+# Architecture assessment (unchanged from v1, kept for completeness)
+# ---------------------------------------------------------------------------
+
+ARCHITECTURE_CHECKS: list[dict] = [
+    {
+        "id": "CHK-01",
+        "control": "Single Sign-On (SSO) Integration",
+        "framework": "NIST 800-53 IA-2",
+        "question": "Does the solution support SSO (SAML/OIDC)?",
+        "risk_if_missing": "Credential sprawl, inability to enforce MFA, audit gaps",
+        "recommendation": "Require SAML 2.0 or OIDC integration before procurement approval",
+    },
+    {
+        "id": "CHK-02",
+        "control": "Data Encryption at Rest",
+        "framework": "NIST 800-53 SC-28",
+        "question": "Is all data encrypted at rest using AES-256 or equivalent?",
+        "risk_if_missing": "Data exposure in event of physical theft or cloud misconfiguration",
+        "recommendation": "Require AES-256 encryption at rest; verify key management practices",
+    },
+    {
+        "id": "CHK-03",
+        "control": "Data Encryption in Transit",
+        "framework": "NIST 800-53 SC-8",
+        "question": "Is all data encrypted in transit using TLS 1.2+?",
+        "risk_if_missing": "Man-in-the-middle attacks, data interception",
+        "recommendation": "Mandate TLS 1.2+ minimum; disable legacy protocols",
+    },
+    {
+        "id": "CHK-04",
+        "control": "Multi-Factor Authentication",
+        "framework": "NIST 800-53 IA-2(1)",
+        "question": "Does the solution enforce MFA for all administrative access?",
+        "risk_if_missing": "Credential compromise leads to full administrative takeover",
+        "recommendation": "Require MFA for all privileged and standard user access",
+    },
+    {
+        "id": "CHK-05",
+        "control": "SOC 2 Type II Certification",
+        "framework": "AICPA TSC",
+        "question": "Does the vendor hold a current SOC 2 Type II report?",
+        "risk_if_missing": "No independent verification of security controls",
+        "recommendation": "Require annual SOC 2 Type II; review for exceptions",
+    },
+    {
+        "id": "CHK-06",
+        "control": "Data Residency Compliance",
+        "framework": "Regulatory / Privacy",
+        "question": "Is all data stored and processed within the required jurisdiction?",
+        "risk_if_missing": "Regulatory compliance violation",
+        "recommendation": "Contractually require data residency; verify cloud region",
+    },
+    {
+        "id": "CHK-07",
+        "control": "Backup & Disaster Recovery",
+        "framework": "NIST 800-53 CP-9",
+        "question": "Does the vendor provide automated backups with tested DR?",
+        "risk_if_missing": "Data loss in vendor outage; no recovery capability",
+        "recommendation": "Require documented RTO/RPO SLAs with evidence of testing",
+    },
+    {
+        "id": "CHK-08",
+        "control": "Breach Notification SLA",
+        "framework": "NIST 800-53 IR-6",
+        "question": "Does the vendor commit to breach notification within 24 hours?",
+        "risk_if_missing": "Delayed awareness of compromise affecting your data",
+        "recommendation": "Require ≤24-hour notification SLA in contract",
+    },
+    {
+        "id": "CHK-09",
+        "control": "API Security & Rate Limiting",
+        "framework": "OWASP API Top 10",
+        "question": "Are APIs secured with authentication, authorization, and rate limiting?",
+        "risk_if_missing": "API abuse, data exfiltration, denial of service",
+        "recommendation": "Require API key/OAuth, rate limiting, and input validation",
+    },
+    {
+        "id": "CHK-10",
+        "control": "Vulnerability Management",
+        "framework": "CIS Control 7",
+        "question": "Does the vendor patch critical vulnerabilities within 72 hours?",
+        "risk_if_missing": "Prolonged exposure to known exploits",
+        "recommendation": "Require documented patching SLA: Critical <72h, High <7d",
+    },
+]
 
 
 def run_architecture_assessment(answers: dict[str, bool]) -> dict:

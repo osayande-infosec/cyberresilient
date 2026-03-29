@@ -7,7 +7,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from pathlib import Path
 
 from cyberresilient.config import DATA_DIR
 
@@ -15,14 +14,6 @@ from cyberresilient.config import DATA_DIR
 def seed(args: argparse.Namespace) -> None:
     """Seed the database from JSON data files."""
     from cyberresilient.database import get_session, init_db
-    from cyberresilient.models.db_models import (
-        KPIMetricRow,
-        MonthlyIncidentRow,
-        PolicyRow,
-        RiskRow,
-        ScenarioRow,
-        SystemRow,
-    )
     from cyberresilient.services.audit_service import log_action
 
     init_db()
@@ -37,7 +28,7 @@ def seed(args: argparse.Namespace) -> None:
 
         log_action(session, action="SEED", entity_type="database", details="Seeded from JSON data files")
         session.commit()
-        print("Database seeded successfully.")  # noqa: T201
+        print("Database seeded successfully.")
     except Exception:
         session.rollback()
         raise
@@ -49,7 +40,7 @@ def _seed_risks(session, force: bool) -> None:
     from cyberresilient.models.db_models import RiskRow
 
     if not force and session.query(RiskRow).first():
-        print("  Risks table already has data — skipping (use --force to overwrite)")  # noqa: T201
+        print("  Risks table already has data — skipping (use --force to overwrite)")
         return
 
     if force:
@@ -57,28 +48,30 @@ def _seed_risks(session, force: bool) -> None:
 
     data = _load_json("risks.json")
     for r in data:
-        session.add(RiskRow(
-            id=r["id"],
-            title=r["title"],
-            category=r["category"],
-            likelihood=r["likelihood"],
-            impact=r["impact"],
-            risk_score=r["risk_score"],
-            owner=r["owner"],
-            status=r["status"],
-            mitigation=r["mitigation"],
-            asset=r["asset"],
-            target_date=r["target_date"],
-            notes=r.get("notes", ""),
-        ))
-    print(f"  Seeded {len(data)} risks")  # noqa: T201
+        session.add(
+            RiskRow(
+                id=r["id"],
+                title=r["title"],
+                category=r["category"],
+                likelihood=r["likelihood"],
+                impact=r["impact"],
+                risk_score=r["risk_score"],
+                owner=r["owner"],
+                status=r["status"],
+                mitigation=r["mitigation"],
+                asset=r["asset"],
+                target_date=r["target_date"],
+                notes=r.get("notes", ""),
+            )
+        )
+    print(f"  Seeded {len(data)} risks")
 
 
 def _seed_systems(session, force: bool) -> None:
     from cyberresilient.models.db_models import SystemRow
 
     if not force and session.query(SystemRow).first():
-        print("  Systems table already has data — skipping (use --force to overwrite)")  # noqa: T201
+        print("  Systems table already has data — skipping (use --force to overwrite)")
         return
 
     if force:
@@ -86,29 +79,31 @@ def _seed_systems(session, force: bool) -> None:
 
     data = _load_json("systems.json")
     for s in data:
-        session.add(SystemRow(
-            id=s["id"],
-            name=s["name"],
-            department=s["department"],
-            type=s["type"],
-            hosting=s.get("hosting", ""),
-            tier=s["tier"],
-            rto_target_hours=s["rto_target_hours"],
-            rpo_target_hours=s["rpo_target_hours"],
-            current_dr_strategy=s["current_dr_strategy"],
-            last_tested=s.get("last_tested", ""),
-            test_result=s.get("test_result", ""),
-            dependencies=json.dumps(s.get("dependencies", [])),
-            description=s.get("description", ""),
-        ))
-    print(f"  Seeded {len(data)} systems")  # noqa: T201
+        session.add(
+            SystemRow(
+                id=s["id"],
+                name=s["name"],
+                department=s["department"],
+                type=s["type"],
+                hosting=s.get("hosting", ""),
+                tier=s["tier"],
+                rto_target_hours=s["rto_target_hours"],
+                rpo_target_hours=s["rpo_target_hours"],
+                current_dr_strategy=s["current_dr_strategy"],
+                last_tested=s.get("last_tested", ""),
+                test_result=s.get("test_result", ""),
+                dependencies=json.dumps(s.get("dependencies", [])),
+                description=s.get("description", ""),
+            )
+        )
+    print(f"  Seeded {len(data)} systems")
 
 
 def _seed_scenarios(session, force: bool) -> None:
     from cyberresilient.models.db_models import ScenarioRow
 
     if not force and session.query(ScenarioRow).first():
-        print("  Scenarios table already has data — skipping (use --force to overwrite)")  # noqa: T201
+        print("  Scenarios table already has data — skipping (use --force to overwrite)")
         return
 
     if force:
@@ -116,26 +111,28 @@ def _seed_scenarios(session, force: bool) -> None:
 
     data = _load_json("scenarios.json")
     for s in data:
-        session.add(ScenarioRow(
-            id=s["id"],
-            name=s["name"],
-            type=s["type"],
-            severity=s["severity"],
-            description=s["description"],
-            affected_systems=json.dumps(s.get("affected_systems", [])),
-            impact_json=json.dumps(s.get("impact", {})),
-            recovery_steps=json.dumps(s.get("recovery_steps", [])),
-            rto_impact_multiplier=s["rto_impact_multiplier"],
-            rpo_impact_multiplier=s["rpo_impact_multiplier"],
-        ))
-    print(f"  Seeded {len(data)} scenarios")  # noqa: T201
+        session.add(
+            ScenarioRow(
+                id=s["id"],
+                name=s["name"],
+                type=s["type"],
+                severity=s["severity"],
+                description=s["description"],
+                affected_systems=json.dumps(s.get("affected_systems", [])),
+                impact_json=json.dumps(s.get("impact", {})),
+                recovery_steps=json.dumps(s.get("recovery_steps", [])),
+                rto_impact_multiplier=s["rto_impact_multiplier"],
+                rpo_impact_multiplier=s["rpo_impact_multiplier"],
+            )
+        )
+    print(f"  Seeded {len(data)} scenarios")
 
 
 def _seed_policies(session, force: bool) -> None:
     from cyberresilient.models.db_models import PolicyRow
 
     if not force and session.query(PolicyRow).first():
-        print("  Policies table already has data — skipping (use --force to overwrite)")  # noqa: T201
+        print("  Policies table already has data — skipping (use --force to overwrite)")
         return
 
     if force:
@@ -143,25 +140,27 @@ def _seed_policies(session, force: bool) -> None:
 
     data = _load_json("policies.json")
     for p in data:
-        session.add(PolicyRow(
-            id=p["id"],
-            name=p["name"],
-            owner=p["owner"],
-            version=p["version"],
-            status=p["status"],
-            last_reviewed=p.get("last_reviewed") or "",
-            next_review=p.get("next_review") or "",
-            approved_by=p.get("approved_by") or "",
-            description=p.get("description") or "",
-        ))
-    print(f"  Seeded {len(data)} policies")  # noqa: T201
+        session.add(
+            PolicyRow(
+                id=p["id"],
+                name=p["name"],
+                owner=p["owner"],
+                version=p["version"],
+                status=p["status"],
+                last_reviewed=p.get("last_reviewed") or "",
+                next_review=p.get("next_review") or "",
+                approved_by=p.get("approved_by") or "",
+                description=p.get("description") or "",
+            )
+        )
+    print(f"  Seeded {len(data)} policies")
 
 
 def _seed_kpi(session, force: bool) -> None:
     from cyberresilient.models.db_models import KPIMetricRow, MonthlyIncidentRow
 
     if not force and session.query(KPIMetricRow).first():
-        print("  KPI tables already have data — skipping (use --force to overwrite)")  # noqa: T201
+        print("  KPI tables already have data — skipping (use --force to overwrite)")
         return
 
     if force:
@@ -171,24 +170,28 @@ def _seed_kpi(session, force: bool) -> None:
     data = _load_json("kpi_data.json")
 
     for m in data.get("kpi_metrics", []):
-        session.add(KPIMetricRow(
-            label=m["label"],
-            value=m["value"],
-            unit=m.get("unit", ""),
-            trend=m.get("trend", ""),
-            lower_is_better=1 if m.get("lower_is_better") else 0,
-        ))
+        session.add(
+            KPIMetricRow(
+                label=m["label"],
+                value=m["value"],
+                unit=m.get("unit", ""),
+                trend=m.get("trend", ""),
+                lower_is_better=1 if m.get("lower_is_better") else 0,
+            )
+        )
 
     for mi in data.get("monthly_incidents", []):
-        session.add(MonthlyIncidentRow(
-            month=mi["month"],
-            count=mi["count"],
-            critical=mi.get("critical", 0),
-        ))
+        session.add(
+            MonthlyIncidentRow(
+                month=mi["month"],
+                count=mi["count"],
+                critical=mi.get("critical", 0),
+            )
+        )
 
     kpi_count = len(data.get("kpi_metrics", []))
     incident_count = len(data.get("monthly_incidents", []))
-    print(f"  Seeded {kpi_count} KPI metrics, {incident_count} monthly incidents")  # noqa: T201
+    print(f"  Seeded {kpi_count} KPI metrics, {incident_count} monthly incidents")
 
 
 def create_user(args: argparse.Namespace) -> None:
@@ -205,7 +208,7 @@ def create_user(args: argparse.Namespace) -> None:
     try:
         existing = session.query(UserRow).filter_by(username=args.username).first()
         if existing:
-            print(f"User '{args.username}' already exists.")  # noqa: T201
+            print(f"User '{args.username}' already exists.")
             sys.exit(1)
 
         password_hash = bcrypt.hashpw(args.password.encode(), bcrypt.gensalt()).decode()
@@ -225,7 +228,7 @@ def create_user(args: argparse.Namespace) -> None:
             details=f"Created user with role '{args.role}'",
         )
         session.commit()
-        print(f"User '{args.username}' created with role '{args.role}'.")  # noqa: T201
+        print(f"User '{args.username}' created with role '{args.role}'.")
     except Exception:
         session.rollback()
         raise
@@ -238,7 +241,7 @@ def init_command(args: argparse.Namespace) -> None:
     from cyberresilient.database import init_db
 
     init_db()
-    print("Database initialized.")  # noqa: T201
+    print("Database initialized.")
 
     if args.seed:
         args.force = False

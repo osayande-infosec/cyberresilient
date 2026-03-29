@@ -6,8 +6,9 @@ Revises: 0002_residual_evidence
 Create Date: 2026-03-23
 """
 
-from alembic import op
 import sqlalchemy as sa
+
+from alembic import op
 
 revision = "0003_batch1_evidence_treatment_testing"
 down_revision = "0002_residual_evidence"

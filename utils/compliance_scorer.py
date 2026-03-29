@@ -12,12 +12,12 @@ STATUS_WEIGHTS = {"Implemented": 1.0, "Partial": 0.5, "Gap": 0.0, "Not Implement
 
 
 def load_controls():
-    with open(DATA_DIR / "controls_nist_csf.json", "r") as f:
+    with open(DATA_DIR / "controls_nist_csf.json") as f:
         return json.load(f)
 
 
 def load_policies():
-    with open(DATA_DIR / "policies.json", "r") as f:
+    with open(DATA_DIR / "policies.json") as f:
         return json.load(f)
 
 
@@ -31,18 +31,14 @@ def calc_nist_csf_scores(data: dict) -> dict:
     for func_name, func_data in functions.items():
         categories = func_data["categories"]
         func_total = len(categories)
-        func_score = sum(
-            STATUS_WEIGHTS.get(cat["status"], 0) for cat in categories.values()
-        )
+        func_score = sum(STATUS_WEIGHTS.get(cat["status"], 0) for cat in categories.values())
         pct = round((func_score / func_total) * 100) if func_total > 0 else 0
         scores[func_name] = {
             "description": func_data["description"],
             "total_categories": func_total,
             "score": round(func_score, 1),
             "percentage": pct,
-            "categories": {
-                k: v for k, v in categories.items()
-            },
+            "categories": dict(categories.items()),
         }
         total_score += func_score
         total_controls += func_total

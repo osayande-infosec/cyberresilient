@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, timedelta
-from typing import Optional
 
 VENDOR_CRITICALITIES = ["Critical", "High", "Medium", "Low"]
 
@@ -33,16 +32,21 @@ DATA_CLASSIFICATIONS = [
 ]
 
 VENDOR_CATEGORIES = [
-    "Cloud / SaaS", "Managed Security", "IT Infrastructure",
-    "Professional Services", "Software Vendor", "Hardware",
-    "Telecommunications", "Other",
+    "Cloud / SaaS",
+    "Managed Security",
+    "IT Infrastructure",
+    "Professional Services",
+    "Software Vendor",
+    "Hardware",
+    "Telecommunications",
+    "Other",
 ]
 
 REASSESSMENT_INTERVALS: dict[str, int] = {
     "Critical": 180,
-    "High":     365,
-    "Medium":   547,
-    "Low":      730,
+    "High": 365,
+    "Medium": 547,
+    "Low": 730,
 }
 
 
@@ -56,7 +60,7 @@ def _score_to_tier(score_pct: int) -> str:
     return "Critical Risk"
 
 
-def _reassessment_due(criticality: str, from_date: Optional[str] = None) -> str:
+def _reassessment_due(criticality: str, from_date: str | None = None) -> str:
     base = date.fromisoformat(from_date) if from_date else date.today()
     days = REASSESSMENT_INTERVALS.get(criticality, 365)
     return (base + timedelta(days=days)).isoformat()
@@ -64,8 +68,10 @@ def _reassessment_due(criticality: str, from_date: Optional[str] = None) -> str:
 
 def _db_available() -> bool:
     try:
-        from cyberresilient.database import get_engine
         from sqlalchemy import inspect
+
+        from cyberresilient.database import get_engine
+
         return inspect(get_engine()).has_table("vendors")
     except Exception:
         return False
@@ -74,6 +80,7 @@ def _db_available() -> bool:
 # ---------------------------------------------------------------------------
 # Vendor CRUD
 # ---------------------------------------------------------------------------
+
 
 def create_vendor(
     name: str,
@@ -109,12 +116,18 @@ def create_vendor(
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import VendorRow
         from cyberresilient.services.audit_service import log_action
+
         session = get_session()
         try:
             session.add(VendorRow(**record))
-            log_action(session, action="create_vendor",
-                       entity_type="vendor", entity_id=record["id"],
-                       user=created_by, after=record)
+            log_action(
+                session,
+                action="create_vendor",
+                entity_type="vendor",
+                entity_id=record["id"],
+                user=created_by,
+                after=record,
+            )
             session.commit()
         except Exception:
             session.rollback()
@@ -129,6 +142,7 @@ def load_vendors() -> list[dict]:
         return []
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import VendorRow
+
     session = get_session()
     try:
         return [r.to_dict() for r in session.query(VendorRow).order_by(VendorRow.name).all()]
@@ -136,7 +150,7 @@ def load_vendors() -> list[dict]:
         session.close()
 
 
-def get_vendor(vendor_id: str) -> Optional[dict]:
+def get_vendor(vendor_id: str) -> dict | None:
     vendors = load_vendors()
     return next((v for v in vendors if v["id"] == vendor_id), None)
 
@@ -145,10 +159,11 @@ def get_vendor(vendor_id: str) -> Optional[dict]:
 # Assessment recording
 # ---------------------------------------------------------------------------
 
+
 def record_assessment(
     vendor_id: str,
     score_pct: int,
-    assessment_detail: dict,    # full run_architecture_assessment() result
+    assessment_detail: dict,  # full run_architecture_assessment() result
     assessed_by: str = "system",
 ) -> dict:
     """
@@ -170,6 +185,7 @@ def record_assessment(
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import VendorAssessmentRow, VendorRow
         from cyberresilient.services.audit_service import log_action
+
         session = get_session()
         try:
             session.add(VendorAssessmentRow(**record))
@@ -179,12 +195,15 @@ def record_assessment(
                 vendor_row.current_risk_tier = record["risk_tier"]
                 vendor_row.last_assessment_score = score_pct
                 vendor_row.last_assessed_at = record["assessed_at"]
-                vendor_row.reassessment_due = _reassessment_due(
-                    vendor_row.criticality, record["assessed_at"]
-                )
-            log_action(session, action="record_vendor_assessment",
-                       entity_type="vendor", entity_id=vendor_id,
-                       user=assessed_by, after=record)
+                vendor_row.reassessment_due = _reassessment_due(vendor_row.criticality, record["assessed_at"])
+            log_action(
+                session,
+                action="record_vendor_assessment",
+                entity_type="vendor",
+                entity_id=vendor_id,
+                user=assessed_by,
+                after=record,
+            )
             session.commit()
         except Exception:
             session.rollback()
@@ -199,6 +218,7 @@ def get_assessment_history(vendor_id: str) -> list[dict]:
         return []
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import VendorAssessmentRow
+
     session = get_session()
     try:
         rows = (
@@ -215,6 +235,7 @@ def get_assessment_history(vendor_id: str) -> list[dict]:
 # ---------------------------------------------------------------------------
 # Overdue and summary
 # ---------------------------------------------------------------------------
+
 
 def get_overdue_vendors() -> list[dict]:
     today = date.today().isoformat()
@@ -245,16 +266,16 @@ def vendor_summary() -> dict:
 
 
 TIER_COLORS = {
-    "Low Risk":      "#4CAF50",
-    "Medium Risk":   "#FFC107",
-    "High Risk":     "#FF9800",
+    "Low Risk": "#4CAF50",
+    "Medium Risk": "#FFC107",
+    "High Risk": "#FF9800",
     "Critical Risk": "#F44336",
-    "Not Assessed":  "#888888",
+    "Not Assessed": "#888888",
 }
 
 CRITICALITY_COLORS = {
     "Critical": "#F44336",
-    "High":     "#FF9800",
-    "Medium":   "#FFC107",
-    "Low":      "#4CAF50",
+    "High": "#FF9800",
+    "Medium": "#FFC107",
+    "Low": "#4CAF50",
 }

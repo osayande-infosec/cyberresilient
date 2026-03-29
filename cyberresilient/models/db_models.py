@@ -80,6 +80,7 @@ class SystemRow(Base):
 
     def to_dict(self) -> dict:
         import json
+
         return {
             "id": self.id,
             "name": self.name,
@@ -116,6 +117,7 @@ class ScenarioRow(Base):
 
     def to_dict(self) -> dict:
         import json
+
         return {
             "id": self.id,
             "name": self.name,
@@ -247,6 +249,7 @@ class SimulationHistoryRow(Base):
 
     def to_dict(self) -> dict:
         import json
+
         return {
             "id": self.id,
             "timestamp": self.timestamp.isoformat() if self.timestamp else "",

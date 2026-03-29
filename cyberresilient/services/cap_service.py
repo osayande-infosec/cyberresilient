@@ -15,22 +15,23 @@ from __future__ import annotations
 
 import uuid
 from datetime import date
-from typing import Optional
 
 CAP_STATUSES = ["Open", "In Progress", "Pending Verification", "Closed"]
 CAP_PRIORITIES = ["Critical", "High", "Medium", "Low"]
 
 # Maps control test result to default CAP priority
 RESULT_TO_PRIORITY = {
-    "Fail":    "High",
+    "Fail": "High",
     "Partial": "Medium",
 }
 
 
 def _db_available() -> bool:
     try:
-        from cyberresilient.database import get_engine
         from sqlalchemy import inspect
+
+        from cyberresilient.database import get_engine
+
         return inspect(get_engine()).has_table("corrective_action_plans")
     except Exception:
         return False
@@ -40,11 +41,11 @@ def create_cap(
     title: str,
     description: str,
     owner: str,
-    target_date: str,           # YYYY-MM-DD
+    target_date: str,  # YYYY-MM-DD
     priority: str = "High",
     linked_control_id: str = "",
     linked_risk_id: str = "",
-    linked_test_id: str = "",   # control_test.id that triggered this CAP
+    linked_test_id: str = "",  # control_test.id that triggered this CAP
     created_by: str = "system",
 ) -> dict:
     """
@@ -54,14 +55,9 @@ def create_cap(
     so the CAP is traceable to a specific finding.
     """
     if not linked_control_id and not linked_risk_id:
-        raise ValueError(
-            "A CAP must be linked to a control ID or a risk ID."
-        )
+        raise ValueError("A CAP must be linked to a control ID or a risk ID.")
     if priority not in CAP_PRIORITIES:
-        raise ValueError(
-            f"Invalid priority '{priority}'. "
-            f"Choose from: {', '.join(CAP_PRIORITIES)}"
-        )
+        raise ValueError(f"Invalid priority '{priority}'. Choose from: {', '.join(CAP_PRIORITIES)}")
 
     record = {
         "id": str(uuid.uuid4()),
@@ -84,12 +80,13 @@ def create_cap(
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import CAPRow
         from cyberresilient.services.audit_service import log_action
+
         session = get_session()
         try:
             session.add(CAPRow(**record))
-            log_action(session, action="create_cap",
-                       entity_type="cap", entity_id=record["id"],
-                       user=created_by, after=record)
+            log_action(
+                session, action="create_cap", entity_type="cap", entity_id=record["id"], user=created_by, after=record
+            )
             session.commit()
         except Exception:
             session.rollback()
@@ -116,6 +113,7 @@ def update_cap_status(
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import CAPRow
     from cyberresilient.services.audit_service import log_action
+
     session = get_session()
     try:
         row = session.query(CAPRow).filter_by(id=cap_id).first()
@@ -127,9 +125,15 @@ def update_cap_status(
             row.resolution_notes = resolution_notes
         if new_status == "Closed":
             row.closed_at = date.today().isoformat()
-        log_action(session, action="update_cap",
-                   entity_type="cap", entity_id=cap_id,
-                   user=updated_by, before=before, after=row.to_dict())
+        log_action(
+            session,
+            action="update_cap",
+            entity_type="cap",
+            entity_id=cap_id,
+            user=updated_by,
+            before=before,
+            after=row.to_dict(),
+        )
         session.commit()
         return row.to_dict()
     except Exception:
@@ -140,7 +144,7 @@ def update_cap_status(
 
 
 def load_caps(
-    status_filter: Optional[list[str]] = None,
+    status_filter: list[str] | None = None,
     linked_control_id: str = "",
     linked_risk_id: str = "",
 ) -> list[dict]:
@@ -148,6 +152,7 @@ def load_caps(
         return []
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import CAPRow
+
     session = get_session()
     try:
         q = session.query(CAPRow)
@@ -165,10 +170,7 @@ def load_caps(
 def cap_summary() -> dict:
     caps = load_caps()
     today = date.today().isoformat()
-    overdue = [
-        c for c in caps
-        if c["status"] not in ("Closed",) and c["target_date"] < today
-    ]
+    overdue = [c for c in caps if c["status"] not in ("Closed",) and c["target_date"] < today]
     by_status: dict[str, int] = {}
     by_priority: dict[str, int] = {}
     for c in caps:
@@ -184,13 +186,13 @@ def cap_summary() -> dict:
 
 PRIORITY_COLORS = {
     "Critical": "#B71C1C",
-    "High":     "#F44336",
-    "Medium":   "#FF9800",
-    "Low":      "#4CAF50",
+    "High": "#F44336",
+    "Medium": "#FF9800",
+    "Low": "#4CAF50",
 }
 STATUS_ICONS = {
-    "Open":                 "🔴",
-    "In Progress":          "🟡",
+    "Open": "🔴",
+    "In Progress": "🟡",
     "Pending Verification": "🔵",
-    "Closed":               "✅",
+    "Closed": "✅",
 }

@@ -4,20 +4,23 @@ pages/10_Activity_Report.py
 User Activity Report — 90-day audit log summary.
 """
 
-import streamlit as st
-import plotly.express as px
-import plotly.graph_objects as go
 import pandas as pd
+import plotly.express as px
+import streamlit as st
 
 from cyberresilient.services.activity_service import (
-    generate_activity_report, get_recent_actions,
+    generate_activity_report,
+    get_recent_actions,
 )
-from cyberresilient.services.notification_service import build_digest, notify_all
 from cyberresilient.services.auth_service import has_permission, learning_callout
 from cyberresilient.services.learning_service import (
-    get_content, learning_section, grc_insight, audit_logging_principles,
+    audit_logging_principles,
     chart_navigation_guide,
+    get_content,
+    grc_insight,
+    learning_section,
 )
+from cyberresilient.services.notification_service import build_digest
 from cyberresilient.theme import get_theme_colors
 
 colors = get_theme_colors()
@@ -75,15 +78,20 @@ with tab1:
     daily_df = pd.DataFrame(report["daily_activity"])
     if not daily_df.empty:
         fig = px.bar(
-            daily_df, x="date", y="count",
+            daily_df,
+            x="date",
+            y="count",
             color="count",
             color_continuous_scale=["#1a3a1a", GOLD, "#F44336"],
             labels={"date": "Date", "count": "Actions"},
         )
         fig.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-            font_color="#EAEAEA", showlegend=False,
-            xaxis=dict(gridcolor="#222"), yaxis=dict(gridcolor="#222"),
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font_color="#EAEAEA",
+            showlegend=False,
+            xaxis={"gridcolor": "#222"},
+            yaxis={"gridcolor": "#222"},
             height=300,
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -99,7 +107,9 @@ with tab1:
                 hole=0.4,
             )
             fig_at.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)", font_color="#EAEAEA", height=280,
+                paper_bgcolor="rgba(0,0,0,0)",
+                font_color="#EAEAEA",
+                height=280,
             )
             st.plotly_chart(fig_at, use_container_width=True)
 
@@ -114,9 +124,13 @@ with tab1:
                 color_continuous_scale=["#1a3a1a", GOLD],
             )
             fig_et.update_layout(
-                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                font_color="#EAEAEA", showlegend=False, height=280,
-                xaxis=dict(gridcolor="#222"), yaxis=dict(gridcolor="#222"),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font_color="#EAEAEA",
+                showlegend=False,
+                height=280,
+                xaxis={"gridcolor": "#222"},
+                yaxis={"gridcolor": "#222"},
             )
             st.plotly_chart(fig_et, use_container_width=True)
 
@@ -127,7 +141,8 @@ with tab1:
         user_df.columns = ["User", "Total Actions", "Last Seen"]
         st.dataframe(
             user_df.style.background_gradient(subset=["Total Actions"], cmap="YlOrRd"),
-            use_container_width=True, hide_index=True,
+            use_container_width=True,
+            hide_index=True,
         )
 
     # Most changed entities
@@ -142,7 +157,9 @@ with tab1:
         recent = get_recent_actions(50)
         if recent:
             st.dataframe(
-                pd.DataFrame(recent), use_container_width=True, hide_index=True,
+                pd.DataFrame(recent),
+                use_container_width=True,
+                hide_index=True,
             )
         else:
             st.info("No audit log entries found.")
@@ -150,6 +167,7 @@ with tab1:
     st.markdown("---")
     st.markdown("### 📥 Export")
     import json
+
     st.download_button(
         "📋 Download Activity Report (JSON)",
         data=json.dumps(report, indent=2, default=str),
@@ -161,10 +179,7 @@ with tab1:
 
 with tab2:
     st.markdown("### 🔔 Current Alert Digest")
-    st.markdown(
-        "This is the same digest that gets sent via email/Slack by the "
-        "scheduled GitHub Actions workflow."
-    )
+    st.markdown("This is the same digest that gets sent via email/Slack by the scheduled GitHub Actions workflow.")
 
     digest = build_digest()
 
@@ -180,8 +195,7 @@ with tab2:
             sev_color = "#F44336" if alert["severity"] == "high" else "#FF9800"
             icon = "🔴" if alert["severity"] == "high" else "🟡"
             st.markdown(
-                f"{icon} **{alert['type'].replace('_', ' ').title()}** — "
-                f"{alert['message']} *(due: {alert['due']})*"
+                f"{icon} **{alert['type'].replace('_', ' ').title()}** — {alert['message']} *(due: {alert['due']})*"
             )
 
     st.markdown("---")
@@ -191,6 +205,7 @@ with tab2:
         with sc1:
             if st.button("📧 Send Email Digest", use_container_width=True):
                 from cyberresilient.services.notification_service import send_email_digest
+
                 ok = send_email_digest(digest)
                 st.success("Email sent!") if ok else st.error(
                     "Email failed — check SMTP_HOST, SMTP_USER, SMTP_PASS, NOTIFY_TO env vars."
@@ -198,9 +213,8 @@ with tab2:
         with sc2:
             if st.button("💬 Send Slack Digest", use_container_width=True):
                 from cyberresilient.services.notification_service import send_slack_digest
+
                 ok = send_slack_digest(digest)
-                st.success("Slack message sent!") if ok else st.error(
-                    "Slack failed — check SLACK_WEBHOOK_URL env var."
-                )
+                st.success("Slack message sent!") if ok else st.error("Slack failed — check SLACK_WEBHOOK_URL env var.")
     else:
         st.info("Admin permission required to send notifications manually.")

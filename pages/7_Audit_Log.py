@@ -3,11 +3,16 @@ Page 7 — Audit Log Viewer
 Browse and filter the audit trail of all data mutations.
 """
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
-from cyberresilient.services.auth_service import learning_callout, require_permission, has_permission, is_learning_mode
-from cyberresilient.services.learning_service import get_content, learning_section, grc_insight, audit_logging_principles
+from cyberresilient.services.auth_service import has_permission, learning_callout
+from cyberresilient.services.learning_service import (
+    audit_logging_principles,
+    get_content,
+    grc_insight,
+    learning_section,
+)
 from cyberresilient.theme import get_theme_colors
 
 colors = get_theme_colors()
@@ -43,6 +48,7 @@ def _load_audit():
     try:
         from cyberresilient.database import get_session
         from cyberresilient.services.audit_service import get_audit_log
+
         session = get_session()
         try:
             return get_audit_log(session, limit=500)
@@ -60,7 +66,8 @@ if not has_permission("view_audit_log"):
 f1, f2, f3 = st.columns(3)
 with f1:
     filter_action = st.multiselect(
-        "Action", ["create", "update", "delete", "login", "seed"],
+        "Action",
+        ["create", "update", "delete", "login", "seed"],
         default=["create", "update", "delete"],
     )
 with f2:
@@ -72,7 +79,9 @@ with f3:
 audit_data = _load_audit()
 
 if not audit_data:
-    st.info("No audit log entries found. Initialise the database with `CyberResilient init --seed` to enable audit logging.")
+    st.info(
+        "No audit log entries found. Initialise the database with `CyberResilient init --seed` to enable audit logging."
+    )
     st.stop()
 
 # Apply filters
@@ -95,17 +104,19 @@ st.markdown("---")
 
 # ── Table ───────────────────────────────────────────────────
 if filtered:
-    df = pd.DataFrame([
-        {
-            "Timestamp": e["timestamp"],
-            "User": e["user"],
-            "Action": e["action"].upper(),
-            "Entity Type": e["entity_type"],
-            "Entity ID": e["entity_id"],
-            "Details": e.get("details", ""),
-        }
-        for e in filtered
-    ])
+    df = pd.DataFrame(
+        [
+            {
+                "Timestamp": e["timestamp"],
+                "User": e["user"],
+                "Action": e["action"].upper(),
+                "Entity Type": e["entity_type"],
+                "Entity ID": e["entity_id"],
+                "Details": e.get("details", ""),
+            }
+            for e in filtered
+        ]
+    )
 
     def _color_action(val):
         colors_map = {
@@ -119,7 +130,8 @@ if filtered:
 
     st.dataframe(
         df.style.map(_color_action, subset=["Action"]),
-        use_container_width=True, hide_index=True,
+        use_container_width=True,
+        hide_index=True,
     )
 else:
     st.info("No entries match the current filters.")

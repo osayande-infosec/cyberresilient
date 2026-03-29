@@ -8,15 +8,16 @@ from __future__ import annotations
 import json
 import random
 from datetime import datetime
-from pathlib import Path
 
-from cyberresilient.config import DATA_DIR, get_config
+from cyberresilient.config import DATA_DIR
 
 
 def _db_available(table: str) -> bool:
     try:
-        from cyberresilient.database import get_engine
         from sqlalchemy import inspect
+
+        from cyberresilient.database import get_engine
+
         return inspect(get_engine()).has_table(table)
     except Exception:
         return False
@@ -26,6 +27,7 @@ def load_systems() -> list[dict]:
     if _db_available("systems"):
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import SystemRow
+
         session = get_session()
         try:
             rows = session.query(SystemRow).all()
@@ -41,6 +43,7 @@ def load_scenarios() -> list[dict]:
     if _db_available("scenarios"):
         from cyberresilient.database import get_session
         from cyberresilient.models.db_models import ScenarioRow
+
         session = get_session()
         try:
             rows = session.query(ScenarioRow).all()
@@ -106,7 +109,9 @@ def _generate_recommendations(system: dict, scenario: dict, rto_met: bool, rpo_m
         recs.append("OT System: Ensure manual override procedures are documented and staff are trained.")
         recs.append("Validate network segmentation between IT and OT (Purdue Model compliance).")
     if scenario["severity"] == "Critical":
-        recs.append("Critical scenario: Ensure executive communication plan and external notification procedures are tested.")
+        recs.append(
+            "Critical scenario: Ensure executive communication plan and external notification procedures are tested."
+        )
     if rto_met and rpo_met:
         recs.append("All targets met — schedule next test per quarterly cadence.")
         recs.append("Document successful test results and update DR plan with any process improvements noted.")
@@ -117,14 +122,62 @@ def generate_raci(system: dict, scenario: dict) -> list[dict]:
     """Generate a RACI matrix for DR activation."""
     dept = system["department"]
     return [
-        {"activity": "Declare disaster / activate DR plan", "responsible": "CISO", "accountable": "CAO", "consulted": f"{dept} Director", "informed": "All Department Heads"},
-        {"activity": "Isolate affected systems", "responsible": "Security Operations", "accountable": "CISO", "consulted": "Network Team", "informed": f"{dept} Manager"},
-        {"activity": "Activate failover / DR environment", "responsible": "Infrastructure Team", "accountable": "IT Director", "consulted": "Application Owner", "informed": "Security Operations"},
-        {"activity": "Validate data integrity post-failover", "responsible": "DBA / App Team", "accountable": "Application Owner", "consulted": "Security Operations", "informed": f"{dept} Manager"},
-        {"activity": "Communicate status to stakeholders", "responsible": "Communications", "accountable": "CAO", "consulted": "CISO", "informed": "Council / Public"},
-        {"activity": "Restore primary systems", "responsible": "Infrastructure Team", "accountable": "IT Director", "consulted": "Vendor Support", "informed": "Security Operations"},
-        {"activity": "Conduct post-mortem / lessons learned", "responsible": "Security Lead", "accountable": "CISO", "consulted": "All Participants", "informed": "IT Director"},
-        {"activity": "Update DR plan with findings", "responsible": "Security Lead", "accountable": "CISO", "consulted": f"{dept} Manager", "informed": "Audit & Compliance"},
+        {
+            "activity": "Declare disaster / activate DR plan",
+            "responsible": "CISO",
+            "accountable": "CAO",
+            "consulted": f"{dept} Director",
+            "informed": "All Department Heads",
+        },
+        {
+            "activity": "Isolate affected systems",
+            "responsible": "Security Operations",
+            "accountable": "CISO",
+            "consulted": "Network Team",
+            "informed": f"{dept} Manager",
+        },
+        {
+            "activity": "Activate failover / DR environment",
+            "responsible": "Infrastructure Team",
+            "accountable": "IT Director",
+            "consulted": "Application Owner",
+            "informed": "Security Operations",
+        },
+        {
+            "activity": "Validate data integrity post-failover",
+            "responsible": "DBA / App Team",
+            "accountable": "Application Owner",
+            "consulted": "Security Operations",
+            "informed": f"{dept} Manager",
+        },
+        {
+            "activity": "Communicate status to stakeholders",
+            "responsible": "Communications",
+            "accountable": "CAO",
+            "consulted": "CISO",
+            "informed": "Council / Public",
+        },
+        {
+            "activity": "Restore primary systems",
+            "responsible": "Infrastructure Team",
+            "accountable": "IT Director",
+            "consulted": "Vendor Support",
+            "informed": "Security Operations",
+        },
+        {
+            "activity": "Conduct post-mortem / lessons learned",
+            "responsible": "Security Lead",
+            "accountable": "CISO",
+            "consulted": "All Participants",
+            "informed": "IT Director",
+        },
+        {
+            "activity": "Update DR plan with findings",
+            "responsible": "Security Lead",
+            "accountable": "CISO",
+            "consulted": f"{dept} Manager",
+            "informed": "Audit & Compliance",
+        },
     ]
 
 
@@ -132,9 +185,10 @@ def save_simulation(result: dict, user: str = "system") -> None:
     """Persist a DR simulation result to the database."""
     if not _db_available("simulation_history"):
         return
+    import json as _json
+
     from cyberresilient.database import get_session
     from cyberresilient.models.db_models import SimulationHistoryRow
-    import json as _json
 
     session = get_session()
     try:
@@ -171,9 +225,7 @@ def load_simulation_history(limit: int = 50) -> list[dict]:
 
     session = get_session()
     try:
-        rows = (session.query(SimulationHistoryRow)
-                .order_by(SimulationHistoryRow.timestamp.desc())
-                .limit(limit).all())
+        rows = session.query(SimulationHistoryRow).order_by(SimulationHistoryRow.timestamp.desc()).limit(limit).all()
         return [r.to_dict() for r in rows]
     finally:
         session.close()

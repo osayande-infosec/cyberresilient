@@ -1,12 +1,11 @@
 """
 Compliance scoring service.
 
-Enhancements:
+Enhancements over v1:
   - Control dependency enforcement (prerequisite controls block dependents)
   - Compensating control recognition (alternative controls satisfy requirements)
   - Evidence expiry tracking per control (staleness detection)
-  - Continuous control lifecycle states beyond binary implemented/not-implemented
-  - Policy expiry proximity alerts
+  - Continuous control lifecycle states beyond the binary implemented/not-implemented
 """
 
 from __future__ import annotations
@@ -20,43 +19,64 @@ from cyberresilient.models.compliance import STATUS_WEIGHTS
 # ---------------------------------------------------------------------------
 # Evidence configuration
 # ---------------------------------------------------------------------------
-EVIDENCE_EXPIRY_DAYS: int = 365
+EVIDENCE_EXPIRY_DAYS: int = 365  # evidence older than this is flagged stale
 
 # ---------------------------------------------------------------------------
 # Control lifecycle states and their compliance weight
 # ---------------------------------------------------------------------------
+# Extends STATUS_WEIGHTS from models to include continuous lifecycle nuance.
+# These override the base weights when present.
 LIFECYCLE_WEIGHTS: dict[str, float] = {
-    "Implemented": 1.0,
-    "Compensating": 0.85,
-    "Largely": 0.65,
-    "Partial": 0.40,
-    "Planned": 0.15,
+    "Implemented": 1.0,  # fully in place, current evidence
+    "Compensating": 0.85,  # alternative control accepted by risk owner
+    "Largely": 0.65,  # controls mostly in place, documented gap
+    "Partial": 0.40,  # partially implemented, active remediation
+    "Planned": 0.15,  # remediation planned, not yet started
     "Not Implemented": 0.0,
 }
 
 # ---------------------------------------------------------------------------
-# Control dependency map
+# Control dependency map: NIST CSF subcategory prerequisites
+#
+# Format: { dependent_control_id: [prerequisite_control_id, ...] }
+# If a prerequisite is not at least "Partial", the dependent control's
+# effective weight is capped at 0.5 regardless of its own status.
+#
+# This is a representative subset — extend to full catalogue as needed.
 # ---------------------------------------------------------------------------
 CONTROL_DEPENDENCIES: dict[str, list[str]] = {
+    # DE.CM-1 (network monitoring) requires PR.AC-5 (network access management)
     "DE.CM-1": ["PR.AC-5"],
+    # DE.CM-7 (unauthorised personnel detection) requires PR.AC-3 (remote access)
     "DE.CM-7": ["PR.AC-3"],
+    # RS.CO-2 (incident reporting) requires RS.RP-1 (response plan execution)
     "RS.CO-2": ["RS.RP-1"],
+    # RC.CO-3 (comms to stakeholders) requires RC.RP-1 (recovery plan execution)
     "RC.CO-3": ["RC.RP-1"],
+    # PR.DS-5 (data leak protections) requires PR.AC-4 (access permissions)
     "PR.DS-5": ["PR.AC-4"],
+    # ID.RA-5 (threat & vuln identification) requires ID.RA-1 (asset vulns)
     "ID.RA-5": ["ID.RA-1", "ID.RA-2"],
 }
 
 # ---------------------------------------------------------------------------
 # Compensating control map
+#
+# Format: { primary_control_id: [compensating_control_id, ...] }
+# If the primary control is not implemented but a listed compensating control
+# IS implemented, the primary receives "Compensating" weight (0.85) rather
+# than 0.0 — and the fact is surfaced to the auditor.
 # ---------------------------------------------------------------------------
 COMPENSATING_CONTROLS: dict[str, list[str]] = {
+    # If PR.AC-1 (identity management) is missing, PR.AC-3 (remote access mgmt)
+    # can partially compensate.
     "PR.AC-1": ["PR.AC-3"],
+    # If DE.AE-1 (baseline of network ops) is missing, DE.CM-1 can compensate.
     "DE.AE-1": ["DE.CM-1"],
+    # If RS.MI-1 (incidents are contained) is missing, RS.MI-2 (incidents are
+    # mitigated) partially compensates.
     "RS.MI-1": ["RS.MI-2"],
 }
-
-# Default lookahead for policy-expiry alerts.
-POLICY_ALERT_WINDOW_DAYS: int = 30
 
 
 # ---------------------------------------------------------------------------
@@ -107,7 +127,10 @@ def load_policies() -> list[dict]:
 
 
 def is_evidence_stale(evidence_date: str | None) -> bool:
-    """Return True if evidence is older than EVIDENCE_EXPIRY_DAYS or unset."""
+    """
+    Return True if evidence is older than EVIDENCE_EXPIRY_DAYS or has never
+    been collected. Stale evidence downgrades a control's effective weight.
+    """
     if not evidence_date:
         return True
     try:
@@ -118,7 +141,14 @@ def is_evidence_stale(evidence_date: str | None) -> bool:
 
 
 def evidence_expiry_status(evidence_date: str | None) -> dict:
-    """Return staleness flag and days remaining / overdue."""
+    """
+    Return a dict with staleness flag and days remaining / overdue.
+
+    Example returns:
+      {"stale": False, "days_remaining": 120, "days_overdue": None}
+      {"stale": True,  "days_remaining": None, "days_overdue": 45}
+      {"stale": True,  "days_remaining": None, "days_overdue": None}  # never collected
+    """
     if not evidence_date:
         return {"stale": True, "days_remaining": None, "days_overdue": None}
     try:
@@ -141,18 +171,27 @@ def _effective_weight(
     control_id: str,
     status: str,
     evidence_date: str | None,
-    all_categories: dict,
+    all_categories: dict,  # full map of control_id -> category dict
 ) -> tuple[float, list[str]]:
-    """Compute effective compliance weight with four layers."""
+    """
+    Compute the effective compliance weight for a single control, accounting for:
+      1. Base lifecycle weight from status
+      2. Evidence staleness penalty
+      3. Dependency prerequisite caps
+      4. Compensating control uplift
+
+    Returns (weight: float, notes: list[str]).
+    """
     notes: list[str] = []
 
-    # 1. Base weight
+    # 1. Base weight — prefer LIFECYCLE_WEIGHTS, fall back to STATUS_WEIGHTS
     weight = LIFECYCLE_WEIGHTS.get(
         status,
         STATUS_WEIGHTS.get(status, 0.0),
     )
 
     # 2. Compensating control uplift
+    #    If not implemented but a compensating control is active, apply uplift.
     if weight == 0.0:
         compensators = COMPENSATING_CONTROLS.get(control_id, [])
         for comp_id in compensators:
@@ -165,6 +204,8 @@ def _effective_weight(
                 break
 
     # 3. Evidence staleness penalty
+    #    Stale evidence caps effective weight at 0.5 regardless of status,
+    #    because an unverified control cannot be credited as fully implemented.
     if is_evidence_stale(evidence_date) and weight > 0.5:
         exp = evidence_expiry_status(evidence_date)
         if exp["days_overdue"] is not None:
@@ -174,6 +215,7 @@ def _effective_weight(
         weight = min(weight, 0.5)
 
     # 4. Dependency prerequisite cap
+    #    If a prerequisite control is below "Partial", cap at 0.5.
     prereqs = CONTROL_DEPENDENCIES.get(control_id, [])
     for prereq_id in prereqs:
         prereq = all_categories.get(prereq_id, {})
@@ -192,9 +234,20 @@ def _effective_weight(
 
 
 def calc_nist_csf_scores(data: dict) -> dict:
-    """Calculate per-function and overall NIST CSF compliance with four-layer weighting."""
+    """
+    Calculate per-function and overall NIST CSF compliance.
+
+    Incorporates:
+      - Continuous lifecycle weights (not just implemented/partial/not)
+      - Evidence staleness penalties
+      - Control dependency caps
+      - Compensating control uplifts
+      - Per-control advisory notes surfaced for auditor review
+    """
     functions = data["nist_csf"]["functions"]
 
+    # Build a flat map of all control IDs to their category dict
+    # so dependency and compensating lookups work across functions.
     all_categories: dict[str, dict] = {}
     for func_data in functions.values():
         for cat_id, cat in func_data["categories"].items():
@@ -271,7 +324,12 @@ def calc_nist_csf_scores(data: dict) -> dict:
 
 
 def calc_iso27001_scores(data: dict) -> dict:
-    """Calculate ISO 27001 Annex A compliance with evidence staleness detection."""
+    """
+    Calculate ISO 27001 Annex A compliance percentages.
+
+    Now uses per-domain evidence_date for staleness detection and surfaces
+    domain-level health indicators (stale, compliant, at-risk) for dashboards.
+    """
     domains = data["iso27001"]["domains"]
     results = []
     total_controls = 0
@@ -288,11 +346,14 @@ def calc_iso27001_scores(data: dict) -> dict:
         score = imp + (par * 0.5)
         pct = round((score / t) * 100) if t > 0 else 0
 
+        # Evidence staleness check at domain level
         exp = evidence_expiry_status(evidence_date)
         if exp["stale"] and pct > 0:
+            # Penalty: cap effective score at 80% of calculated if evidence stale
             pct = min(pct, round(pct * 0.80))
             stale_evidence_domains += 1
 
+        # Domain health label
         if pct >= 80 and not exp["stale"]:
             health = "Compliant"
         elif pct >= 50:
@@ -330,7 +391,12 @@ def calc_iso27001_scores(data: dict) -> dict:
 
 
 def get_policy_summary(policies: list[dict]) -> dict:
-    """Summarise policy lifecycle status with expiry proximity alerts."""
+    """
+    Summarise policy lifecycle status.
+
+    Adds expiry proximity alerts: policies expiring within 30 days
+    are flagged so operators can act before they lapse.
+    """
     summary: dict[str, int] = {
         "Current": 0,
         "Under Review": 0,
@@ -343,17 +409,18 @@ def get_policy_summary(policies: list[dict]) -> dict:
         status = p.get("status", "Unknown")
         summary[status] = summary.get(status, 0) + 1
 
-        review_date_str = p.get("next_review")
+        # Check review_date for upcoming expiry
+        review_date_str = p.get("review_date")
         if review_date_str and status != "Expired":
             try:
                 review_date = datetime.strptime(review_date_str, "%Y-%m-%d").date()
                 days_remaining = (review_date - date.today()).days
-                if 0 <= days_remaining <= POLICY_ALERT_WINDOW_DAYS:
+                if 0 <= days_remaining <= 30:
                     expiring_soon.append(
                         {
                             "id": p.get("id"),
-                            "name": p.get("name", "Untitled"),
-                            "next_review": review_date_str,
+                            "title": p.get("title", "Untitled"),
+                            "review_date": review_date_str,
                             "days_remaining": days_remaining,
                         }
                     )
