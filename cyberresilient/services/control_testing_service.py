@@ -23,7 +23,7 @@ TEST_METHODS = ["Interview", "Observation", "Inspection", "Re-performance"]
 TEST_RESULTS = ["Pass", "Partial", "Fail"]
 
 # How each result maps to an effective compliance contribution
-RESULT_WEIGHTS = {
+RESULT_WEIGHTS = {  # nosec B105
     "Pass": 1.0,
     "Partial": 0.5,
     "Fail": 0.0,
@@ -213,8 +213,8 @@ def test_summary(framework: str) -> dict:
         session.close()
 
 
-RESULT_ICONS = {"Pass": "✅", "Partial": "⚠️", "Fail": "❌"}
-RESULT_COLORS = {"Pass": "#4CAF50", "Partial": "#FFC107", "Fail": "#F44336"}
+RESULT_ICONS = {"Pass": "✅", "Partial": "⚠️", "Fail": "❌"}  # nosec B105
+RESULT_COLORS = {"Pass": "#4CAF50", "Partial": "#FFC107", "Fail": "#F44336"}  # nosec B105
 METHOD_ICONS = {
     "Interview": "💬",
     "Observation": "👁️",

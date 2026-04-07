@@ -13,7 +13,7 @@ def get_theme_colors() -> dict[str, str]:
     return {
         "accent": cfg.branding.accent_color,
         "card_bg": cfg.branding.card_bg,
-        "pass": "#4CAF50",
+        "pass": "#4CAF50",  # nosec B105
         "fail": "#F44336",
         "warn": "#FFC107",
         "text": "#EAEAEA",

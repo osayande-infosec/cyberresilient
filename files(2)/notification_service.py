@@ -274,6 +274,9 @@ def send_slack_digest(digest: dict, webhook_url: str | None = None) -> bool:
     if not url or not digest["total_alerts"]:
         return False
 
+    if not url.startswith(("https://",)):
+        return False
+
     payload = json.dumps({"blocks": _format_slack_blocks(digest)}).encode()
     req = urllib.request.Request(
         url,
@@ -282,7 +285,7 @@ def send_slack_digest(digest: dict, webhook_url: str | None = None) -> bool:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:  # nosec B310 — controlled webhook URL
             return resp.status == 200
     except Exception:
         return False

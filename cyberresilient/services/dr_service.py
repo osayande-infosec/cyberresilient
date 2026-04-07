@@ -60,7 +60,7 @@ def simulate_dr(system: dict, scenario: dict) -> dict:
     rto_target = system["rto_target_hours"]
     rpo_target = system["rpo_target_hours"]
 
-    variance = random.uniform(0.85, 1.25)
+    variance = random.uniform(0.85, 1.25)  # nosec B311
     rto_estimated = round(rto_target * scenario["rto_impact_multiplier"] * variance, 1)
     rpo_estimated = round(rpo_target * scenario["rpo_impact_multiplier"] * variance, 1)
 

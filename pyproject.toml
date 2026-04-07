@@ -53,6 +53,7 @@ dev = [
 
 [project.scripts]
 CyberResilient = "cyberresilient.cli:main"
+cyberresilient = "cyberresilient.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/osayande-infosec/cyberresilient"

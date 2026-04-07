@@ -76,7 +76,7 @@ def build_digest() -> dict:
                             "due": ev,
                         }
                     )
-    except Exception:
+    except Exception:  # nosec B110
         pass
 
     # 2. Risk review overdue
@@ -100,7 +100,7 @@ def build_digest() -> dict:
                         "due": r.get("last_reviewed_at", "never reviewed"),
                     }
                 )
-    except Exception:
+    except Exception:  # nosec B110
         pass
 
     # 3. Policy expiry
@@ -123,7 +123,7 @@ def build_digest() -> dict:
                     "due": p["next_review"],
                 }
             )
-    except Exception:
+    except Exception:  # nosec B110
         pass
 
     # 4. CAP overdue
@@ -144,7 +144,7 @@ def build_digest() -> dict:
                         "due": cap["target_date"],
                     }
                 )
-    except Exception:
+    except Exception:  # nosec B110
         pass
 
     # 5. Vendor reassessment overdue
@@ -162,7 +162,7 @@ def build_digest() -> dict:
                     "due": v["reassessment_due"],
                 }
             )
-    except Exception:
+    except Exception:  # nosec B110
         pass
 
     high = [a for a in alerts if a["severity"] == "high"]
@@ -274,6 +274,9 @@ def send_slack_digest(digest: dict, webhook_url: str | None = None) -> bool:
     if not url or not digest["total_alerts"]:
         return False
 
+    if not url.startswith(("https://",)):
+        return False
+
     payload = json.dumps({"blocks": _format_slack_blocks(digest)}).encode()
     req = urllib.request.Request(
         url,
@@ -282,7 +285,7 @@ def send_slack_digest(digest: dict, webhook_url: str | None = None) -> bool:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:  # nosec B310
             return resp.status == 200
     except Exception:
         return False
