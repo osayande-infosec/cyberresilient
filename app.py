@@ -6,7 +6,7 @@ Main entry point for the Streamlit multi-page application.
 import streamlit as st
 
 from cyberresilient.config import get_config
-from cyberresilient.database import init_db
+from cyberresilient.database import get_session, init_db
 from cyberresilient.services.auth_service import (
     is_auth_enabled,
     is_learning_mode,
@@ -20,6 +20,20 @@ cfg = get_config()
 
 # ── Auto-initialise database tables (safe to call repeatedly) ──
 init_db()
+
+# ── Auto-seed if database is empty ──
+_session = get_session()
+try:
+    from cyberresilient.models.db_models import RiskRow
+
+    if not _session.query(RiskRow).first():
+        import argparse
+
+        from cyberresilient.cli import seed
+
+        seed(argparse.Namespace(force=False))
+finally:
+    _session.close()
 
 # ── Page Config ─────────────────────────────────────────────
 st.set_page_config(
