@@ -285,6 +285,7 @@ def send_slack_digest(digest: dict, webhook_url: str | None = None) -> bool:
         method="POST",
     )
     try:
+        # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
         with urllib.request.urlopen(req, timeout=10) as resp:  # nosec B310
             return resp.status == 200
     except Exception:
