@@ -20,7 +20,13 @@ from cyberresilient.services.cap_service import (
     load_caps,
     update_cap_status,
 )
-from cyberresilient.services.learning_service import get_content, grc_insight, try_this_panel
+from cyberresilient.services.learning_service import (
+    case_study_panel,
+    get_content,
+    grc_insight,
+    learning_section,
+    try_this_panel,
+)
 from cyberresilient.theme import get_theme_colors
 
 colors = get_theme_colors()
@@ -43,6 +49,20 @@ learning_callout(
 if lc.get("grc_connection"):
     gc = lc["grc_connection"]
     grc_insight(gc["title"].replace("GRC Engineering: ", ""), gc["content"])
+
+if lc.get("lifecycle_states"):
+    ls = lc["lifecycle_states"]
+    learning_section(ls["title"], ls["content"], icon="🔄")
+
+if lc.get("case_studies"):
+    case_study_panel(lc["case_studies"]["cases"])
+
+if lc.get("closure_checklist"):
+    cc = lc["closure_checklist"]
+    learning_section(cc["title"], cc["content"], icon="✅")
+
+if lc.get("try_this"):
+    try_this_panel(lc["try_this"]["exercises"])
 
 summary = cap_summary()
 today = date.today().isoformat()
@@ -158,9 +178,6 @@ with tab2:
                 )
 
             submitted = st.form_submit_button("➕ Raise CAP", type="primary")
-
-        if lc.get("try_this"):
-            try_this_panel(lc["try_this"]["exercises"])
 
         if submitted:
             if not title or not description or not owner:

@@ -10,7 +10,13 @@ import streamlit as st
 
 from cyberresilient.config import get_config
 from cyberresilient.services.auth_service import learning_callout
-from cyberresilient.services.learning_service import chart_navigation_guide, get_content, grc_insight, learning_section
+from cyberresilient.services.learning_service import (
+    case_study_panel,
+    chart_navigation_guide,
+    get_content,
+    grc_insight,
+    learning_section,
+)
 from cyberresilient.theme import get_theme_colors
 
 cfg = get_config()
@@ -427,6 +433,17 @@ with tab3:
     if lc.get("grc_connection"):
         gc = lc["grc_connection"]
         grc_insight(gc["title"].replace("GRC Engineering: ", ""), gc["content"])
+
+    if lc.get("case_studies"):
+        case_study_panel(lc["case_studies"]["cases"])
+
+    if lc.get("threat_actors"):
+        ta = lc["threat_actors"]
+        learning_section(ta["title"], ta["content"], icon="🎭")
+
+    if lc.get("detection_gaps"):
+        dg = lc["detection_gaps"]
+        learning_section(dg["title"], dg["content"], icon="🔍")
 
     if lc.get("navigating_charts"):
         nc = lc["navigating_charts"]

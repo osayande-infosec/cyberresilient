@@ -52,6 +52,10 @@ if lc.get("grc_connection"):
     gc = lc["grc_connection"]
     grc_insight(gc["title"].replace("GRC Engineering: ", ""), gc["content"])
 
+if lc.get("red_flags"):
+    rf = lc["red_flags"]
+    learning_section(rf["title"], rf["content"], icon="🚩")
+
 if lc.get("navigating_charts"):
     nc = lc["navigating_charts"]
     learning_section(nc["title"], nc["content"], icon="📊")

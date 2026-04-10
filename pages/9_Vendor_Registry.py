@@ -63,6 +63,18 @@ if lc.get("grc_connection"):
     gc = lc["grc_connection"]
     grc_insight(gc["title"].replace("GRC Engineering: ", ""), gc["content"])
 
+if lc.get("vendor_assessment_guide"):
+    vg = lc["vendor_assessment_guide"]
+    learning_section(vg["title"], vg["content"], icon="📋")
+
+if lc.get("try_this"):
+    try_this_panel(lc["try_this"]["exercises"])
+
+if lc.get("navigating_charts"):
+    nc = lc["navigating_charts"]
+    learning_section(nc["title"], nc["content"], icon="📊")
+    chart_navigation_guide(nc["charts"])
+
 summary = vendor_summary()
 overdue = get_overdue_vendors()
 
@@ -215,14 +227,6 @@ with tab3:
                 contract_expiry = st.date_input("Contract Expiry", value=None)
             notes = st.text_area("Notes")
             submitted = st.form_submit_button("➕ Add Vendor", type="primary")
-
-        if lc.get("try_this"):
-            try_this_panel(lc["try_this"]["exercises"])
-
-        if lc.get("navigating_charts"):
-            nc = lc["navigating_charts"]
-            learning_section(nc["title"], nc["content"], icon="📊")
-            chart_navigation_guide(nc["charts"])
 
         if submitted:
             if not name:

@@ -597,6 +597,37 @@
       "title": "Using ATT&CK for Gap Analysis",
       "content": "Walk through each tactic and its techniques. Techniques marked as 'Gap' are your detection blind spots — these should be prioritized in your security roadmap. Cross-reference with your NIST CSF Protect and Detect functions for a unified view of control effectiveness."
     },
+    "case_studies": {
+      "title": "Real-World Threat Campaigns",
+      "cases": [
+        {
+          "name": "Volt Typhoon — Critical Infrastructure Targeting (2023-2024)",
+          "summary": "A Chinese state-sponsored group (Volt Typhoon) targeted US critical infrastructure — including water utilities, energy, and transportation — using 'living-off-the-land' techniques. They avoided malware, instead using legitimate tools like PowerShell, WMI, and ntdsutil to blend into normal operations. They maintained persistence for years before detection.",
+          "lesson": "Traditional signature-based detection misses living-off-the-land attacks. ATT&CK tactics targeted: Initial Access (T1190 — Exploit Public-Facing Application), Persistence (T1078 — Valid Accounts), Lateral Movement (T1021 — Remote Services). Organisations must monitor for anomalous use of legitimate tools, not just malware signatures.",
+          "how_it_scores": "Techniques used map to ATT&CK T1190, T1078, T1021, T1059 (Command and Scripting Interpreter). If your coverage heat map shows gaps in these techniques, Volt Typhoon-style campaigns would evade your detection."
+        },
+        {
+          "name": "ALPHV/BlackCat — Ransomware-as-a-Service (2023)",
+          "summary": "ALPHV (BlackCat) ransomware affiliates attacked Change Healthcare, disrupting US pharmacy operations nationwide. The initial access was through compromised credentials (T1078) without MFA. The group exfiltrated 6TB of data before deploying ransomware, leveraging T1486 (Data Encrypted for Impact) and T1567 (Exfiltration Over Web Service).",
+          "lesson": "Ransomware groups follow predictable ATT&CK patterns: credential access → lateral movement → data staging → exfiltration → encryption. MFA enforcement blocks the most common initial access vector. Detection at the exfiltration phase (large outbound transfers) provides a last line of defense before encryption.",
+          "how_it_scores": "The kill chain spans 7+ tactics. Your ATT&CK coverage for T1078 (Valid Accounts), T1486 (Data Encrypted for Impact), and T1567 (Exfiltration Over Web Service) directly determines whether you could detect this campaign."
+        },
+        {
+          "name": "CL0P — Supply Chain Mass Exploitation (2023)",
+          "summary": "CL0P exploited zero-day SQL injection vulnerabilities in MOVEit Transfer (T1190) to steal data from 2,600+ organisations. The attack was automated — no interactive intrusion. The group staged stolen data (T1074) and exfiltrated via web services (T1567), then used extortion without encryption.",
+          "lesson": "Mass exploitation campaigns target widely-deployed third-party software. ATT&CK coverage of T1190 (Exploit Public-Facing Application) and T1567 (Exfiltration Over Web Service) are essential. Organisations must track which third-party tools are internet-facing and include them in vulnerability management.",
+          "how_it_scores": "If your gap analysis shows T1190 as a gap, any internet-facing software vulnerability becomes a potential mass exploitation vector. Cross-reference this with your Vendor Risk Registry to identify which vendors operate internet-facing data transfer tools."
+        }
+      ]
+    },
+    "threat_actors": {
+      "title": "Key Threat Actor Profiles",
+      "content": "Understanding *who* targets your sector is as important as *what* techniques they use. Here are the threat groups most relevant to critical infrastructure and public sector organisations:\n\n**Volt Typhoon (China)** — Targets critical infrastructure for pre-positioning. Uses living-off-the-land techniques exclusively. Focus: Water, energy, transportation. Key ATT&CK: T1190, T1078, T1021, T1059.\n\n**Sandworm (Russia/GRU)** — Destructive operations against critical infrastructure. Known for NotPetya (2017, $10B global damage) and Ukrainian power grid attacks (2015, 2016). Focus: Energy, government. Key ATT&CK: T1059, T1486, T1498 (DoS).\n\n**ALPHV/BlackCat** — Ransomware-as-a-Service operation targeting healthcare, finance, and government. Affiliates use varied initial access, but credential abuse (T1078) is dominant. Changed Healthcare attack disrupted US pharmacy operations.\n\n**CL0P** — Specialises in mass exploitation of file transfer software (Accellion, GoAnywhere, MOVEit). Extortion without encryption. Targets organisations with sensitive data and third-party data processors.\n\n**Lazarus Group (North Korea)** — Financial theft and espionage. Infamous for the Bangladesh Bank heist ($81M, 2016) and cryptocurrency exchange attacks. Key ATT&CK: T1566 (Phishing), T1059, T1005 (Data from Local System).\n\nTo use this intelligence: map each actor's known techniques to your coverage heatmap. Gaps in techniques used by actors *targeting your sector* are your highest-priority detection investments."
+    },
+    "detection_gaps": {
+      "title": "Prioritising Detection Gaps",
+      "content": "Not all detection gaps are equal. Use this framework to prioritise which techniques to invest in detecting first:\n\n**Tier 1 — Critical Gaps (Immediate Action):** Techniques actively used by threat actors targeting your sector that you currently cannot detect. Example: If Volt Typhoon targets water utilities with T1190 (Exploit Public-Facing Application) and your gap analysis shows T1190 as undetected, this is an urgent investment.\n\n**Tier 2 — High-Value Gaps (Next Quarter):** Techniques in the early kill chain (Initial Access, Execution) or late kill chain (Exfiltration, Impact) where detection provides maximum defensive value. Detecting early stops the attack; detecting late prevents the worst outcome.\n\n**Tier 3 — Coverage Broadening (Roadmap):** Techniques in the middle kill chain (Discovery, Collection) where detection adds depth but isn't decisive. These improve investigation capability but are less urgent than Tier 1-2.\n\n**Tip:** Cross-reference this page's gap analysis with the Risk Register. Each undetected technique used by a relevant threat actor should be a scored risk. The risk score then drives CAP creation and resource allocation."
+    },
     "grc_connection": {
       "title": "GRC Engineering: Threat-Informed Compliance",
       "content": "Traditional compliance asks 'Do you have endpoint protection?' Engineering-driven compliance asks 'Can your endpoint protection detect the techniques used by threat actors targeting your industry?' ATT&CK coverage data is evidence for NIST CSF DE.CM (Continuous Monitoring) and DE.AE (Adverse Event Analysis). The gap analysis feeds directly into your risk register — each undetected technique is a risk that needs scoring and treatment.\n\nThis is where GRC transcends checklists. Instead of 'Do you have an IDS? Yes/No,' you can say 'Our detection coverage across ATT&CK is 82%, with gaps prioritized in the risk register and a 6-month roadmap to reach 90%.' That's a fundamentally more mature compliance posture."
@@ -672,6 +703,37 @@
       "title": "What is a Corrective Action Plan?",
       "content": "A Corrective Action Plan (CAP) is a formal remediation commitment raised when a control test fails, an audit finding is issued, or a compliance gap is identified. CAPs are how organisations prove they don't just *find* problems — they *fix* them.\n\nEvery CAP has an owner, a priority, a target date, and a defined lifecycle: **Open → In Progress → Pending Verification → Closed**. Closure requires documented resolution notes, ensuring the fix is auditable. ISO 27001 Clause 10.1 requires organisations to 'react to the nonconformity and take action to control and correct it.' CAPs are that mechanism."
     },
+    "lifecycle_states": {
+      "title": "CAP Lifecycle — The Four States",
+      "content": "Every CAP progresses through four states, each with specific expectations:\n\n**1. Open** — A new finding has been documented. The owner has been assigned, a target date set, and the priority (Critical/High/Medium/Low) reflects business impact. No remediation work has started yet. The clock is ticking toward the target date.\n\n**2. In Progress** — Active remediation is underway. The owner is implementing the fix, patch, or process change. This is where most CAPs should spend the majority of their time. If a CAP stays 'Open' for too long without transitioning, it signals a governance gap.\n\n**3. Pending Verification** — The owner believes the fix is complete and is requesting independent verification. This is a critical quality gate — the person who *fixes* the issue should not be the same person who *verifies* it (segregation of duties). The verifier checks whether the control now passes its test.\n\n**4. Closed** — Verified and documented. Resolution notes are *required* to close a CAP — this is the auditable evidence that the finding was properly addressed. The closed_at timestamp creates a traceable remediation timeline. Auditors look for this exact chain: Finding → Assignment → Remediation → Verification → Closure."
+    },
+    "case_studies": {
+      "title": "Real-World CAP Scenarios",
+      "cases": [
+        {
+          "name": "Failed WAF Configuration Test",
+          "summary": "A quarterly control test of PR.PT-4 (Communications and Control Network Protection) revealed the Web Application Firewall was not blocking OWASP Top 10 payloads after a recent rule update. The WAF vendor had pushed a default configuration change that disabled custom rules.",
+          "lesson": "Control tests must cover post-change validation. The CAP required the infrastructure team to restore custom rules, add a configuration drift alert, and re-test within 14 days. Without the CAP, this regression would have persisted until the next quarterly test — or until an attacker exploited it.",
+          "how_it_scores": "Priority: Critical. Target date: 14 days. Linked to control PR.PT-4 and risk RISK-017 (Web Application Compromise). Closed in 11 days with resolution notes documenting the rule restoration and drift detection alert."
+        },
+        {
+          "name": "Unpatched VPN Gateway",
+          "summary": "A vulnerability scan flagged CVE-2024-21762 (Fortinet FortiOS out-of-bounds write) on the organisation's VPN gateway with a CVSS 9.8. The risk register already tracked this as RISK-042 (Unpatched Perimeter Devices), but no remediation action had been taken for 45 days.",
+          "lesson": "High-scoring risks in the register should automatically generate CAPs when patch windows are missed. The CAP created accountability — the network team had to patch within 7 days, verify the patch, and confirm no IOCs from the exposure window. This closed the loop between risk identification and actual remediation.",
+          "how_it_scores": "Priority: Critical. Target date: 7 days. Linked to risk RISK-042. Escalated to CISO after 3 days without status update. Closed in 6 days with emergency maintenance window."
+        },
+        {
+          "name": "Missing Disaster Recovery Backup Verification",
+          "summary": "An audit finding noted that DR backup restoration tests had not been performed for 6 months, violating the organisation's BC/DR policy requiring quarterly tests. The DR Simulator page showed no simulation history for Q1.",
+          "lesson": "Policy compliance gaps are CAP-worthy findings. The IT Operations team was assigned to run three DR simulations (one per system tier) within 30 days and document recovery times. The CAP linked to control PR.IP-9 (Response Plans) and ensured the audit finding had a traceable remediation path.",
+          "how_it_scores": "Priority: High. Target date: 30 days. Linked to control PR.IP-9. Closed in 22 days with DR simulation results attached as evidence."
+        }
+      ]
+    },
+    "closure_checklist": {
+      "title": "CAP Closure — What Auditors Expect",
+      "content": "Before closing a CAP, verify these five criteria are met:\n\n**1. Resolution Notes Documented** — Describe *what* was done, *when*, and *by whom*. 'Fixed it' is not sufficient. Example: 'Patched FortiOS to 7.4.3 on 2026-03-15 during maintenance window MW-2026-012. Verified no IOCs in 45-day exposure window via SIEM query.'\n\n**2. Independent Verification** — The person closing the CAP should ideally not be the person who performed the fix. This satisfies ISO 27001's segregation of duties requirement.\n\n**3. Root Cause Addressed** — Did the fix address the root cause, or just the symptom? A WAF rule restoration without drift detection will recur. Document preventive measures.\n\n**4. Linked Control Re-Tested** — If the CAP was raised from a failed control test, that control should be re-tested and pass before closure. The test result is your evidence.\n\n**5. Audit Trail Complete** — The CAP's status history (Open → In Progress → Pending Verification → Closed) with timestamps and actors creates the nonconformity management evidence chain that ISO 27001 Clause 10.1 requires."
+    },
     "grc_connection": {
       "title": "GRC Engineering: CAPs Close the Audit Loop",
       "content": "Finding a problem without fixing it is worse than not finding it at all — it shows you knew and did nothing. CAPs are the bridge between *detection* and *remediation*. In NIST CSF terms, they connect the Detect function (DE.AE — adverse event analysis) to the Respond function (RS.MI — incident mitigation).\n\nIn a mature GRC program, every failed control test automatically generates a CAP. The CAP tracks who is responsible, what the target date is, and requires resolution evidence before closure. This creates an unbroken chain: Control Test → Finding → CAP → Remediation → Verification → Closure. Auditors look for exactly this chain when assessing nonconformity management."
@@ -681,7 +743,8 @@
       "exercises": [
         "Raise a new CAP linked to a control ID (e.g., PR.AC-1) and set a target date 30 days out. What priority would you assign a failed access control?",
         "Transition a CAP through all four statuses: Open → In Progress → Pending Verification → Closed. Notice how closure requires resolution notes — this is the evidence an auditor needs.",
-        "Filter the CAP register to show only Critical and High priority items. In a real audit, these would be your immediate focus areas."
+        "Filter the CAP register to show only Critical and High priority items. In a real audit, these would be your immediate focus areas.",
+        "Find an overdue CAP and examine why it might be stuck. Is the owner assigned? Is the target date realistic? What would you escalate?"
       ]
     }
   },
@@ -705,8 +768,18 @@
           "summary": "The Cl0p ransomware group exploited a zero-day SQL injection in Progress Software's MOVEit Transfer, a managed file transfer tool used by hundreds of organisations. Over 2,600 organisations and 77 million individuals were affected — most were downstream customers of MOVEit users.",
           "lesson": "Third-party file transfer tools are high-value targets. Data classification matters — vendors handling Confidential or Restricted data need more frequent assessments and stricter controls.",
           "how_it_scores": "A vendor categorised as 'Data Processor' with 'Confidential' data classification would trigger a Critical criticality rating and 180-day reassessment cycle."
+        },
+        {
+          "name": "Okta Support System Breach (2023)",
+          "summary": "Attackers accessed Okta's customer support case management system using stolen credentials, then used session tokens from uploaded HAR files to impersonate customers. Cloudflare, 1Password, and BeyondTrust were among the downstream victims who detected and blocked the intrusion.",
+          "lesson": "Even identity providers — your most trusted vendors — can be compromised. Organisations that detected the intrusion had strong monitoring of their own systems. Vendor trust must be verified, not assumed. Include identity providers in your Critical vendor tier with maximum assessment frequency.",
+          "how_it_scores": "An identity provider handling authentication data would be classified as Critical criticality with Confidential data classification, triggering 180-day assessments and continuous monitoring requirements."
         }
       ]
+    },
+    "vendor_assessment_guide": {
+      "title": "Vendor Assessment Decision Framework",
+      "content": "Vendor risk assessment should follow a structured decision tree based on two dimensions: **criticality** and **data classification**.\n\n**Step 1 — Determine Criticality:** How dependent is your organisation on this vendor? Could you operate without them for 24 hours? 7 days? If the answer is 'no' for 24 hours, the vendor is Critical. If 7 days, High. Otherwise, Medium or Low.\n\n**Step 2 — Classify Data Exposure:** What data does the vendor access? Confidential (PII, financial, health) = highest risk. Internal (business processes, operational data) = moderate. Public (marketing, brochures) = lowest.\n\n**Step 3 — Set Assessment Frequency:**\n- Critical + Confidential → 180-day cycle, continuous monitoring\n- Critical/High + Internal → 365-day cycle\n- Medium + any → 18-month cycle\n- Low + Public → 24-month cycle\n\n**Step 4 — Define Contractual Controls:** Include security requirements in vendor agreements: right to audit, breach notification SLAs (72 hours for GDPR/PIPEDA), data handling and return/destruction clauses, insurance requirements.\n\n**Step 5 — Monitor Between Assessments:** Watch for: vendor breach news, certificate/domain changes, SOC 2 report expiry, declining assessment scores. Each should trigger an ad-hoc reassessment."
     },
     "grc_connection": {
       "title": "GRC Engineering: Vendor Risk in the Framework",
@@ -716,7 +789,9 @@
       "title": "Hands-On Exercises",
       "exercises": [
         "Add a new vendor with 'Critical' criticality and 'Confidential' data classification. Notice how the reassessment interval is set to 180 days automatically.",
-        "Run a security assessment on a vendor. Observe how the score determines the risk tier (Critical/High/Medium/Low) and sets the next reassessment date."
+        "Run a security assessment on a vendor. Observe how the score determines the risk tier (Critical/High/Medium/Low) and sets the next reassessment date.",
+        "Find a vendor with an overdue assessment. What questions would you ask in the reassessment? What evidence would you require?",
+        "Cross-reference a Critical vendor with the Threat Intel page — are the ATT&CK techniques used by supply chain attackers (T1195, T1199) covered in your detection?"
       ]
     },
     "navigating_charts": {
@@ -749,6 +824,10 @@
     "reading_the_report": {
       "title": "Reading the Activity Report",
       "content": "Each chart in the activity report tells a different story to an auditor:\n\n- **Daily Activity** shows operating cadence — a healthy GRC program has consistent daily activity, not long gaps followed by bursts before an audit.\n- **Actions by Type** reveals the balance of create/update/delete operations — excessive deletions could indicate data manipulation.\n- **Per-User Activity** provides segregation of duties evidence — if one person is performing all actions, that's a SoD red flag.\n- **Most Changed Records** highlights hotspots — frequently modified risks or controls may need additional scrutiny.\n\nAuditors use these patterns to assess whether the organisation is *operating* its GRC program continuously or just *updating* it before audits."
+    },
+    "red_flags": {
+      "title": "Red Flags — What Suspicious Activity Looks Like",
+      "content": "When reviewing the Activity Report, watch for these anomaly patterns that may indicate security or governance concerns:\n\n**1. Bulk Deletions** — A sudden spike in delete operations, especially for risks or controls, could indicate data manipulation or an attempt to hide findings before an audit. Investigate *who* performed the deletions and *what* was removed.\n\n**2. Segregation of Duties Violations** — If one user is performing both 'create risk' and 'close risk' actions, or both 'raise CAP' and 'close CAP,' that violates SoD principles. The Per-User Activity table makes this visible.\n\n**3. After-Hours Activity** — GRC actions performed outside business hours may be legitimate (flexible schedules) or suspicious (compromised account, insider threat). Correlate with the user's normal activity pattern.\n\n**4. Pre-Audit Burst Pattern** — Long periods of zero activity followed by a burst of creates and updates just before a scheduled audit suggests the GRC program is not operating continuously. Auditors specifically look for this pattern.\n\n**5. Score Oscillation** — A risk or control being repeatedly re-scored up and down without documented justification is a red flag. Check the Most Changed Records table for records with unusually high change counts.\n\n**6. Dormant Critical Records** — If Critical or High risks have *zero* activity over 90 days, they are not being monitored. Cross-reference with the Risk Register to ensure active risks are being reviewed at their required frequency.\n\n**7. Single-User Dominance** — When 90%+ of all GRC activity is performed by one user, the programme lacks resilience and SoD. If that person leaves, institutional knowledge leaves with them."
     },
     "deep_dive": {
       "title": "Audit Logging Principles",
