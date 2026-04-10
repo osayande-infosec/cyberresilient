@@ -9,10 +9,10 @@ venv/
 .dockerignore
 Dockerfile
 docker-compose.yml
-README.md
 CHAT_LOG.md
 reports/*.pdf
 reports/*.pptx
 .DS_Store
 Thumbs.db
 *.md
+!README.md
