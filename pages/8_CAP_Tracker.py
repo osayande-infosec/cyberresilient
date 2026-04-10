@@ -24,6 +24,7 @@ from cyberresilient.services.learning_service import (
     case_study_panel,
     get_content,
     grc_insight,
+    how_to_use_panel,
     learning_section,
     try_this_panel,
 )
@@ -45,6 +46,10 @@ learning_callout(
     "lifecycle from **Open → In Progress → Pending Verification → Closed**, ensuring "
     "every finding gets a documented fix. ISO 27001 Clause 10.1 requires this.",
 )
+
+if lc.get("how_to_use"):
+    hu = lc["how_to_use"]
+    how_to_use_panel(hu["title"], hu["steps"])
 
 if lc.get("grc_connection"):
     gc = lc["grc_connection"]

@@ -26,6 +26,7 @@ from cyberresilient.services.learning_service import (
     chart_navigation_guide,
     get_content,
     grc_insight,
+    how_to_use_panel,
     learning_section,
     try_this_panel,
 )
@@ -90,6 +91,10 @@ learning_callout(
     "Risks exceeding the organisation's risk appetite threshold require sign-off before closure. "
     "This aligns with ISO 31000 and NIST RMF (SP 800-37).",
 )
+
+if lc.get("how_to_use"):
+    hu = lc["how_to_use"]
+    how_to_use_panel(hu["title"], hu["steps"])
 
 if lc.get("heat_map_guide"):
     hmg = lc["heat_map_guide"]

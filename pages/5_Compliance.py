@@ -32,8 +32,10 @@ from cyberresilient.services.learning_service import (
     evidence_types_panel,
     get_content,
     grc_insight,
+    how_to_use_panel,
     learning_section,
     nist_function_detail,
+    try_this_panel,
 )
 from cyberresilient.theme import get_theme_colors
 
@@ -76,6 +78,10 @@ learning_callout(
     "Scores here reflect evidence quality and control dependencies, not just status.",
 )
 
+if lc.get("how_to_use"):
+    hu = lc["how_to_use"]
+    how_to_use_panel(hu["title"], hu["steps"])
+
 if lc.get("grc_engineering"):
     ge = lc["grc_engineering"]
     grc_insight(ge["title"].replace("The ", ""), ge["content"])
@@ -100,6 +106,9 @@ if lc.get("navigating_charts"):
     nc = lc["navigating_charts"]
     learning_section(nc["title"], nc["content"], icon="📊")
     chart_navigation_guide(nc.get("charts", []))
+
+if lc.get("try_this"):
+    try_this_panel(lc["try_this"]["exercises"])
 
 # ── Load & Score ─────────────────────────────────────────────
 controls_data = load_controls()

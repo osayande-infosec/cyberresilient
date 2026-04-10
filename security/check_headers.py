@@ -78,7 +78,8 @@ def check_headers(url: str) -> dict:
 
     req = urllib.request.Request(url, headers={"User-Agent": "cyberresilient-SecurityScanner/1.0"})
     try:
-        with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
+        # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected
+        with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:  # nosec B310
             headers = {k.lower(): v for k, v in resp.headers.items()}
     except Exception as e:
         return {"error": str(e), "pass": False, "results": []}

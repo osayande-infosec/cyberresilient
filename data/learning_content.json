@@ -4,7 +4,6 @@
     "description": "Structured educational content for CyberResilient learning mode",
     "author": "CyberResilient Project"
   },
-
   "glossary": {
     "MTTD": "Mean Time to Detect — the average time between a security event occurring and it being discovered. Industry benchmark: < 24 hours. Top performers: < 1 hour.",
     "MTTR": "Mean Time to Respond — the average time from detection to containment. Industry benchmark: < 72 hours. Top performers: < 4 hours.",
@@ -34,11 +33,21 @@
     "SOAR": "Security Orchestration, Automation, and Response — platforms that automate incident response playbooks and integrate security tools.",
     "SBOM": "Software Bill of Materials — a formal record of all components and dependencies in a software application, essential for supply chain security."
   },
-
   "dashboard": {
     "overview": {
       "title": "What is a Security Posture Dashboard?",
       "content": "An executive security dashboard aggregates Key Performance Indicators (KPIs) like Mean Time to Detect (MTTD), Mean Time to Respond (MTTR), patch compliance, and vulnerability counts into a single view. CISOs use dashboards like this to brief leadership and board members on the organization's cyber risk profile. The metrics here map to NIST CSF functions and ISO 27001 controls."
+    },
+    "how_to_use": {
+      "title": "How to Use This Page",
+      "steps": [
+        "Review the **Security Score Gauge** at the top — if below 60, your programme has critical gaps that need immediate attention.",
+        "Scan the **KPI Metric Cards** for red delta arrows. Each red indicator signals a deteriorating metric — click the Deep Dive expander for context and benchmarks.",
+        "Check the **GRC Health Alert Strip** for non-zero counts: appetite breaches, expired risk evidence, stale NIST controls, and expiring policies each require action.",
+        "Switch to the **Risk Portfolio Health** tab to compare inherent vs residual risk distributions — the gap between bars shows how effectively your controls reduce risk.",
+        "Use the **Department Security Metrics** tab and radar chart to identify which departments have the weakest security profiles and need targeted investment.",
+        "Export the dashboard as a **PPTX executive brief** or **JSON data** using the sidebar buttons — these serve as audit evidence for ISO 27001 management review requirements."
+      ]
     },
     "kpi_deep_dive": {
       "title": "Understanding Security KPIs",
@@ -74,11 +83,36 @@
       "title": "GRC Engineering: Dashboard as Evidence",
       "content": "In a modern GRC program, this dashboard isn't just for viewing — it's **compliance evidence**. Every metric displayed here maps to a specific control requirement. When an auditor asks 'Show me your vulnerability management process,' you don't open a spreadsheet — you show this dashboard with historical trend data, automated data collection, and traceable metrics. This is the shift from document-based GRC to **engineering-driven GRC**.",
       "evidence_mapping": [
-        {"metric": "MTTD/MTTR", "nist_csf": "DE.AE, RS.AN", "iso27001": "A.5.25, A.5.26", "evidence_type": "Automated from SIEM/SOAR"},
-        {"metric": "Patch Compliance", "nist_csf": "PR.IP-12", "iso27001": "A.8.8", "evidence_type": "Automated from endpoint management"},
-        {"metric": "Vulnerability Count", "nist_csf": "ID.RA", "iso27001": "A.8.8", "evidence_type": "Automated from vulnerability scanner"},
-        {"metric": "Compliance Score", "nist_csf": "GV.OC", "iso27001": "A.5.36", "evidence_type": "Calculated from control assessments"},
-        {"metric": "Incident Trend", "nist_csf": "DE.AE, RS.MA", "iso27001": "A.5.24", "evidence_type": "Automated from ticketing system"}
+        {
+          "metric": "MTTD/MTTR",
+          "nist_csf": "DE.AE, RS.AN",
+          "iso27001": "A.5.25, A.5.26",
+          "evidence_type": "Automated from SIEM/SOAR"
+        },
+        {
+          "metric": "Patch Compliance",
+          "nist_csf": "PR.IP-12",
+          "iso27001": "A.8.8",
+          "evidence_type": "Automated from endpoint management"
+        },
+        {
+          "metric": "Vulnerability Count",
+          "nist_csf": "ID.RA",
+          "iso27001": "A.8.8",
+          "evidence_type": "Automated from vulnerability scanner"
+        },
+        {
+          "metric": "Compliance Score",
+          "nist_csf": "GV.OC",
+          "iso27001": "A.5.36",
+          "evidence_type": "Calculated from control assessments"
+        },
+        {
+          "metric": "Incident Trend",
+          "nist_csf": "DE.AE, RS.MA",
+          "iso27001": "A.5.24",
+          "evidence_type": "Automated from ticketing system"
+        }
       ]
     },
     "navigating_charts": {
@@ -163,13 +197,33 @@
           "what_to_look_for": "Red-shaded cells are immediate attention items. Compare departments to identify outliers. A department with high Risk Score AND low Compliance % is your highest-priority remediation target."
         }
       ]
+    },
+    "try_this": {
+      "title": "Hands-On Exercises",
+      "exercises": [
+        "Identify the three lowest-scoring KPI metrics on the dashboard. For each one, write down what specific control or investment would improve it.",
+        "Toggle between departments in the radar chart. Which department has the most uneven profile? What single improvement would you prioritise for them?",
+        "Export the dashboard as a PPTX brief. Review it as if presenting to a board of directors — what questions would the board likely ask?",
+        "Check the GRC Health Alert Strip. For each non-zero alert, trace it back to its source page (Risk Register, Compliance, or Policy Lifecycle) and identify the root cause."
+      ]
     }
   },
-
   "dr_simulator": {
     "overview": {
       "title": "What is DR/BC Testing?",
       "content": "Disaster Recovery (DR) and Business Continuity (BC) testing validates that your organization can recover critical systems within target timeframes. **RTO** (Recovery Time Objective) = max acceptable downtime. **RPO** (Recovery Point Objective) = max acceptable data loss. Organizations typically test quarterly for Tier 1 systems per NIST SP 800-34."
+    },
+    "how_to_use": {
+      "title": "How to Use This Page",
+      "steps": [
+        "Select a **system** from the dropdown in the sidebar — start with Tier 1 critical systems as these have the tightest RTO/RPO targets.",
+        "Choose a **threat scenario** (e.g., Ransomware, Natural Disaster, Hardware Failure) to simulate different disaster types.",
+        "Click **Run Simulation** to generate estimated RTO and RPO values based on the system’s DR configuration and the scenario’s severity.",
+        "Review the **RTO/RPO gauges** — green means recovery is within your target, red means the target is exceeded and your DR strategy needs improvement.",
+        "Check the **RACI matrix** below the results to verify DR roles are properly assigned and no single person is a bottleneck.",
+        "Visit the **Simulation History** tab to review past test results and identify systems that consistently fail — these need structural DR investment.",
+        "Export simulation results using the sidebar — these serve as audit evidence for ISO 27001 A.5.29 and NIST CSF PR.IP-9."
+      ]
     },
     "case_studies": {
       "title": "Real-World DR Lessons",
@@ -192,14 +246,6 @@
           "lesson": "The cost of recovery without preparation far exceeds ransom demands AND the cost of proper DR infrastructure. RPO failures (lost court records) can be permanent. Test your backup integrity — having backups isn't enough if they're corrupted or incomplete.",
           "rto_context": "Atlanta's recovery took months for full restoration. Municipal governments handle life-safety services — this isn't just about money, it's about public safety."
         }
-      ]
-    },
-    "try_this": {
-      "title": "Try This Exercise",
-      "exercises": [
-        "Select the 'ERP/Financial System' and run the Ransomware scenario. Compare the estimated RTO to Colonial Pipeline's 5-day outage. Could your finance team operate manually for that long?",
-        "Run every scenario against your Tier 1 systems. If any simulation FAILS (red), that's a real gap that would hurt during a real incident. What would you change about the DR strategy to make it pass?",
-        "Look at the RACI matrix. Is there a single person who is 'Responsible' for too many activities? That's a bottleneck. In a real crisis, that person becomes a single point of failure."
       ]
     },
     "grc_connection": {
@@ -239,13 +285,31 @@
           "what_to_look_for": "Look for patterns: does a specific system consistently fail? Does a particular scenario always exceed targets? Recurring failures for the same system indicate a structural DR weakness that needs investment, not just re-testing."
         }
       ]
+    },
+    "try_this": {
+      "title": "Try This Exercise",
+      "exercises": [
+        "Select the 'ERP/Financial System' and run the Ransomware scenario. Compare the estimated RTO to Colonial Pipeline's 5-day outage. Could your finance team operate manually for that long?",
+        "Run every scenario against your Tier 1 systems. If any simulation FAILS (red), that's a real gap that would hurt during a real incident. What would you change about the DR strategy to make it pass?",
+        "Look at the RACI matrix. Is there a single person who is 'Responsible' for too many activities? That's a bottleneck. In a real crisis, that person becomes a single point of failure."
+      ]
     }
   },
-
   "incident_response": {
     "overview": {
       "title": "What is Incident Response?",
       "content": "Incident Response (IR) is the systematic process of preparing for, detecting, containing, eradicating, and recovering from cybersecurity incidents. NIST SP 800-61 Rev 2 defines four phases: **Preparation → Detection & Analysis → Containment, Eradication & Recovery → Post-Incident Activity**. Every organization needs a tested IR plan — tabletop exercises simulate incidents so teams can practice decision-making under pressure."
+    },
+    "how_to_use": {
+      "title": "How to Use This Page",
+      "steps": [
+        "Start with the **IR Lifecycle** tab — review the flow chart showing all six NIST 800-61r2 phases. Click each phase’s expander for detailed activities.",
+        "Navigate to the **Tabletop Exercise** tab and select a scenario (e.g., Ransomware, Data Breach, Insider Threat).",
+        "Answer each decision question carefully — review the colour-coded feedback: green = correct, amber = partial, red = incorrect.",
+        "After completing an exercise, review your total score and re-read feedback for any missed questions to strengthen your IR decision-making.",
+        "Use the **Post-Mortem** tab to document lessons learned from real or simulated incidents — this creates structured after-action reports.",
+        "Export exercise results and post-mortem documents as compliance evidence for NIST CSF RS.RP-1 and ISO 27001 A.5.24–A.5.28."
+      ]
     },
     "case_studies": {
       "title": "Incident Response in Practice",
@@ -299,13 +363,32 @@
           "what_to_look_for": "Focus on the feedback text, not just the score. Partial answers often reveal nuances — for example, the difference between 'notify immediately' vs 'wait for confirmation' under MFIPPA breach obligations. Use incorrect answers as learning opportunities to update your IR playbooks."
         }
       ]
+    },
+    "try_this": {
+      "title": "Hands-On Exercises",
+      "exercises": [
+        "Complete the Ransomware tabletop exercise. After finishing, review which NIST 800-61r2 phase your weakest answers fell in — that phase needs the most practice.",
+        "Run through the Data Breach scenario. Note the timeline pressure — under MFIPPA, how quickly must you notify affected individuals? Does your response meet that deadline?",
+        "Write a post-mortem for a simulated incident using the Post-Mortem tab. Include root cause, timeline, containment actions, what worked, and what needs improvement.",
+        "Review the IR Lifecycle flow chart and identify which phase your organisation is least prepared for. List three actions you would take to strengthen it."
+      ]
     }
   },
-
   "risk_register": {
     "overview": {
       "title": "What is a Risk Register?",
       "content": "A risk register is the central tool for tracking identified cybersecurity risks. Each risk is scored using a **Likelihood × Impact** matrix (typically 5×5), producing a risk score from 1–25. Risks are categorized as Low (1–4), Medium (5–9), High (10–15), or Very High (16–25). Risk owners are assigned to drive mitigation actions. This process aligns with ISO 31000 and NIST RMF (SP 800-37)."
+    },
+    "how_to_use": {
+      "title": "How to Use This Page",
+      "steps": [
+        "Review the **5×5 heat map** in the Risk Register tab — toggle between Inherent and Residual views to see how effectively controls reduce risk.",
+        "Click individual **risk expanders** below the heat map to see full details: scores, mitigation strategy, evidence dates, and lifecycle status.",
+        "Create a new risk using the **Add Risk** form: assign likelihood (1–5), impact (1–5), owner, category, and treatment strategy.",
+        "Visit the **Architecture Advisor** tab to run security assessments on cloud or SaaS products — failed checks should become risk register entries.",
+        "Use the **severity and status filters** in the sidebar to focus on high-priority items (Very High/High, Open status).",
+        "Export the register as **JSON or CSV** using the sidebar buttons — these are your primary audit evidence for NIST CSF ID.RA and ISO 31000."
+      ]
     },
     "heat_map_guide": {
       "title": "Reading the Risk Heat Map",
@@ -331,14 +414,6 @@
           "mitigation": "Emergency patching within 48 hours, network segmentation, MFA on VPN, monitoring VPN logs for anomalous access patterns.",
           "lesson": "Nation-state actors actively exploit unpatched VPN appliances within days of disclosure. Very High risks like these demand emergency patching SLAs and compensating controls until patches are applied."
         }
-      ]
-    },
-    "try_this": {
-      "title": "Try This Exercise",
-      "exercises": [
-        "Create a new risk for 'Unpatched VPN Gateway' — set Likelihood to 5, Impact to 4. This gives a score of 20 (Very High). What mitigation would you write? Think about both immediate actions (patch) and long-term improvements (automated patching).",
-        "Look at the Architecture Advisor tab. Run an assessment for a cloud SaaS product your organization uses. Every failed check represents an unmitigated risk that should appear in the risk register. Try creating those risks.",
-        "Find the highest-scoring risk in the register. What would it take to move it from 'Open' to 'Mitigating'? What specific controls would reduce the likelihood or impact?"
       ]
     },
     "grc_connection": {
@@ -371,13 +446,32 @@
           "what_to_look_for": "Look for risks with expired evidence (flagged with 🗂️) — these need evidence refresh. Risks in 'Open' status with Very High inherent scores are your top priorities. The 'Appetite Breach' warning means the residual score still exceeds your organisation's stated risk tolerance."
         }
       ]
+    },
+    "try_this": {
+      "title": "Try This Exercise",
+      "exercises": [
+        "Create a new risk for 'Unpatched VPN Gateway' — set Likelihood to 5, Impact to 4. This gives a score of 20 (Very High). What mitigation would you write? Think about both immediate actions (patch) and long-term improvements (automated patching).",
+        "Look at the Architecture Advisor tab. Run an assessment for a cloud SaaS product your organization uses. Every failed check represents an unmitigated risk that should appear in the risk register. Try creating those risks.",
+        "Find the highest-scoring risk in the register. What would it take to move it from 'Open' to 'Mitigating'? What specific controls would reduce the likelihood or impact?"
+      ]
     }
   },
-
   "compliance": {
     "overview": {
       "title": "Why Compliance Frameworks Matter",
       "content": "Compliance frameworks like **NIST CSF** and **ISO 27001** provide structured approaches to managing cybersecurity risk. They are not checkbox exercises — they are engineering blueprints for building a defensible security program."
+    },
+    "how_to_use": {
+      "title": "How to Use This Page",
+      "steps": [
+        "Start with the **NIST CSF 2.0** tab — review the function bar chart and identify any functions falling below the 80% target line.",
+        "Expand **Category-Level Detail** sections to see individual control statuses, effective weights, and evidence freshness flags.",
+        "Use the **Sunburst chart** for a visual overview — click any function segment to drill into its controls. Red outer segments are your highest-priority gaps.",
+        "Switch to the **ISO 27001 and MFIPPA** tab to review ISO domain compliance. Expand domain details for health status and individual control counts.",
+        "Check the **Policy Lifecycle** tab — address any expired policies (red) immediately and review policies flagged as expiring within 30 days.",
+        "Review the **Audit Readiness Gauge** at the bottom — the breakdown table shows which component (NIST 40%, ISO 35%, Policy 25%) needs the most attention.",
+        "Export compliance data as **JSON** using the sidebar for auditor-ready evidence packages."
+      ]
     },
     "grc_engineering": {
       "title": "The Compliance Engineering Manifesto",
@@ -515,12 +609,30 @@
       "title": "What Auditors Actually Want to See",
       "content": "Auditors don't want to see perfection — they want to see a **defensible program**. That means: risks are identified and tracked, controls are implemented and tested, evidence is organized and accessible, gaps have remediation plans with timelines, and management is engaged (governance).",
       "auditor_questions": [
-        {"question": "How do you identify and prioritize cybersecurity risks?", "evidence": "Risk register with scoring methodology, heat map, regular review cadence (audit log shows updates)"},
-        {"question": "Show me your incident response capability.", "evidence": "IR plan document, tabletop exercise reports (from Tab 2), post-mortem documents (from Tab 3), IR plan revision history"},
-        {"question": "How do you ensure business continuity?", "evidence": "DR simulation history with pass/fail results, RTO/RPO comparisons, remediation actions from failed tests"},
-        {"question": "How do you manage third-party risk?", "evidence": "Architecture Security Assessment results (Risk Register Tab 2), vendor risk scoring, third-party data sharing agreements"},
-        {"question": "How do you monitor compliance on an ongoing basis?", "evidence": "Compliance dashboard with trend data, audit readiness score history, gap analysis with remediation timelines"},
-        {"question": "How do you handle policy management?", "evidence": "Policy lifecycle tracker showing current/review/draft/expired status, policy approval dates, review frequencies"}
+        {
+          "question": "How do you identify and prioritize cybersecurity risks?",
+          "evidence": "Risk register with scoring methodology, heat map, regular review cadence (audit log shows updates)"
+        },
+        {
+          "question": "Show me your incident response capability.",
+          "evidence": "IR plan document, tabletop exercise reports (from Tab 2), post-mortem documents (from Tab 3), IR plan revision history"
+        },
+        {
+          "question": "How do you ensure business continuity?",
+          "evidence": "DR simulation history with pass/fail results, RTO/RPO comparisons, remediation actions from failed tests"
+        },
+        {
+          "question": "How do you manage third-party risk?",
+          "evidence": "Architecture Security Assessment results (Risk Register Tab 2), vendor risk scoring, third-party data sharing agreements"
+        },
+        {
+          "question": "How do you monitor compliance on an ongoing basis?",
+          "evidence": "Compliance dashboard with trend data, audit readiness score history, gap analysis with remediation timelines"
+        },
+        {
+          "question": "How do you handle policy management?",
+          "evidence": "Policy lifecycle tracker showing current/review/draft/expired status, policy approval dates, review frequencies"
+        }
       ]
     },
     "navigating_charts": {
@@ -577,13 +689,32 @@
           "what_to_look_for": "If the score is below 70%, review the breakdown table to identify which component (NIST, ISO, or Policy) is dragging the score down. The evidence penalty row shows how many points are lost due to stale evidence — refreshing evidence is often the quickest way to improve the score."
         }
       ]
+    },
+    "try_this": {
+      "title": "Hands-On Exercises",
+      "exercises": [
+        "Find all NIST CSF controls flagged with stale evidence. Calculate how many audit readiness points you would gain by refreshing their evidence.",
+        "Identify the lowest-scoring NIST CSF function. Expand its category detail and list the three highest-priority controls to address first.",
+        "Check the Policy Lifecycle tab. How many policies are expiring within 30 days? Draft a review schedule assigning a reviewer and target date for each.",
+        "Compare your NIST CSF and ISO 27001 scores. If one framework scores significantly lower, identify which controls are shared between frameworks and would improve both scores simultaneously."
+      ]
     }
   },
-
   "threat_intel": {
     "overview": {
       "title": "What is MITRE ATT&CK?",
       "content": "MITRE ATT&CK (Adversarial Tactics, Techniques, and Common Knowledge) is a globally-accessible knowledge base of adversary behavior. It organizes attack techniques into **14 Tactics** (the 'why') and hundreds of **Techniques** (the 'how'). Security teams use ATT&CK to evaluate detection coverage, prioritize defenses, and communicate threats in a common language."
+    },
+    "how_to_use": {
+      "title": "How to Use This Page",
+      "steps": [
+        "Review the **MITRE ATT&CK coverage heatmap** — green cells show strong detection, red cells are gaps that adversaries could exploit.",
+        "Explore the **attack chain visualisation** to understand how adversaries chain tactics from Initial Access through to Impact.",
+        "Use the **Technique Selector** to look up details on specific ATT&CK techniques — each includes detection recommendations and data sources.",
+        "Review your **Coverage Summary** to see overall detection posture per tactic and identify which tactics need the most investment.",
+        "Scroll down to the learning section to study **threat actor profiles** relevant to your industry and their preferred techniques.",
+        "Use the **detection gap analysis** to prioritise which sensors, log sources, or SIEM rules to deploy for maximum coverage improvement."
+      ]
     },
     "heatmap_guide": {
       "title": "Reading a Coverage Heatmap",
@@ -658,13 +789,31 @@
           "what_to_look_for": "Focus on Gaps Only view to build a remediation backlog. Techniques with 'recommended' in the control column are aspirational — you haven't deployed detection yet. Cross-reference gap techniques with your risk register to ensure each gap is recorded as a scored risk."
         }
       ]
+    },
+    "try_this": {
+      "title": "Hands-On Exercises",
+      "exercises": [
+        "Find the ATT&CK tactic with the lowest detection coverage on the heatmap. Research two specific SIEM rules or sensors you would deploy to improve coverage for that tactic.",
+        "Choose one threat actor profile from the learning section. Map their preferred techniques to your heatmap — which of their techniques are you NOT detecting?",
+        "Trace a full attack chain from Initial Access to Impact using the visualisation. At which phase would your defences first detect the adversary?",
+        "Identify three ATT&CK techniques in the red detection gap category. For each, list the data source needed to enable detection (e.g., process monitoring, DNS logs, authentication logs)."
+      ]
     }
   },
-
   "audit_log": {
     "overview": {
       "title": "Why Audit Logs Matter",
       "content": "Audit logs provide a tamper-evident record of who did what, when. They are essential for compliance, incident investigation, and insider threat detection."
+    },
+    "how_to_use": {
+      "title": "How to Use This Page",
+      "steps": [
+        "Set the **date range filter** in the sidebar to focus on a specific reporting period (default: last 90 days).",
+        "Review the **event table** — sort by timestamp, user, or action type to find specific activities.",
+        "Use the **action type filter** (create, update, delete) to isolate specific activity patterns for investigation.",
+        "Look for **anomalies**: bulk deletions, after-hours activity, or a single user performing actions that should require segregation of duties.",
+        "Use the **export button** to download the audit trail as compliance evidence for ISO 27001 A.8.15 and NIST 800-53 AU-2."
+      ]
     },
     "deep_dive": {
       "title": "Audit Logging Best Practices",
@@ -695,13 +844,32 @@
     "grc_connection": {
       "title": "GRC Engineering: The Audit Trail as the Foundation",
       "content": "The audit log is the bedrock of compliance engineering. Every action in this platform — risk creation, DR simulation, policy export — is logged with who, what, when. This isn't just good practice, it's the mechanism that makes every other compliance activity auditable. Without audit logs, you have claims. With audit logs, you have evidence.\n\nIn a traditional GRC setup, someone manually logs 'Risk reviewed on Q3' in a spreadsheet. In this system, the audit trail automatically records every time a risk is viewed, modified, or reviewed — with the exact user, timestamp, and before/after values. Auditors love this because it's tamper-resistant and complete."
+    },
+    "try_this": {
+      "title": "Hands-On Exercises",
+      "exercises": [
+        "Filter the audit log to show only delete actions. Are any of these unexpected? Investigate who performed them and what records were deleted.",
+        "Look at the per-user activity breakdown. Is any single user responsible for more than 50% of all actions? What segregation of duties concerns does this raise?",
+        "Set the date range to the past 7 days. Identify the busiest single day and determine whether the activity spike was routine maintenance or warrants investigation.",
+        "Find an example of a risk or control being modified multiple times in a short period. Is there a documented justification for each change?"
+      ]
     }
   },
-
   "cap_tracker": {
     "overview": {
       "title": "What is a Corrective Action Plan?",
       "content": "A Corrective Action Plan (CAP) is a formal remediation commitment raised when a control test fails, an audit finding is issued, or a compliance gap is identified. CAPs are how organisations prove they don't just *find* problems — they *fix* them.\n\nEvery CAP has an owner, a priority, a target date, and a defined lifecycle: **Open → In Progress → Pending Verification → Closed**. Closure requires documented resolution notes, ensuring the fix is auditable. ISO 27001 Clause 10.1 requires organisations to 'react to the nonconformity and take action to control and correct it.' CAPs are that mechanism."
+    },
+    "how_to_use": {
+      "title": "How to Use This Page",
+      "steps": [
+        "Review the **CAP register** — sort by priority (Critical first) and check the Target Date column for overdue items.",
+        "Create a new CAP using the **Add CAP** form: link it to a control ID (e.g., PR.AC-1), assign an owner, set priority, and define a target date.",
+        "Transition CAPs through the lifecycle: **Open → In Progress → Pending Verification → Closed** using the status update controls.",
+        "When closing a CAP, add detailed **resolution notes** — auditors require documented evidence of what was done, when, and by whom.",
+        "Filter by **Pending Verification** status to find CAPs awaiting independent review — the verifier should not be the same person who performed the fix.",
+        "Use the **metrics view** to track average resolution time, overdue percentages, and CAP aging trends."
+      ]
     },
     "lifecycle_states": {
       "title": "CAP Lifecycle — The Four States",
@@ -748,11 +916,21 @@
       ]
     }
   },
-
   "vendor_risk": {
     "overview": {
       "title": "Why Third-Party Risk Matters",
       "content": "Your security posture is only as strong as your weakest vendor. Third-party risk management (TPRM) ensures that organisations assess, monitor, and govern the security practices of their suppliers, cloud providers, and service partners.\n\nNIST CSF 2.0 added an entire function — **Govern (GV.SC)** — dedicated to Supply Chain Risk Management. ISO 27001:2022 addresses it through A.5.19–A.5.23 (Supplier Relationships). The message is clear: you are accountable for risks introduced by your vendors, even if you don't control their systems."
+    },
+    "how_to_use": {
+      "title": "How to Use This Page",
+      "steps": [
+        "Review the **vendor list** — check each vendor’s risk tier (Critical, High, Medium, Low) and their last assessment date.",
+        "Add a new vendor using the **Add Vendor** form: enter the vendor name, services provided, data access level, and risk tier classification.",
+        "Complete a **vendor risk assessment** using the built-in questionnaire to generate a risk score for each vendor.",
+        "Review vendor risk scores and **flag vendors** that exceed your organisation’s risk appetite threshold for escalation.",
+        "Track **contract expiration dates** and schedule re-assessments before renewal to ensure continuous vendor oversight.",
+        "Export the vendor registry as evidence for **NIST CSF GV.SC** (Supply Chain Risk Management) and **ISO 27001 A.5.19–A.5.23**."
+      ]
     },
     "case_studies": {
       "title": "Real-World Vendor Risk Incidents",
@@ -785,15 +963,6 @@
       "title": "GRC Engineering: Vendor Risk in the Framework",
       "content": "NIST CSF 2.0's Govern function includes GV.SC (Supply Chain Risk Management) with categories covering due diligence, contractual requirements, and continuous monitoring. ISO 27001 A.5.19 requires 'processes and procedures for managing information security risks associated with the use of supplier products or services.'\n\nThis platform implements tiered vendor risk through criticality-based reassessment intervals: Critical vendors every 180 days, High every 365 days, Medium every 18 months, Low every 2 years. Each assessment uses the same security control checklist and automatically updates the vendor's risk tier. The result is a living vendor risk register — not a one-time spreadsheet that goes stale after procurement."
     },
-    "try_this": {
-      "title": "Hands-On Exercises",
-      "exercises": [
-        "Add a new vendor with 'Critical' criticality and 'Confidential' data classification. Notice how the reassessment interval is set to 180 days automatically.",
-        "Run a security assessment on a vendor. Observe how the score determines the risk tier (Critical/High/Medium/Low) and sets the next reassessment date.",
-        "Find a vendor with an overdue assessment. What questions would you ask in the reassessment? What evidence would you require?",
-        "Cross-reference a Critical vendor with the Threat Intel page — are the ATT&CK techniques used by supply chain attackers (T1195, T1199) covered in your detection?"
-      ]
-    },
     "navigating_charts": {
       "title": "Navigating the Vendor Registry Charts & Diagrams",
       "content": "The Vendor Registry uses a donut chart and detailed vendor cards to visualise your third-party risk landscape. Here is how to read each one.",
@@ -813,13 +982,32 @@
           "what_to_look_for": "Look for vendors with ⏰ OVERDUE flags — these need immediate reassessment. Vendors with declining assessment scores may need contract review. Cross-reference Critical criticality vendors with their data classification — a Critical vendor handling Confidential data that scores poorly is your highest-priority remediation target."
         }
       ]
+    },
+    "try_this": {
+      "title": "Hands-On Exercises",
+      "exercises": [
+        "Add a new vendor with 'Critical' criticality and 'Confidential' data classification. Notice how the reassessment interval is set to 180 days automatically.",
+        "Run a security assessment on a vendor. Observe how the score determines the risk tier (Critical/High/Medium/Low) and sets the next reassessment date.",
+        "Find a vendor with an overdue assessment. What questions would you ask in the reassessment? What evidence would you require?",
+        "Cross-reference a Critical vendor with the Threat Intel page — are the ATT&CK techniques used by supply chain attackers (T1195, T1199) covered in your detection?"
+      ]
     }
   },
-
   "activity_report": {
     "overview": {
       "title": "Why Audit Trails Matter",
       "content": "An audit trail is the chronological record of every action taken in a system — who did what, when, and to which record. It provides three critical capabilities: **non-repudiation** (you can't deny an action you took), **accountability** (every change has an owner), and **segregation of duties evidence** (you can prove different people performed different steps).\n\nISO 27001 A.8.15 requires organisations to produce, store, protect, and analyse logs. NIST CSF's Detect function (DE.AE) requires 'analysis of detected adverse events.' The activity report transforms raw audit log entries into actionable intelligence for auditors and security managers."
+    },
+    "how_to_use": {
+      "title": "How to Use This Page",
+      "steps": [
+        "Set the **reporting period** using the date range filter in the sidebar (default: last 90 days).",
+        "Review the **Daily Activity** chart — a healthy GRC programme shows consistent daily activity, not long gaps followed by pre-audit bursts.",
+        "Check **Actions by Type** (create, update, delete) — a spike in deletions could indicate data manipulation and warrants investigation.",
+        "Review **Per-User Activity** for segregation of duties evidence — if one user performs 90%+ of all actions, the programme lacks resilience.",
+        "Examine **Most Changed Records** for items with unusually high change counts — repeated re-scoring without justification is a red flag.",
+        "Export the activity report using the sidebar button as compliance evidence for ISO 27001 A.8.15 and NIST CSF DE.AE."
+      ]
     },
     "reading_the_report": {
       "title": "Reading the Activity Report",
@@ -903,6 +1091,15 @@
           "how_to_read": "Each row shows an entity type, record identifier, and total change count. Records are sorted by change count descending.",
           "what_to_look_for": "Frequently changed records may need additional scrutiny — are scores oscillating? Is a risk being repeatedly re-scored without clear justification? Conversely, records with very few changes that should be reviewed regularly (e.g., critical risks) highlight potential review gaps."
         }
+      ]
+    },
+    "try_this": {
+      "title": "Hands-On Exercises",
+      "exercises": [
+        "Review the Daily Activity chart for the past 90 days. Can you identify any pre-audit burst patterns (long silence followed by a spike) or dormant periods longer than a week?",
+        "Use the Per-User Activity table to check segregation of duties. Does any user appear in both create-risk and close-risk actions? Document the SoD concern.",
+        "Find the most-changed record in the Most Changed Records table. Look up its full change history — are all modifications justified with proper documentation?",
+        "Export the activity report and review it as if you were an external auditor. What three questions would you ask the GRC team based on the patterns you see?"
       ]
     }
   }

@@ -18,7 +18,9 @@ from cyberresilient.services.learning_service import (
     chart_navigation_guide,
     get_content,
     grc_insight,
+    how_to_use_panel,
     learning_section,
+    try_this_panel,
 )
 from cyberresilient.services.notification_service import build_digest
 from cyberresilient.theme import get_theme_colors
@@ -40,6 +42,10 @@ learning_callout(
     "requires organisations to produce, store, protect, and analyse logs.",
 )
 
+if lc.get("how_to_use"):
+    hu = lc["how_to_use"]
+    how_to_use_panel(hu["title"], hu["steps"])
+
 if lc.get("reading_the_report"):
     rr = lc["reading_the_report"]
     learning_section(rr["title"], rr["content"], icon="📊")
@@ -60,6 +66,9 @@ if lc.get("navigating_charts"):
     nc = lc["navigating_charts"]
     learning_section(nc["title"], nc["content"], icon="📊")
     chart_navigation_guide(nc["charts"])
+
+if lc.get("try_this"):
+    try_this_panel(lc["try_this"]["exercises"])
 
 tab1, tab2 = st.tabs(["📋 Activity Report", "🔔 Alert Digest"])
 

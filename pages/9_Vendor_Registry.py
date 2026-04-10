@@ -17,6 +17,7 @@ from cyberresilient.services.learning_service import (
     chart_navigation_guide,
     get_content,
     grc_insight,
+    how_to_use_panel,
     learning_section,
     try_this_panel,
 )
@@ -55,6 +56,10 @@ learning_callout(
     "ISO 27001 A.5.19–A.5.23 covers Supplier Relationships. You are accountable "
     "for risks introduced by your vendors, even if you don't control their systems.",
 )
+
+if lc.get("how_to_use"):
+    hu = lc["how_to_use"]
+    how_to_use_panel(hu["title"], hu["steps"])
 
 if lc.get("case_studies"):
     case_study_panel(lc["case_studies"]["cases"])

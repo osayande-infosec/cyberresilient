@@ -22,6 +22,7 @@ from cyberresilient.services.learning_service import (
     chart_navigation_guide,
     get_content,
     grc_insight,
+    how_to_use_panel,
     learning_section,
     try_this_panel,
 )
@@ -46,6 +47,10 @@ learning_callout(
     "**RPO** (Recovery Point Objective) = max acceptable data loss. "
     "Organizations typically test quarterly for Tier 1 systems per NIST SP 800-34.",
 )
+
+if lc.get("how_to_use"):
+    hu = lc["how_to_use"]
+    how_to_use_panel(hu["title"], hu["steps"])
 
 # Case studies and exercises (learning mode)
 if lc.get("case_studies"):

@@ -11,7 +11,9 @@ from cyberresilient.services.learning_service import (
     audit_logging_principles,
     get_content,
     grc_insight,
+    how_to_use_panel,
     learning_section,
+    try_this_panel,
 )
 from cyberresilient.theme import get_theme_colors
 
@@ -31,6 +33,10 @@ learning_callout(
 
 lc = get_content("audit_log")
 
+if lc.get("how_to_use"):
+    hu = lc["how_to_use"]
+    how_to_use_panel(hu["title"], hu["steps"])
+
 # Audit logging best practices deep dive
 if lc.get("deep_dive"):
     dd = lc["deep_dive"]
@@ -41,6 +47,9 @@ if lc.get("deep_dive"):
 if lc.get("grc_connection"):
     gc = lc["grc_connection"]
     grc_insight(gc["title"].replace("GRC Engineering: ", ""), gc["content"])
+
+if lc.get("try_this"):
+    try_this_panel(lc["try_this"]["exercises"])
 
 
 def _load_audit():

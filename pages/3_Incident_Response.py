@@ -14,7 +14,9 @@ from cyberresilient.services.learning_service import (
     chart_navigation_guide,
     get_content,
     grc_insight,
+    how_to_use_panel,
     learning_section,
+    try_this_panel,
 )
 from cyberresilient.theme import get_theme_colors
 
@@ -39,6 +41,10 @@ learning_callout(
     "incidents so teams can practice decision-making under pressure.",
 )
 
+if lc.get("how_to_use"):
+    hu = lc["how_to_use"]
+    how_to_use_panel(hu["title"], hu["steps"])
+
 # Case studies (learning mode)
 if lc.get("case_studies"):
     case_study_panel(lc["case_studies"]["cases"])
@@ -52,6 +58,9 @@ if lc.get("navigating_charts"):
     nc = lc["navigating_charts"]
     learning_section(nc["title"], nc["content"], icon="📊")
     chart_navigation_guide(nc.get("charts", []))
+
+if lc.get("try_this"):
+    try_this_panel(lc["try_this"]["exercises"])
 
 # ── Tabs ────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs(

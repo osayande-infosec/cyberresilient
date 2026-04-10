@@ -27,8 +27,10 @@ from cyberresilient.services.learning_service import (
     evidence_mapping_table,
     get_content,
     grc_insight,
+    how_to_use_panel,
     kpi_explanation,
     learning_section,
+    try_this_panel,
 )
 
 # Import risk and compliance services for the new GRC health panel
@@ -82,6 +84,10 @@ learning_callout(
     "The metrics here map to NIST CSF functions and ISO 27001 controls.",
 )
 
+if lc.get("how_to_use"):
+    hu = lc["how_to_use"]
+    how_to_use_panel(hu["title"], hu["steps"])
+
 if lc.get("kpi_deep_dive"):
     learning_section(
         lc["kpi_deep_dive"]["title"],
@@ -95,6 +101,9 @@ if lc.get("navigating_charts"):
     nc = lc["navigating_charts"]
     learning_section(nc["title"], nc["content"], icon="📊")
     chart_navigation_guide(nc.get("charts", []))
+
+if lc.get("try_this"):
+    try_this_panel(lc["try_this"]["exercises"])
 
 # ── GRC Health Alert Strip ───────────────────────────────────
 breach_count = risk_summary.get("appetite_breaches", 0)

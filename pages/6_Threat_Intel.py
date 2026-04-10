@@ -15,7 +15,9 @@ from cyberresilient.services.learning_service import (
     chart_navigation_guide,
     get_content,
     grc_insight,
+    how_to_use_panel,
     learning_section,
+    try_this_panel,
 )
 from cyberresilient.theme import get_theme_colors
 
@@ -449,6 +451,13 @@ with tab3:
         nc = lc["navigating_charts"]
         learning_section(nc["title"], nc["content"], icon="📊")
         chart_navigation_guide(nc["charts"])
+
+    if lc.get("how_to_use"):
+        hu = lc["how_to_use"]
+        how_to_use_panel(hu["title"], hu["steps"])
+
+    if lc.get("try_this"):
+        try_this_panel(lc["try_this"]["exercises"])
 
     for tactic, tactic_data in ATTACK_DATA.items():
         techs = tactic_data["techniques"]

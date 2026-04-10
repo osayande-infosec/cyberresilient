@@ -77,6 +77,16 @@ def try_this_panel(exercises: list[str]) -> None:
             st.markdown("")
 
 
+def how_to_use_panel(title: str, steps: list[str]) -> None:
+    """Render a step-by-step guide for using the page."""
+    if not is_learning_mode():
+        return
+    with st.expander(f"\U0001f680 {title}", expanded=False):
+        for i, step in enumerate(steps, 1):
+            st.markdown(f"**Step {i}.** {step}")
+            st.markdown("")
+
+
 def grc_insight(title: str, content: str) -> None:
     """Render a GRC engineering insight panel with distinct styling."""
     if not is_learning_mode():
