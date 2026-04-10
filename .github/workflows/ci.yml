@@ -194,7 +194,7 @@ jobs:
         run: docker build -t cyberresilient:ci .
 
       - name: Trivy container scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: "cyberresilient:ci"
           format: "table"
@@ -202,7 +202,7 @@ jobs:
           exit-code: "0"
 
       - name: Trivy SBOM generation
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: "cyberresilient:ci"
           format: "cyclonedx"
