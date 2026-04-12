@@ -4,7 +4,7 @@
 
 An open-source, hands-on cybersecurity training platform built with Streamlit. Practice real-world security operations — from executive dashboards and risk management to incident response tabletops and MITRE ATT&CK threat mapping — in a safe, interactive environment.
 
-**Live Demo:** [cyberresilient.osayandeagbonkpolor.com](https://cyberresilient.osayandeagbonkpolor.com)
+**Live Demo:** [cyberresilient.streamlit.app](https://cyberresilient.streamlit.app)
 
 ---
 
